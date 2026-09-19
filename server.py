@@ -31,7 +31,9 @@ HISTORIAL_DIR = os.path.join(DIRECTORY, "historial")
 CHATS_DIR = os.path.join(HISTORIAL_DIR, "chats")
 TEMPLATE_DIR = os.path.join(HISTORIAL_DIR, "plantillas")
 KNOWLEDGE_DIR = os.path.join(HISTORIAL_DIR, "base_conocimiento")
-PORT = 8000
+PORT = int(os.environ.get("PRAXIS_PORT", "8000"))
+HOST = os.environ.get("PRAXIS_HOST", "127.0.0.1")
+MAX_REQUEST_BYTES = int(os.environ.get("PRAXIS_MAX_REQUEST_BYTES", str(25 * 1024 * 1024)))
 
 for d in [HISTORIAL_DIR, CHATS_DIR, TEMPLATE_DIR, KNOWLEDGE_DIR]:
     os.makedirs(d, exist_ok=True)
@@ -79,10 +81,21 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
     def end_headers(self):
-        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Origin', 'http://127.0.0.1:8000')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        self.send_header('X-Content-Type-Options', 'nosniff')
+        self.send_header('Referrer-Policy', 'no-referrer')
         super().end_headers()
+
+    def _read_body(self):
+        try:
+            content_len = int(self.headers.get('Content-Length', '0'))
+        except ValueError:
+            raise ValueError('Content-Length inválido')
+        if content_len < 0 or content_len > MAX_REQUEST_BYTES:
+            raise ValueError(f'Payload demasiado grande (máximo {MAX_REQUEST_BYTES} bytes)')
+        return self.rfile.read(content_len)
 
     def do_OPTIONS(self):
         self.send_response(200)
@@ -202,8 +215,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(500, str(e))
 
     def handle_save_draft(self):
-        content_len = int(self.headers.get('Content-Length', 0))
-        post_body = self.rfile.read(content_len)
+        post_body = self._read_body()
         try:
             data = json.loads(post_body.decode('utf-8'))
             saved = draft_manager.save_draft(data)
@@ -283,8 +295,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_delete_chat(self):
         try:
-            content_len = int(self.headers.get('Content-Length', 0))
-            post_body = self.rfile.read(content_len)
+            post_body = self._read_body()
             data = json.loads(post_body.decode('utf-8'))
             chat_id = data.get('chat_id')
             res = chat_manager.delete_chat(chat_id)
@@ -730,7 +741,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
 def run_server():
     os.chdir(DIRECTORY)
     socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("", PORT), PraxisRequestHandler) as httpd:
+    with socketserver.ThreadingTCPServer((HOST, PORT), PraxisRequestHandler) as httpd:
         url = f"http://localhost:{PORT}"
         print("=" * 70)
         print("  PRAXIS V10.0 · SERVIDOR MULTI-CHAT & SIMULACIÓN INTERACTIVA")
