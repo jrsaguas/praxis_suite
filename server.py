@@ -59,6 +59,7 @@ import process_reporter
 import interactive_engine
 import chat_manager
 import investigation_store
+import artifact_command_executor
 import rag_engine
 import refinement_engine
 import cas_verifier
@@ -142,6 +143,8 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_rag_chat_docs()
         elif path == '/api/investigations/version':
             self.handle_register_investigation_version()
+        elif path == '/api/investigations/artifact-command':
+            self.handle_artifact_command()
         elif path == '/api/refine_section':
             self.handle_refine_section()
         elif path == '/api/verify_cas':
@@ -671,6 +674,30 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps({"attachments": items}).encode('utf-8'))
 
+
+    def handle_artifact_command(self):
+        try:
+            data = json.loads(self._read_body().decode('utf-8'))
+            chat_id = data.get('chat_id')
+            folder = data.get('folder')
+            instruction = data.get('instruction', '')
+            if not chat_id or not folder or not instruction:
+                raise ValueError('chat_id, folder e instruction son obligatorios')
+
+            result = artifact_command_executor.execute_artifact_command(
+                chat_manager.CHATS_DIR,
+                chat_id,
+                folder,
+                instruction,
+                title=data.get('title', folder),
+            )
+            status = 200 if result.get('status') == 'ok' else 400
+            self.send_response(status)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+        except Exception as e:
+            self.send_error(500, str(e))
 
     # --- VERSIONADO LÓGICO DE INVESTIGACIONES ---
 
