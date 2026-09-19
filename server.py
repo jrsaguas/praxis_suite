@@ -63,6 +63,7 @@ import artifact_command_executor
 import experience_analyzer
 import experience_store
 import strategy_registry
+import learning_bridge
 import rag_engine
 import refinement_engine
 import cas_verifier
@@ -150,6 +151,8 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_artifact_command()
         elif path == '/api/experience/analyze':
             self.handle_experience_analysis()
+        elif path == '/api/experience/record':
+            self.handle_learning_record()
         elif path == '/api/strategies':
             self.handle_strategy_registry()
         elif path == '/api/refine_section':
@@ -705,6 +708,55 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
         except Exception as e:
             self.send_error(500, str(e))
+
+    def handle_learning_record(self):
+        try:
+            data = json.loads(self._read_body().decode('utf-8'))
+            chat_id = data.get('chat_id')
+            record_data = data.get('record')
+            if not chat_id or not isinstance(record_data, dict):
+                raise ValueError('chat_id y record son obligatorios')
+            from evaluator_orchestrator import LearningRecord, Evaluation, AgentResult
+            evaluation_data = record_data.get('evaluation') or {}
+            evaluation = Evaluation(
+                consistent=bool(evaluation_data.get('consistent')),
+                score=float(evaluation_data.get('score', 0)),
+                errors=tuple(evaluation_data.get('errors', [])),
+                strengths=tuple(evaluation_data.get('strengths', [])),
+                required_retries=tuple(evaluation_data.get('required_retries', [])),
+                recommendation=str(evaluation_data.get('recommendation', 'ACCEPT')),
+                reasons=tuple(evaluation_data.get('reasons', [])),
+            )
+            agents = tuple(
+                AgentResult(
+                    str(a.get('agent', 'unknown')),
+                    a.get('output'),
+                    (),
+                    str(a.get('status', 'COMPLETED')),
+                ) for a in record_data.get('agent_results', [])
+            )
+            record = LearningRecord(
+                record_id=str(record_data.get('record_id', '')),
+                created_at=str(record_data.get('created_at', '')),
+                task_fingerprint=str(record_data.get('task_fingerprint', '')),
+                agent_results=agents,
+                evaluation=evaluation,
+                proposal=None,
+                strategy_id=str(record_data.get('strategy_id', 'baseline-v1')),
+            )
+            saved = learning_bridge.persist_learning_record(
+                chat_manager.CHATS_DIR, chat_id, record,
+                investigation_id=data.get('investigation_id'),
+                version_id=data.get('version_id'),
+                evaluation_profile=data.get('evaluation_profile'),
+                metadata=data.get('metadata'),
+            )
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps(saved, ensure_ascii=False).encode('utf-8'))
+        except Exception as e:
+            self.send_error(400, str(e))
 
     def handle_experience_analysis(self):
         try:
