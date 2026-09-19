@@ -19,6 +19,34 @@ class DocumentRegressionTests(unittest.TestCase):
             self.assertTrue(out.exists())
             self.assertGreater(out.stat().st_size, 1000)
 
+    def test_docx_omml_contains_math_structure_not_literal_latex(self):
+        with tempfile.TemporaryDirectory() as td:
+            md = Path(td) / "math.md"
+            out = Path(td) / "math.docx"
+            md.write_text(
+                "# Matemática\n\n"
+                "$x^2$\n\n"
+                "$\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$\n",
+                encoding="utf-8",
+            )
+            ok, msg = convert_with_python_docx(str(md), str(out))
+            self.assertTrue(ok, msg)
+
+            import zipfile
+            from xml.etree import ElementTree as ET
+
+            with zipfile.ZipFile(out) as zf:
+                document_xml = zf.read("word/document.xml").decode("utf-8")
+
+            self.assertIn("oMath", document_xml)
+            self.assertIn("<m:f>", document_xml)
+            self.assertIn("<m:rad>", document_xml)
+            self.assertIn("<m:sSup>", document_xml)
+            self.assertNotIn(r"\frac", document_xml)
+            self.assertNotIn(r"\sqrt", document_xml)
+            self.assertNotIn(r"\pm", document_xml)
+            ET.fromstring(document_xml)
+
     def test_legacy_doc_is_generated(self):
         with tempfile.TemporaryDirectory() as td:
             md = Path(td) / "sample.md"
