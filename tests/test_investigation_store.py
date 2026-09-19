@@ -43,6 +43,7 @@ class InvestigationStoreTests(unittest.TestCase):
             versions = list_versions(str(chats), "chat-1", "respuesta_001")
             self.assertEqual(len(versions), 1)
             self.assertEqual(versions[0]["source"], "artifact_command")
+            self.assertEqual(versions[0]["commands"], ["genera otro Canvas"])
             saved = json.loads((chat / "conversacion_metadata.json").read_text(encoding="utf-8"))
             self.assertEqual(saved["responses"][0]["version_id"], version["version_id"])
 
