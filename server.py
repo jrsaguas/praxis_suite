@@ -58,6 +58,7 @@ import knowledge_engine
 import process_reporter
 import interactive_engine
 import chat_manager
+import investigation_store
 import rag_engine
 import refinement_engine
 import cas_verifier
@@ -139,6 +140,8 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_rag_arxiv()
         elif path == '/api/rag/chat_docs':
             self.handle_rag_chat_docs()
+        elif path == '/api/investigations/version':
+            self.handle_register_investigation_version()
         elif path == '/api/refine_section':
             self.handle_refine_section()
         elif path == '/api/verify_cas':
@@ -168,6 +171,21 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
         elif path.startswith('/api/chats/'):
             chat_id = unquote(path[len('/api/chats/'):]).strip('/')
             self.handle_get_chat(chat_id)
+        elif path.startswith('/api/investigations/') and path.endswith('/versions'):
+            parts = path[len('/api/investigations/'):].rsplit('/versions', 1)[0].strip('/')
+            bits = parts.split('/', 1)
+            if len(bits) != 2:
+                self.send_error(400, 'Ruta de investigación inválida')
+                return
+            chat_id, folder = unquote(bits[0]), unquote(bits[1])
+            try:
+                versions = investigation_store.list_versions(chat_manager.CHATS_DIR, chat_id, folder)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status':'ok','versions':versions}).encode('utf-8'))
+            except Exception as e:
+                self.send_error(500, str(e))
         elif path == '/api/list_history':
             self.handle_list_history()
         elif path == '/api/knowledge_base':
@@ -653,6 +671,34 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps({"attachments": items}).encode('utf-8'))
 
+
+    # --- VERSIONADO LÓGICO DE INVESTIGACIONES ---
+
+    def handle_register_investigation_version(self):
+        try:
+            data = json.loads(self._read_body().decode('utf-8'))
+            chat_id = data.get('chat_id')
+            folder = data.get('folder')
+            if not chat_id or not folder:
+                raise ValueError('chat_id y folder son obligatorios')
+            version = investigation_store.register_version(
+                chat_manager.CHATS_DIR,
+                chat_id,
+                folder,
+                prompt=data.get('prompt', ''),
+                title=data.get('title', folder),
+                source=data.get('source', 'artifact_command'),
+                parent_version_id=data.get('parent_version_id'),
+                commands=data.get('commands') or [],
+                references=data.get('references') or [],
+                artifact_types=data.get('artifact_types') or [],
+            )
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'ok', 'version': version}).encode('utf-8'))
+        except Exception as e:
+            self.send_error(500, str(e))
 
     # --- RAG ACADÉMICO Y TUNEO DIRIGIDO DE SECCIONES (FASES 5 Y 6) ---
 
