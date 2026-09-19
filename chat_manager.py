@@ -17,6 +17,8 @@ import glob
 import datetime
 import subprocess
 
+from security_utils import validate_component, safe_filename, safe_child_path
+
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 HISTORIAL_DIR = os.path.join(DIRECTORY, "historial")
 CHATS_DIR = os.path.join(HISTORIAL_DIR, "chats")
@@ -80,7 +82,8 @@ def create_chat(title="Nueva Conversación"):
 
 def get_chat(chat_id):
     """Carga los mensajes y entregables de una conversación específica"""
-    chat_dir = os.path.join(CHATS_DIR, chat_id)
+    chat_id = validate_component(chat_id, "chat_id")
+    chat_dir = safe_child_path(CHATS_DIR, chat_id)
     meta_file = os.path.join(chat_dir, "conversacion_metadata.json")
     if not os.path.exists(meta_file):
         return None
@@ -122,7 +125,8 @@ def save_response_to_chat(chat_id, data):
             new_c = create_chat(f"Investigación {title[:30]}")
             chat_id = new_c["id"]
 
-    chat_dir = os.path.join(CHATS_DIR, chat_id)
+    chat_id = validate_component(chat_id, "chat_id")
+    chat_dir = safe_child_path(CHATS_DIR, chat_id)
     meta_file = os.path.join(chat_dir, "conversacion_metadata.json")
     meta = {}
     if os.path.exists(meta_file):
@@ -320,7 +324,8 @@ if __name__ == "__main__":
 def save_checkpoint(chat_id, checkpoint_data):
     """Guarda el estado de ejecución de un pipeline interrumpido o en progreso."""
     if not chat_id: return None
-    chat_dir = os.path.join(CHATS_DIR, chat_id)
+    chat_id = validate_component(chat_id, "chat_id")
+    chat_dir = safe_child_path(CHATS_DIR, chat_id)
     os.makedirs(chat_dir, exist_ok=True)
     cp_file = os.path.join(chat_dir, "checkpoint.json")
     checkpoint_data["updated_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -331,7 +336,8 @@ def save_checkpoint(chat_id, checkpoint_data):
 def get_checkpoint(chat_id):
     """Obtiene el último checkpoint registrado para el chat."""
     if not chat_id: return None
-    cp_file = os.path.join(CHATS_DIR, chat_id, "checkpoint.json")
+    chat_id = validate_component(chat_id, "chat_id")
+    cp_file = os.path.join(safe_child_path(CHATS_DIR, chat_id), "checkpoint.json")
     if not os.path.exists(cp_file): return None
     try:
         with open(cp_file, "r", encoding="utf-8") as f:
@@ -342,15 +348,18 @@ def get_checkpoint(chat_id):
 def clear_checkpoint(chat_id):
     """Elimina el checkpoint tras completar el flujo exitosamente."""
     if not chat_id: return
-    cp_file = os.path.join(CHATS_DIR, chat_id, "checkpoint.json")
+    chat_id = validate_component(chat_id, "chat_id")
+    cp_file = os.path.join(safe_child_path(CHATS_DIR, chat_id), "checkpoint.json")
     if os.path.exists(cp_file):
         try: os.remove(cp_file)
         except Exception: pass
 
 def get_response_detail(chat_id, folder_name):
     """Obtiene el contenido completo (HTML, MD, rutas) de una investigación pasada."""
-    chat_dir = os.path.join(CHATS_DIR, chat_id)
-    resp_path = os.path.join(chat_dir, folder_name)
+    chat_id = validate_component(chat_id, "chat_id")
+    folder_name = validate_component(folder_name, "folder_name")
+    chat_dir = safe_child_path(CHATS_DIR, chat_id)
+    resp_path = safe_child_path(chat_dir, folder_name)
     if not os.path.exists(resp_path): return None
 
     doc_dir = os.path.join(resp_path, "entregables", "documentos")
@@ -435,10 +444,11 @@ def save_chat_attachment(chat_id, filename, file_bytes):
     """Guarda un archivo subido por el usuario en la carpeta específica del chat."""
     if not chat_id:
         chat_id = "general"
-    upload_dir = os.path.join(CHATS_DIR, chat_id, "archivos_cargados")
+    chat_id = validate_component(chat_id, "chat_id")
+    safe_fn = safe_filename(filename)
+    upload_dir = safe_child_path(CHATS_DIR, chat_id, "archivos_cargados")
     os.makedirs(upload_dir, exist_ok=True)
-    safe_fn = "".join([c if c.isalnum() or c in "._- " else "_" for c in filename])
-    dest_path = os.path.join(upload_dir, safe_fn)
+    dest_path = safe_child_path(upload_dir, safe_fn)
     with open(dest_path, "wb") as f:
         f.write(file_bytes)
     return {
