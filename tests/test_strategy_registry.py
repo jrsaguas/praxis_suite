@@ -35,6 +35,7 @@ class StrategyRegistryTests(unittest.TestCase):
             passed_tests=["t1", "t2"], regressions=["visualization"]
         )
         self.assertFalse(regressed.approved)
+        self.assertEqual(regressed.regressions, ("visualization",))
 
     def test_registry_promotes_only_approved_decision(self):
         with tempfile.TemporaryDirectory() as tmp:
