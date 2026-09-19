@@ -26,17 +26,9 @@ import urllib.error
 import webbrowser
 from urllib.parse import urlparse, unquote
 
-DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-HISTORIAL_DIR = os.path.join(DIRECTORY, "historial")
-CHATS_DIR = os.path.join(HISTORIAL_DIR, "chats")
-TEMPLATE_DIR = os.path.join(HISTORIAL_DIR, "plantillas")
-KNOWLEDGE_DIR = os.path.join(HISTORIAL_DIR, "base_conocimiento")
-PORT = int(os.environ.get("PRAXIS_PORT", "8000"))
-HOST = os.environ.get("PRAXIS_HOST", "127.0.0.1")
-MAX_REQUEST_BYTES = int(os.environ.get("PRAXIS_MAX_REQUEST_BYTES", str(25 * 1024 * 1024)))
+from config import BASE_DIR as DIRECTORY, HISTORIAL_DIR, CHATS_DIR, TEMPLATE_DIR, KNOWLEDGE_DIR, PORT, HOST, MAX_REQUEST_BYTES, ALLOWED_ORIGINS, ensure_directories
 
-for d in [HISTORIAL_DIR, CHATS_DIR, TEMPLATE_DIR, KNOWLEDGE_DIR]:
-    os.makedirs(d, exist_ok=True)
+ensure_directories()
 
 # Importar módulos auxiliares locales
 sys.path.insert(0, DIRECTORY)
@@ -82,7 +74,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def end_headers(self):
         origin = self.headers.get('Origin', '')
-        allowed_origins = {'http://127.0.0.1:8000', 'http://localhost:8000'}
+        allowed_origins = ALLOWED_ORIGINS
         if origin in allowed_origins:
             self.send_header('Access-Control-Allow-Origin', origin)
             self.send_header('Vary', 'Origin')
