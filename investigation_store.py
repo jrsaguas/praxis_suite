@@ -56,6 +56,7 @@ def register_version(
     commands: Optional[list[str]] = None,
     references: Optional[list[str]] = None,
     artifact_types: Optional[list[str]] = None,
+    status: str = "succeeded",
 ) -> Dict[str, Any]:
     meta = _load(chats_dir, chat_id)
     response = get_response(meta, folder)
@@ -76,6 +77,7 @@ def register_version(
         commands=commands,
         references=references,
         artifact_types=artifact_types or response.get("artifact_types", []),
+        status=status,
     )
     response["version_id"] = version.version_id
     response["parent_version_id"] = version.parent_version_id
