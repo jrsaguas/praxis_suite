@@ -1,5 +1,4 @@
 import unittest
-import sympy as sp
 
 from cas_verifier import verify_mathematical_derivation
 
@@ -20,7 +19,7 @@ class CASVerifierTests(unittest.TestCase):
 
     def test_matrix_is_verified(self):
         result = verify_mathematical_derivation(
-            user_prompt=r"Sea A = egin{pmatrix} 0 & 1 \ -4 & 0 end{pmatrix}"
+            user_prompt=r"Sea A = \begin{pmatrix} 0 & 1 \\ -4 & 0 \end{pmatrix}"
         )
         self.assertEqual(result["estado_global"], "VALIDADO_CAS")
 
