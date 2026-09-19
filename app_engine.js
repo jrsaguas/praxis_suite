@@ -1169,15 +1169,33 @@ function classifyInputIntent(text) {
   const t = (text || '').trim();
   const tLower = t.toLowerCase();
 
+  // 0. Meta-comandos sobre una investigación existente.
+  // IMPORTANTE: estos comandos NO deben entrar al pipeline matemático.
+  // El texto "continúa el paso 3" es una orden de control, no un ejercicio.
+  const stageMatch = tLower.match(/(?:contin[uú]a|reanuda|retoma|sigue|destraba)\\s+(?:el\\s+)?(?:paso|fase|etapa)\\s*#?\\s*(\\d+)/i);
+  if (stageMatch) {
+    const n = Number(stageMatch[1]);
+    if (n >= 1 && n <= 8) return { type: 'CMD_RESUME_STAGE', stage: n };
+  }
+
   // 1. Comandos de Continuación / Reanudación / Destrabe
-  if (/(contin[uú]a|seguir|reanuda|destraba|ejecuta.*espera|retomar|proceso.*incompleto|quedaron en espera)/i.test(tLower)) {
+  if (/^(?:contin[uú]a|seguir|reanuda|retoma|sigue|destraba)(?:\\s+(?:el\\s+)?(?:proceso|análisis|analisis|trabajo|investigación|investigacion))?[.!]?$/i.test(tLower)
+      || /(?:proceso|an[aá]lisis|investigaci[oó]n).*(?:incompleto|pendiente|en espera)/i.test(tLower)) {
     return { type: 'CMD_RESUME' };
   }
 
   // 2. Comandos de Reintento de Paso Específico
-  const retryMatch = tLower.match(/(reintenta|repetir|volver a correr)\s*(paso|fase|etapa)?\s*([a-zA-Z0-9áéíóú]+)?/i);
+  const retryMatch = tLower.match(/(?:reintenta|repetir|volver a correr)\\s*(?:el\\s+)?(?:paso|fase|etapa)?\\s*#?\\s*([a-zA-Z0-9áéíóú]+)/i);
   if (retryMatch) {
-    return { type: 'CMD_RETRY', target: retryMatch[3] || 'failed' };
+    return { type: 'CMD_RETRY', target: retryMatch[1] || 'failed' };
+  }
+
+  // 2b. Edición de un artefacto/investigación existente.
+  // Por ahora solo clasifica y aísla la intención; la capa de ejecución
+  // evolucionará hacia versionado + agente de artefactos sin tocar el pipeline.
+  if (/(genera|crea|haz|añade|agrega|corrige|arregla|repara|modifica|actualiza|regenera)\\b.*\\b(canvas|simulador|figura|figuras|imagen|imágenes|artefacto|investigaci[oó]n|documento)/i.test(tLower)
+      && /(otra|otro|nueva|nuevo|m[aá]s|adicional|correg|arreg|repar|modific|actualiz|regener)/i.test(tLower)) {
+    return { type: 'CMD_ARTIFACT_EDIT', instruction: t };
   }
 
   // 3. Comandos de Exportación Directa
@@ -1206,8 +1224,16 @@ function classifyInputIntent(text) {
   if (/(abrir|abre|mostrar|ver)\s*(mimetizar|pdf)/i.test(tLower)) return { type: 'CMD_UI', modal: 'pdf' };
 
   // 7. Conversación General / Saludo
-  if (/^(hola|buenos d[ií]as|buenas tardes|buenas noches|qu[eé] puedes hacer|ayuda|qui[eé]n eres)/i.test(tLower) && t.length < 50) {
+  if (/^(hola|buenos d[ií]as|buenas tardes|buenas noches|qu[eé] puedes hacer|ayuda|qui[eé]n eres)\\b/i.test(tLower) && t.length < 80) {
     return { type: 'CONVERSATIONAL', text: t };
+  }
+
+  // Si ya existe una investigación activa, una instrucción claramente
+  // orientada a modificarla no debe reinterpretarse como un nuevo ejercicio.
+  // El ejecutor de artefactos será una capa independiente del pipeline.
+  if (S.lastRun && /(continúa|continua|sigue|ahora|después|despues|sobre esta|esta investigación|este documento)/i.test(tLower)
+      && !/(resuelve|demuestra|calcula|determina|encuentra|prueba que)/i.test(tLower)) {
+    return { type: 'CMD_ARTIFACT_EDIT', instruction: t };
   }
 
   // Por defecto: Ejercicio o Investigación Matemática Profunda
@@ -1310,9 +1336,34 @@ async function handleSpecialIntent(intent) {
     await window.handleRefineSection(sec, intent.instruction);
     return;
   }
+  if (intent.type === 'CMD_RESUME_STAGE') {
+    const stageOrder = ['plan', 'resolve', 'theory', 'figures', 'modeling', 'research', 'report', 'md'];
+    const stageId = stageOrder[intent.stage - 1];
+    if (!stageId) return;
+    toast('⚙️ Continuando específicamente desde el paso ' + intent.stage + ' (' + stageId + ')…');
+    if (!S.currentRun && !S.currentCheckpoint?.run) {
+      // Intento de recuperación desde disco antes de declarar que no hay estado.
+      await window.resumePipelineFromCheckpoint();
+      return;
+    }
+    await window.retrySingleStage(stageId);
+    return;
+  }
   if (intent.type === 'CMD_RESUME') {
     toast('⚙️ Instrucción de sistema: Reanudando procesos pendientes...');
     await window.resumePipelineFromCheckpoint();
+    return;
+  }
+  if (intent.type === 'CMD_ARTIFACT_EDIT') {
+    // Barrera explícita: nunca llamar al pipeline matemático con este prompt.
+    // Se conserva como intención para la futura capa de versionado/artefactos.
+    window.pendingArtifactCommand = {
+      instruction: intent.instruction,
+      chatId: S.activeChatId,
+      folder: S.lastRun?.folder || S.lastRun?.response_folder || localStorage.getItem('praxis_active_folder') || null,
+      timestamp: new Date().toISOString()
+    };
+    renderArtifactCommandNotice(intent.instruction);
     return;
   }
   if (intent.type === 'CMD_RETRY') {
@@ -1358,6 +1409,26 @@ async function handleSpecialIntent(intent) {
     renderConversationalResponse(intent.text);
     return;
   }
+}
+
+function renderArtifactCommandNotice(userText) {
+  const wrap = $('#stageWrap');
+  if (!wrap) return;
+  const target = S.lastRun?.plan?.titulo || localStorage.getItem('praxis_active_folder') || 'investigación activa';
+  wrap.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:12px;padding:20px;max-width:820px;margin:20px auto;box-shadow:var(--sh1);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:22px;">🧩</span>
+        <b style="font-size:15px;color:var(--brand);">Comando sobre investigación existente</b>
+      </div>
+      <p style="margin:0 0 10px;color:var(--ink-2);font-size:13px;">
+        La instrucción fue reconocida como una modificación de la investigación actual y <b>no fue enviada al pipeline matemático</b>.
+      </p>
+      <div style="padding:10px;background:var(--paper-2);border:1px solid var(--line-2);border-radius:8px;font-family:var(--mono);font-size:11.5px;white-space:pre-wrap;">${esc(userText)}</div>
+      <div style="margin-top:10px;color:var(--muted);font-size:11px;">
+        Objetivo detectado: ${esc(target)} · pendiente de ejecución por la futura capa de artefactos/versionado.
+      </div>
+    </div>`;
 }
 
 function renderConversationalResponse(userText) {
