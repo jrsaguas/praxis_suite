@@ -86,6 +86,9 @@ class EvaluationOrchestrator:
                 strengths.append("CAS validó una o más afirmaciones.")
         if rag and not rag.evidence:
             reasons.append("No se aportó evidencia RAG.")
+        if cas and isinstance(cas.output, dict) and cas.output.get("estado_global") == "NO_VALIDADO_CAS":
+            # CAS no valida toda respuesta; solo impide certificar una afirmación que requiere CAS.
+            reasons.append("CAS quedó inconcluso; se requiere evidencia adicional antes de certificar.")
         consistent = not errors
         score = max(0.0, min(1.0, 1.0 - 0.2 * len(errors)))
         return Evaluation(
@@ -128,7 +131,7 @@ class EvaluationOrchestrator:
             strategy_id = f"retry-v{attempt + 2}"
 
         proposal = None
-        if not evaluation.consistent:
+        if not evaluation.consistent or history[-1]["attempt"] > 0:
             proposal = ImprovementProposal(
                 target="answer_pipeline",
                 reason="Repeated evaluation failures",
