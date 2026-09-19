@@ -88,16 +88,23 @@ def evaluate_promotion(
     candidate_score: float,
     passed_tests: Iterable[str],
     min_improvement: float = 0.02,
+    regressions: Iterable[str] = (),
+    max_regressions: int = 0,
 ) -> PromotionDecision:
     passed = tuple(dict.fromkeys(str(x) for x in passed_tests))
     required = tuple(strategy.required_tests)
     missing = [test for test in required if test not in passed]
     improvement = float(candidate_score) - float(baseline_score)
-    approved = not missing and improvement >= float(min_improvement)
+    regression_list = tuple(dict.fromkeys(str(x) for x in regressions))
+    approved = (
+        not missing
+        and improvement >= float(min_improvement)
+        and len(regression_list) <= int(max_regressions)
+    )
     reason = (
-        "cumple pruebas y mejora mínima"
+        "cumple pruebas, mejora mínima y límite de regresiones"
         if approved
-        else "no cumple el umbral de promoción"
+        else "no cumple el umbral de promoción o presenta regresiones"
     )
     return PromotionDecision(
         strategy_id=strategy.strategy_id,
