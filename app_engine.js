@@ -1355,15 +1355,45 @@ async function handleSpecialIntent(intent) {
     return;
   }
   if (intent.type === 'CMD_ARTIFACT_EDIT') {
-    // Barrera explícita: nunca llamar al pipeline matemático con este prompt.
-    // Se conserva como intención para la futura capa de versionado/artefactos.
+    // Barrera explícita: este comando NUNCA entra al pipeline matemático.
+    // Se registra como evolución de la investigación existente.
+    const folder = S.lastRun?.folder || S.lastRun?.response_folder ||
+      localStorage.getItem('praxis_active_folder') || null;
+    const chatId = S.activeChatId;
     window.pendingArtifactCommand = {
       instruction: intent.instruction,
-      chatId: S.activeChatId,
-      folder: S.lastRun?.folder || S.lastRun?.response_folder || localStorage.getItem('praxis_active_folder') || null,
+      chatId,
+      folder,
       timestamp: new Date().toISOString()
     };
-    renderArtifactCommandNotice(intent.instruction);
+    if (!chatId || !folder) {
+      renderArtifactCommandNotice(intent.instruction, 'No hay una investigación activa identificable todavía.');
+      return;
+    }
+    try {
+      const resp = await fetch('/api/investigations/version', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          folder,
+          prompt: intent.instruction,
+          title: S.lastRun?.plan?.titulo || folder,
+          source: 'artifact_command',
+          commands: [intent.instruction],
+          artifact_types: ['md', 'html', 'docx', 'doc']
+        })
+      });
+      const data = await resp.json();
+      if (!resp.ok || data.status !== 'ok') throw new Error(data.error || 'No se pudo registrar la versión');
+      window.pendingArtifactCommand.version = data.version;
+      renderArtifactCommandNotice(
+        intent.instruction,
+        'Comando registrado como nueva versión lógica. La ejecución del artefacto queda aislada del pipeline matemático.'
+      );
+    } catch (err) {
+      renderArtifactCommandNotice(intent.instruction, 'No se pudo registrar la versión: ' + err.message);
+    }
     return;
   }
   if (intent.type === 'CMD_RETRY') {
@@ -1411,7 +1441,7 @@ async function handleSpecialIntent(intent) {
   }
 }
 
-function renderArtifactCommandNotice(userText) {
+function renderArtifactCommandNotice(userText, statusText) {
   const wrap = $('#stageWrap');
   if (!wrap) return;
   const target = S.lastRun?.plan?.titulo || localStorage.getItem('praxis_active_folder') || 'investigación activa';
@@ -1426,7 +1456,7 @@ function renderArtifactCommandNotice(userText) {
       </p>
       <div style="padding:10px;background:var(--paper-2);border:1px solid var(--line-2);border-radius:8px;font-family:var(--mono);font-size:11.5px;white-space:pre-wrap;">${esc(userText)}</div>
       <div style="margin-top:10px;color:var(--muted);font-size:11px;">
-        Objetivo detectado: ${esc(target)} · pendiente de ejecución por la futura capa de artefactos/versionado.
+        Objetivo detectado: ${esc(target)} · ${esc(statusText || 'pendiente de ejecución por la capa de artefactos/versionado')}
       </div>
     </div>`;
 }
