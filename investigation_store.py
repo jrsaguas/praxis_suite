@@ -31,8 +31,10 @@ def _load(chats_dir: str, chat_id: str) -> Dict[str, Any]:
 
 def _save(chats_dir: str, chat_id: str, meta: Dict[str, Any]) -> None:
     path = _meta_path(chats_dir, chat_id)
-    with open(path, "w", encoding="utf-8") as fh:
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
         json.dump(meta, fh, ensure_ascii=False, indent=2)
+    os.replace(tmp, path)
 
 
 def get_response(meta: Dict[str, Any], folder: str) -> Optional[Dict[str, Any]]:
