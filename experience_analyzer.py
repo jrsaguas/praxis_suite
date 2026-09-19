@@ -162,3 +162,30 @@ def build_strategy_candidate(
         metrics=metrics,
         source="experience-analysis",
     )
+
+
+def select_references_with_preferences(records, query, preferences, *, limit=5):
+    """Select references using semantic similarity plus user preference fit."""
+    from preference_profiles import PreferenceProfile
+    if not isinstance(preferences, PreferenceProfile):
+        raise TypeError("preferences must be a PreferenceProfile")
+    candidates = select_references(records, query, limit=max(20, limit))
+    rescored = []
+    for candidate in candidates:
+        record = next((r for r in records if r.get("version_id") == candidate.version_id), None)
+        profile_data = (record or {}).get("evaluation_profile") or {}
+        if profile_data:
+            from preference_profiles import preference_from_dict
+            # evaluation_profile is raw dimension data, not preference data.
+            from investigation_model import EvaluationProfile
+            evaluation = EvaluationProfile(**{d: int(profile_data.get(d, 0)) for d in EvaluationProfile.__dataclass_fields__})
+            fit = preferences.score(evaluation) / 100.0
+        else:
+            fit = candidate.score
+        rescored.append((0.55 * candidate.relevance + 0.45 * fit, candidate, fit))
+    rescored.sort(key=lambda item: item[0], reverse=True)
+    return [
+        ReferenceCandidate(c.investigation_id, c.version_id, round(score, 4),
+                           c.reason + f"; preference_fit={fit:.3f}", c.score)
+        for score, c, fit in rescored[:max(1, int(limit))]
+    ]
