@@ -129,3 +129,36 @@ def fuse_reference_patterns(
         "strategy": "reference-fusion-v1",
         "guardrail": "analysis-only; requires explicit promotion gate",
     }
+
+
+def build_strategy_candidate(
+    references: Iterable[ReferenceCandidate],
+    patterns: Iterable[Pattern],
+    *,
+    name: str = "reference-fusion-v1",
+    objective: str = "Reutilizar patrones de experiencias relevantes sin alterar automáticamente el comportamiento.",
+):
+    """Turn analyzed evidence into a registry candidate; never promotes it."""
+    from strategy_registry import create_candidate
+
+    refs = list(references)
+    pats = list(patterns)
+    rules = [f"considerar patrón: {p.key}" for p in pats if p.accept_rate > 0]
+    rules.extend(f"consultar referencia: {r.investigation_id}/{r.version_id}" for r in refs)
+    evidence = [*map(lambda r: r.version_id, refs), *[e for p in pats for e in p.evidence]]
+    metrics = {
+        "reference_count": float(len(refs)),
+        "pattern_count": float(len(pats)),
+        "mean_reference_score": round(sum(r.score for r in refs) / len(refs), 4) if refs else 0.0,
+    }
+    if not rules:
+        raise ValueError("No hay evidencia suficiente para construir una estrategia candidata.")
+    return create_candidate(
+        name=name,
+        objective=objective,
+        rules=rules,
+        required_tests=("strategy-regression", "artifact-regression"),
+        evidence_ids=evidence,
+        metrics=metrics,
+        source="experience-analysis",
+    )
