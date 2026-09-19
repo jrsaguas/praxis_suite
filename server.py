@@ -81,7 +81,11 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
     def end_headers(self):
-        self.send_header('Access-Control-Allow-Origin', 'http://127.0.0.1:8000')
+        origin = self.headers.get('Origin', '')
+        allowed_origins = {'http://127.0.0.1:8000', 'http://localhost:8000'}
+        if origin in allowed_origins:
+            self.send_header('Access-Control-Allow-Origin', origin)
+            self.send_header('Vary', 'Origin')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         self.send_header('X-Content-Type-Options', 'nosniff')
@@ -227,8 +231,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(500, str(e))
 
     def handle_compile_draft(self):
-        content_len = int(self.headers.get('Content-Length', 0))
-        post_body = self.rfile.read(content_len)
+        post_body = self._read_body()
         try:
             data = json.loads(post_body.decode('utf-8'))
             draft_id = data.get('draft_id')
@@ -241,8 +244,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(500, str(e))
 
     def handle_save_draft_as_template(self):
-        content_len = int(self.headers.get('Content-Length', 0))
-        post_body = self.rfile.read(content_len)
+        post_body = self._read_body()
         try:
             data = json.loads(post_body.decode('utf-8'))
             draft_id = data.get('draft_id')
@@ -256,8 +258,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(500, str(e))
 
     def handle_mimic_pdf(self):
-        content_len = int(self.headers.get('Content-Length', 0))
-        post_body = self.rfile.read(content_len)
+        post_body = self._read_body()
         try:
             import base64
             data = json.loads(post_body.decode('utf-8'))
@@ -308,8 +309,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_delete_response(self):
         try:
-            content_len = int(self.headers.get('Content-Length', 0))
-            post_body = self.rfile.read(content_len)
+            post_body = self._read_body()
             data = json.loads(post_body.decode('utf-8'))
             chat_id = data.get('chat_id')
             folder = data.get('folder')
@@ -323,8 +323,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_create_chat(self):
         """Crea una nueva conversación independiente"""
-        content_len = int(self.headers.get('Content-Length', 0))
-        post_body = self.rfile.read(content_len)
+        post_body = self._read_body()
         try:
             data = json.loads(post_body.decode('utf-8')) if post_body else {}
             title = data.get('title', 'Nueva Conversación')
@@ -352,8 +351,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_query_other_chats(self):
         """Puente Epistémico: Recupera datos semánticos de otras conversaciones"""
-        content_len = int(self.headers.get('Content-Length', 0))
-        post_body = self.rfile.read(content_len)
+        post_body = self._read_body()
         try:
             data = json.loads(post_body.decode('utf-8')) if post_body else {}
             query = data.get('query', '')
@@ -374,8 +372,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
         historial/chats/[id_chat]/respuesta_[n]_[titulo]/
         generando docx, doc, md, html, imágenes, py, simulador.html y auditoría.
         """
-        content_len = int(self.headers.get('Content-Length', 0))
-        post_body = self.rfile.read(content_len)
+        post_body = self._read_body()
         try:
             data = json.loads(post_body.decode('utf-8'))
             chat_id = data.get('chat_id')
@@ -391,8 +388,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
     # --- EXPORTACIONES WORD ---
 
     def handle_export_docx(self):
-        content_len = int(self.headers.get('Content-Length', 0))
-        post_body = self.rfile.read(content_len)
+        post_body = self._read_body()
         try:
             data = json.loads(post_body.decode('utf-8'))
             title = data.get('title', 'informe').strip()
@@ -430,8 +426,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(500, str(e))
 
     def handle_export_doc(self):
-        content_len = int(self.headers.get('Content-Length', 0))
-        post_body = self.rfile.read(content_len)
+        post_body = self._read_body()
         try:
             data = json.loads(post_body.decode('utf-8'))
             title = data.get('title', 'informe').strip()
@@ -469,8 +464,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
     # --- BASE DE CONOCIMIENTO Y PLANTILLAS ---
 
     def handle_get_knowledge_context(self):
-        content_len = int(self.headers.get('Content-Length', 0))
-        post_body = self.rfile.read(content_len)
+        post_body = self._read_body()
         try:
             data = json.loads(post_body.decode('utf-8'))
             query = data.get('query', '')
@@ -554,8 +548,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({"models": [], "status": "offline", "error": str(e)}).encode('utf-8'))
 
     def handle_ollama_chat(self):
-        content_len = int(self.headers.get('Content-Length', 0))
-        post_body = self.rfile.read(content_len)
+        post_body = self._read_body()
         try:
             req = urllib.request.Request(
                 "http://127.0.0.1:11434/api/chat",
@@ -615,8 +608,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_save_checkpoint(self):
         try:
-            content_len = int(self.headers.get('Content-Length', 0))
-            post_body = self.rfile.read(content_len)
+            post_body = self._read_body()
             data = json.loads(post_body.decode('utf-8'))
             chat_id = data.get('chat_id')
             checkpoint = data.get('checkpoint', {})
@@ -648,8 +640,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
     def handle_upload_attachment(self):
         try:
             import base64
-            content_len = int(self.headers.get('Content-Length', 0))
-            post_body = self.rfile.read(content_len)
+            post_body = self._read_body()
             data = json.loads(post_body.decode('utf-8'))
             chat_id = data.get('chat_id', 'general')
             filename = data.get('filename', 'archivo_adjunto')
@@ -675,8 +666,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_rag_arxiv(self):
         try:
-            content_len = int(self.headers.get('Content-Length', 0))
-            post_body = self.rfile.read(content_len)
+            post_body = self._read_body()
             data = json.loads(post_body.decode('utf-8'))
             query = data.get('query', '')
             max_results = data.get('max_results', 4)
@@ -690,8 +680,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_rag_chat_docs(self):
         try:
-            content_len = int(self.headers.get('Content-Length', 0))
-            post_body = self.rfile.read(content_len)
+            post_body = self._read_body()
             data = json.loads(post_body.decode('utf-8'))
             chat_id = data.get('chat_id')
             query = data.get('query', '')
@@ -705,8 +694,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_refine_section(self):
         try:
-            content_len = int(self.headers.get('Content-Length', 0))
-            post_body = self.rfile.read(content_len)
+            post_body = self._read_body()
             data = json.loads(post_body.decode('utf-8'))
             chat_id = data.get('chat_id')
             folder = data.get('folder')
@@ -724,8 +712,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_verify_cas(self):
         try:
-            content_len = int(self.headers.get('Content-Length', 0))
-            post_body = self.rfile.read(content_len)
+            post_body = self._read_body()
             data = json.loads(post_body.decode('utf-8'))
             steps = data.get('steps', [])
             res = data.get('final_result', '')
