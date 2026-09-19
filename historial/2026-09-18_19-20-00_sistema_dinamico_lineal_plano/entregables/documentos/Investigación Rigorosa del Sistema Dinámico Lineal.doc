@@ -1,0 +1,24 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns:m='http://schemas.openxmlformats.org/officeDocument/2006/math' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Investigación Rigorosa del Sistema Dinámico Lineal Plano: X' = A X</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]--><style>@page { size: 21.59cm 27.94cm; margin: 2.54cm; } body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.35; color: #171d29; } h1, h2, h3, h4 { font-family: Georgia, serif; }</style></head><body><h1 style='font-family:Georgia,serif;font-size:20pt;color:#1a73e8;margin-top:18pt;margin-bottom:8pt;'>Investigación Rigorosa del Sistema Dinámico Lineal Plano: $X' = A X$</h1>
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>1. Estrategia</h2>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>La estrategia analítica consiste en reformular el problema clásico como un sistema dinámico lineal en espacios de Banach y aplicar la teoría espectral. Primero, calcularemos el polinomio característico de la matriz <math xmlns='http://www.w3.org/1998/Math/MathML'><mrow><mi>A</mi></mrow></math> para obtener su espectro <math xmlns='http://www.w3.org/1998/Math/MathML'><mrow><mi>\sigma(A)</mi></mrow></math>. A continuación, dado que <math xmlns='http://www.w3.org/1998/Math/MathML'><mrow><mi>A</mi></mrow></math> carece de valores propios reales, utilizaremos la exponencial matricial <math xmlns='http://www.w3.org/1998/Math/MathML'><mrow><mi>e^{At}</mi></mrow></math> mediante la fórmula de Euler para matrices, aprovechando que <math xmlns='http://www.w3.org/1998/Math/MathML'><mrow><mi>A^2 = -I</mi></mrow></math>. Derivaremos la solución general explícita, analizaremos las integrales primas del movimiento para demostrar que las trayectorias son circunferencias concéntricas, y finalmente aplicaremos la teoría de Lyapunov para clasificar el origen como un centro neutro estables en el sentido de Lyapunov pero no asintóticamente estable.</p>
+<br/>
+<h3 style='font-family:Georgia,serif;font-size:12.5pt;color:#171d29;margin-top:10pt;margin-bottom:4pt;'>Resultado analítico obtenido:</h3>
+<div style='text-align:center;margin:14pt 0;'><math xmlns='http://www.w3.org/1998/Math/MathML' display='block'><mrow><mi>X(t) = \begin{pmatrix} \cos(t) & \sin(t) \\ -\sin(t) & \cos(t) \end{pmatrix} X_0, \quad x^2 + y^2 = R^2</mi></mrow></math></div>
+<br/>
+<h3 style='font-family:Georgia,serif;font-size:12.5pt;color:#171d29;margin-top:10pt;margin-bottom:4pt;'>Verificación analítica:</h3>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>Sustituyendo en las EDOs originales: <math xmlns='http://www.w3.org/1998/Math/MathML'><mrow><mi>\frac{d}{dt}[x(t)] = y(t)</mi></mrow></math> y <math xmlns='http://www.w3.org/1998/Math/MathML'><mrow><mi>\frac{d}{dt}[y(t)] = -x(t)</mi></mrow></math>, verificando idénticamente el sistema. La derivada de la función de Lyapunov da cero, confirmando órbitas cerradas.</p>
+<br/>
+<hr style='border:none;border-top:1px solid #cbd5e1;margin:14pt 0;' />
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>2. Marco Teórico</h2>
+<li style='margin-left:18pt;margin-bottom:3pt;'>**Definición: Exponencial de una Matriz:** $e^{A} = \sum_{k=0}^{\infty} \frac{A^k}{k!}$.</li>
+<li style='margin-left:18pt;margin-bottom:3pt;'>**Teorema: Cayley-Hamilton:** $A^2 - \text{tr}(A)A + \det(A)I = 0 \implies A^2 = -I$.</li>
+<li style='margin-left:18pt;margin-bottom:3pt;'>**Definición: Centro Lineal:** $\sigma(A) = \{\pm i\beta\}$. Órbitas periódicas cerradas.</li>
+<li style='margin-left:18pt;margin-bottom:3pt;'>**Teorema: Estabilidad de Lyapunov:** $V(x,y) = \frac{1}{2}(x^2+y^2), \dot{V} \equiv 0$.</li>
+<li style='margin-left:18pt;margin-bottom:3pt;'>**Teorema: Liouville:** Flujo conservativo con $\nabla \cdot F = 0$.</li>
+<br/>
+<hr style='border:none;border-top:1px solid #cbd5e1;margin:14pt 0;' />
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>3. Generalizaciones</h2>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>Sistemas lineales en <math xmlns='http://www.w3.org/1998/Math/MathML'><mrow><mi>\mathbb{R}^n</mi></mrow></math>, forma canónica de Jordan y mecánica hamiltoniana en variedades simplécticas con <math xmlns='http://www.w3.org/1998/Math/MathML'><mrow><mi>\iota_{X_H} \omega = dH</mi></mrow></math>.</p></body></html>

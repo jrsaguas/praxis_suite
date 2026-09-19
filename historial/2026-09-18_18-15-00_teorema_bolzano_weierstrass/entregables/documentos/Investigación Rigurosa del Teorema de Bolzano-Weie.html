@@ -1,0 +1,65 @@
+<!doctype html><html><head><meta charset='utf-8'><title>Investigación Rigurosa del Teorema de Bolzano-Weierstrass en R^n: Compacidad y Completez</title></head><body><pre># Investigación Rigurosa del Teorema de Bolzano-Weierstrass en $\mathbb{R}^n$: Compacidad y Completez
+
+## 1. Estrategia y Planteamiento
+
+La estrategia analítica consiste en establecer el Teorema de Bolzano-Weierstrass en $\mathbb{R}^n$ mediante un enfoque constructivo y riguroso. Primero, se demuestra el lema preliminar para sucesiones acotadas en $\mathbb{R}$ utilizando el axioma del supremo y la extracción de subsucesiones monótonas. A continuación, se extiende el resultado a $\mathbb{R}^n$ empleando el proceso de diagonalización de Cantor para asegurar la convergencia coordenada a coordenada. Finalmente, se discute la equivalencia fundamental entre la compacidad por sucesiones, la compacidad topológica (coberturas abiertas mediante Heine-Borel) y la completez métrica del espacio euclidiano.
+
+### Hipótesis y Supuestos Iniciales
+- El espacio vectorial es $\mathbb{R}^n$ dotado de la norma euclidiana estándar $$\|x\|_2 = \left(\sum_{i=1}^n x_i^2\right)^{1/2}$$.
+- La sucesión $(x_k)_{k=1}^\infty \subset \mathbb{R}^n$ es acotada, es decir, existe una constante $M > 0$ tal que $\|x_k\|_2 \le M$ para todo $k \in \mathbb{N}$.
+
+### Notación
+- $\mathbb{R}^n$: Espacio vectorial euclidiano real de dimensión finita $n$.
+- $\|x\|_2$: Norma euclidiana estándar inducida por el producto interno canónico.
+- $(x_k)_{k=1}^\infty$: Sucesión infinita de puntos en $\mathbb{R}^n$.
+- $B_r(x)$: Bola abierta de radio $r > 0$ centrada en el punto $x$.
+
+---
+
+## 2. Desarrollo Paso a Paso
+
+### Paso 1: Reducción del problema al caso unidimensional en $\mathbb{R}$
+Sea $(x_k)_{k=1}^\infty$ una sucesión acotada en $\mathbb{R}^n$. Cada término de la sucesión puede escribirse mediante sus coordenadas como $x_k = (x_{k,1}, x_{k,2}, \dots, x_{k,n})^T \in \mathbb{R}^n$. Dado que la norma euclidiana es acotada por $M$, se deduce trivialmente que cada componente escalar individual es también acotada. En particular, para cada coordenada $j \in \{1, 2, \dots, n\}$, se cumple la siguiente acotación absoluta:
+
+$$|x_{k,j}| \le \|x_k\|_2 \le M, \quad \forall k \in \mathbb{N}, \quad \forall j \in \{1, 2, \dots, n\}$$
+
+### Paso 2: Aplicación del Lema de Bolzano-Weierstrass para la primera coordenada
+Consideramos la primera componente de los vectores de la sucesión, es decir, la sucesión escalar $(x_{k,1})_{k=1}^\infty \subset \mathbb{R}$. Por el paso anterior, esta sucesión es acotada en $\mathbb{R}$. Por el Teorema de Bolzano-Weierstrass unidimensional, existe una subsucodena $(x_{k_m, 1})_{m=1}^\infty$ que converge a un límite real $L_1$. Denotemos esta primera subsucesión de índices como $\sigma^{(1)} = (k_m^{(1)})_{m=1}^\infty$.
+
+### Paso 3: Proceso inductivo y extracción de subsucesiones anidadas
+Procedemos por inducción finita sobre el número de coordenadas $j = 1, 2, \dots, n$. Iterando este proceso hasta la última coordenada $n$, obtenemos una subsucesión final de índices $\sigma^{(n)}$ tal que cada una de sus $n$ componentes es convergente en $\mathbb{R}$.
+
+$$\lim_{m \to \infty} x_{k_m^{(n)}, j} = L_j, \quad \forall j \in \{1, 2, \dots, n\}$$
+
+### Paso 4: El argumento de diagonalización de Cantor
+Para formalizar la extracción final sin perder convergencia en ninguna coordenada, aplicamos el método diagonal de Cantor tomando $k_m = k_m^{(m)}$.
+
+### Paso 5: Convergencia en la norma euclidiana de $\mathbb{R}^n$
+Definimos el vector límite $L = (L_1, L_2, \dots, L_n)^T \in \mathbb{R}^n$. Demostramos que:
+
+$$\lim_{m \to \infty} \|x_{k_m} - L\|_2^2 = \lim_{m \to \infty} \sum_{j=1}^n (x_{k_m, j} - L_j)^2 = 0$$
+
+### Paso 6: Conexión con la compacidad y completez
+Establece la equivalencia fundamental en $\mathbb{R}^n$:
+
+$$S \subset \mathbb{R}^n \text{ es compacto} \iff S \text{ es cerrado y acotado} \iff S \text{ es secuencialmente compacto}$$
+
+---
+
+## 3. Marco Teórico Formal
+
+> **Definición (Espacio Métrico y Norma Euclidiana):** Un espacio métrico es un par $(X, d)$ donde $d: X \times X \to \mathbb{R}$ cumple los axiomas métricos. En $\mathbb{R}^n$, inducido por $\|x\|_2$.
+> **Demostración:** Desigualdad de Cauchy-Schwarz y análisis del discriminante. Q.E.D. ■
+
+> **Lema (Extracción de Subsucesiones Monótonas):** Toda sucesión real posee una subsucesión monótona (vía análisis del conjunto de picos). Q.E.D. ■
+
+> **Teorema (Bolzano-Weierstrass en $\mathbb{R}^n$):** Toda sucesión acotada en $\mathbb{R}^n$ admite una subsucesión convergente. Q.E.D. ■
+
+> **Teorema (Heine-Borel):** Un subconjunto de $\mathbb{R}^n$ es compacto si y sólo si es cerrado y acotado. Q.E.D. ■
+
+> **Teorema (Riesz):** La bola unitaria cerrada de un espacio normado es compacta por sucesiones si y sólo si el espacio es de dimensión finita. Q.E.D. ■
+
+---
+
+## 4. Investigaciones y Conclusiones
+En espacios de dimensión infinita como $L^p(\Omega)$ o $l^2$, el teorema falla; se recurre a la compacidad débil vía el Teorema de Banach-Alaoglu.</pre></body></html>

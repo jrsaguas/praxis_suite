@@ -1,0 +1,240 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns:m='http://schemas.openxmlformats.org/officeDocument/2006/math' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Investigacion_para_Tunear</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]--><style>@page { size: 21.59cm 27.94cm; margin: 2.54cm; } body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.35; color: #171d29; } h1, h2, h3, h4 { font-family: Georgia, serif; }</style></head><body><h1 style='font-family:Georgia,serif;font-size:20pt;color:#1a73e8;margin-top:18pt;margin-bottom:8pt;'>Oscilador Duffing</h1>
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>1. Estrategia y Planificación</h2>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>Estrategia inicial.</p>
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>2. Deducción Paso a Paso</h2>
+<br/>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>Paso 1: Se aplica la transformacion de coordenadas sin atajos algebraicos.</p>
+<br/>
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>Anexo: Código Fuente del Visualizador Matemático Interactivo (Canvas HTML5)</h2>
+<br/>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>El siguiente código genera el simulador interactivo autónomo con deslizadores paramétricos:</p>
+<br/>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;!doctype html&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;html lang=&quot;es&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;head&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;meta charset=&quot;utf-8&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;title&gt;Investigacion para Tunear · Laboratorio Interactivo Praxis&lt;/title&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;link href=&quot;https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;style&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">:root {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  --bg: #0f172a; --card: #1e293b; --ink: #f8fafc; --muted: #94a3b8;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  --brand: #38bdf8; --accent: #f43f5e; --line: #334155; --canvas-bg: #090d16;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">}</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">* { box-sizing: border-box; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">body { margin: 0; background: var(--bg); color: var(--ink); font-family: &#x27;IBM Plex Sans&#x27;, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.container { width: 100%; max-width: 900px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.header { padding: 18px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.header h1 { margin: 0; font-size: 19px; font-weight: 700; color: var(--brand); }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.header .badge { font-size: 11px; font-weight: 600; background: rgba(56,189,248,0.15); color: var(--brand); padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.canvas-wrap { position: relative; width: 100%; height: 500px; background: var(--canvas-bg); }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">canvas { width: 100%; height: 100%; display: block; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.controls { padding: 20px 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; background: rgba(15,23,42,0.6); border-top: 1px solid var(--line); }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.control-group { display: flex; flex-direction: column; gap: 6px; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.control-group label { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.control-group input[type=range] { width: 100%; accent-color: var(--brand); cursor: pointer; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.actions { padding: 14px 24px; display: flex; gap: 10px; align-items: center; border-top: 1px solid var(--line); background: var(--card); }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.btn { background: var(--brand); color: #090d16; font-weight: 700; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: opacity .2s; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.btn:hover { opacity: 0.9; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.btn.sec { background: #334155; color: var(--ink); }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">.formula-tag { font-family: &#x27;IBM Plex Mono&#x27;, monospace; font-size: 12px; color: var(--brand); margin-left: auto; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;/style&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;/head&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;body&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;div class=&quot;container&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;div class=&quot;header&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;h1&gt;Investigacion para Tunear&lt;/h1&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;span class=&quot;badge&quot;&gt;Simulador Interactivo HTML5 Canvas&lt;/span&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;div class=&quot;canvas-wrap&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;canvas id=&quot;simCanvas&quot;&gt;&lt;/canvas&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;div class=&quot;controls&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    </div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        &lt;div class=&quot;control-group&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">          &lt;label for=&quot;x0&quot;&gt;Condición inicial x(0): &lt;b id=&quot;val_x0&quot;&gt;1.0&lt;/b&gt;&lt;/label&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">          &lt;input type=&quot;range&quot; id=&quot;x0&quot; min=&quot;-3.0&quot; max=&quot;3.0&quot; step=&quot;0.1&quot; value=&quot;1.0&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        &lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        &lt;div class=&quot;control-group&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">          &lt;label for=&quot;y0&quot;&gt;Condición inicial y(0): &lt;b id=&quot;val_y0&quot;&gt;0.0&lt;/b&gt;&lt;/label&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">          &lt;input type=&quot;range&quot; id=&quot;y0&quot; min=&quot;-3.0&quot; max=&quot;3.0&quot; step=&quot;0.1&quot; value=&quot;0.0&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        &lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        &lt;div class=&quot;control-group&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">          &lt;label for=&quot;omega&quot;&gt;Frecuencia angular ω: &lt;b id=&quot;val_omega&quot;&gt;1.0&lt;/b&gt;&lt;/label&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">          &lt;input type=&quot;range&quot; id=&quot;omega&quot; min=&quot;0.1&quot; max=&quot;4.0&quot; step=&quot;0.1&quot; value=&quot;1.0&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        &lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        &lt;div class=&quot;control-group&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">          &lt;label for=&quot;gamma&quot;&gt;Amortiguamiento γ: &lt;b id=&quot;val_gamma&quot;&gt;0.0&lt;/b&gt;&lt;/label&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">          &lt;input type=&quot;range&quot; id=&quot;gamma&quot; min=&quot;-1.0&quot; max=&quot;1.0&quot; step=&quot;0.05&quot; value=&quot;0.0&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        &lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;div class=&quot;actions&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;button class=&quot;btn&quot; id=&quot;playBtn&quot;&gt;⏸ Pausar&lt;/button&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;button class=&quot;btn sec&quot; id=&quot;resetBtn&quot;&gt;↺ Reiniciar Órbita&lt;/button&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;button class=&quot;btn sec&quot; id=&quot;clearBtn&quot;&gt;Limpiar Rastro&lt;/button&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;span class=&quot;formula-tag&quot;&gt;dx/dt = y, dy/dt = -ω²x - γy&lt;/span&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;script&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">(() =&gt; {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  const canvas = document.getElementById(&#x27;simCanvas&#x27;);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  const ctx = canvas.getContext(&#x27;2d&#x27;);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  let width, height, cx, cy;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  const scale = 70; // px por unidad matemática</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  let x0 = 1.0;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">let y0 = 0.0;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">let omega = 1.0;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">let gamma = 0.0;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  let x = x0, y = y0;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  let running = true;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  let trail = [];</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  const maxTrail = 800;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  function resize() {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    width = canvas.width = canvas.parentElement.clientWidth;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    height = canvas.height = canvas.parentElement.clientHeight;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    cx = width / 2;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    cy = height / 2;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  window.addEventListener(&#x27;resize&#x27;, resize);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  resize();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  function toScreen(gx, gy) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    return [cx + gx * scale, cy - gy * scale];</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  function drawGrid() {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.strokeStyle = &#x27;#1e293b&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.lineWidth = 1;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    for (let gx = -10; gx &lt;= 10; gx++) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      const [sx] = toScreen(gx, 0);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, height); ctx.stroke();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    for (let gy = -10; gy &lt;= 10; gy++) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      const [, sy] = toScreen(0, gy);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(width, sy); ctx.stroke();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    // Ejes</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.strokeStyle = &#x27;#475569&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.lineWidth = 2;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(width, cy); ctx.stroke();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, height); ctx.stroke();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  function drawVectorField() {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.strokeStyle = &#x27;rgba(56, 189, 248, 0.15)&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.fillStyle = &#x27;rgba(56, 189, 248, 0.3)&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.lineWidth = 1;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const step = 0.5;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    for (let gx = -4; gx &lt;= 4; gx += step) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      for (let gy = -4; gy &lt;= 4; gy += step) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const vx = gy;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const vy = - (omega * omega) * gx - gamma * gy;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const norm = Math.hypot(vx, vy);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        if (norm &lt; 0.001) continue;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const len = 14;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const [sx, sy] = toScreen(gx, gy);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const ex = sx + (vx / norm) * len;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const ey = sy - (vy / norm) * len;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  function stepRK4(dt) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    function f(px, py) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      return [py, - (omega * omega) * px - gamma * py];</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const [k1x, k1y] = f(x, y);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const [k2x, k2y] = f(x + 0.5 * dt * k1x, y + 0.5 * dt * k1y);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const [k3x, k3y] = f(x + 0.5 * dt * k2x, y + 0.5 * dt * k2y);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const [k4x, k4y] = f(x + dt * k3x, y + dt * k3y);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    x += (dt / 6) * (k1x + 2 * k2x + 2 * k3x + k4x);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    y += (dt / 6) * (k1y + 2 * k2y + 2 * k3y + k4y);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  function resetSimulation() {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    x = x0; y = y0;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    trail = [];</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  function render() {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.fillStyle = &#x27;#090d16&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.fillRect(0, 0, width, height);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    drawGrid();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    drawVectorField();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    if (running) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      for (let i = 0; i &lt; 4; i++) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        stepRK4(0.015);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        trail.push(toScreen(x, y));</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        if (trail.length &gt; maxTrail) trail.shift();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    // Dibujar trayectoria</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    if (trail.length &gt; 1) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      ctx.strokeStyle = &#x27;#38bdf8&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      ctx.lineWidth = 2.5;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      ctx.beginPath();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      ctx.moveTo(trail[0][0], trail[0][1]);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      for (let i = 1; i &lt; trail.length; i++) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        ctx.lineTo(trail[i][0], trail[i][1]);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      ctx.stroke();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    // Punto actual</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const [currX, currY] = toScreen(x, y);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.fillStyle = &#x27;#f43f5e&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.beginPath(); ctx.arc(currX, currY, 6, 0, 2 * Math.PI); ctx.fill();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.strokeStyle = &#x27;#ffffff&#x27;; ctx.lineWidth = 2; ctx.stroke();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    requestAnimationFrame(render);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  </div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  document.getElementById(&#x27;x0&#x27;).addEventListener(&#x27;input&#x27;, (e) =&gt; {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    x0 = parseFloat(e.target.value);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    document.getElementById(&#x27;val_x0&#x27;).innerText = x0.toFixed(2);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    resetSimulation();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  });</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  document.getElementById(&#x27;y0&#x27;).addEventListener(&#x27;input&#x27;, (e) =&gt; {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    y0 = parseFloat(e.target.value);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    document.getElementById(&#x27;val_y0&#x27;).innerText = y0.toFixed(2);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    resetSimulation();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  });</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  document.getElementById(&#x27;omega&#x27;).addEventListener(&#x27;input&#x27;, (e) =&gt; {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    omega = parseFloat(e.target.value);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    document.getElementById(&#x27;val_omega&#x27;).innerText = omega.toFixed(2);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    resetSimulation();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  });</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  document.getElementById(&#x27;gamma&#x27;).addEventListener(&#x27;input&#x27;, (e) =&gt; {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    gamma = parseFloat(e.target.value);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    document.getElementById(&#x27;val_gamma&#x27;).innerText = gamma.toFixed(2);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    resetSimulation();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  });</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  document.getElementById(&#x27;playBtn&#x27;).addEventListener(&#x27;click&#x27;, (e) =&gt; {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    running = !running;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    e.target.innerText = running ? &#x27;⏸ Pausar&#x27; : &#x27;▶ Reanudar&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  });</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  document.getElementById(&#x27;resetBtn&#x27;).addEventListener(&#x27;click&#x27;, resetSimulation);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  document.getElementById(&#x27;clearBtn&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; { trail = []; });</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  render();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">})();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;/script&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;/body&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;/html&gt;</div></body></html>

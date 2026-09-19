@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "titulo": "Investigacion de Sobolev",
+    "consulta_usuario": "Estudiar espacios de Sobolev",
+    "fecha": "2026-09-19 12:41:47",
+    "total_agentes": 0
+  },
+  "trazas_por_agente": {},
+  "refinamientos_ast": [
+    {
+      "seccion": "desarrollo",
+      "nota": "Tuneo de completitud",
+      "fecha": "2026-09-19 12:41:48"
+    }
+  ]
+}

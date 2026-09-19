@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plantilla Base · Transformaciones Lineales y Espectro · Transformación Lineal y Espectro</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #0f172a; --card: #1e293b; --ink: #f8fafc; --muted: #94a3b8; --brand: #38bdf8; --line: #334155; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'IBM Plex Sans', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+.container { width: 100%; max-width: 900px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.header { padding: 18px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.header h1 { margin: 0; font-size: 19px; color: var(--brand); }
+.canvas-wrap { width: 100%; height: 500px; background: #090d16; }
+canvas { width: 100%; height: 100%; display: block; }
+.controls { padding: 18px 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; background: rgba(15,23,42,0.6); }
+.control-group { display: flex; flex-direction: column; gap: 4px; }
+.control-group label { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
+.control-group input[type=range] { accent-color: var(--brand); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Plantilla Base · Transformaciones Lineales y Espectro</h1>
+    <span style="font-family:'IBM Plex Mono',monospace;color:var(--brand);font-size:13px;" id="matDisplay">A = [[0, 1], [-1, 0]]</span>
+  </div>
+  <div class="canvas-wrap"><canvas id="simCanvas"></canvas></div>
+  <div class="controls">
+    <div class="control-group"><label>a₁₁: <b id="val_a11">0.00</b></label><input type="range" id="a11" min="-3" max="3" step="0.1" value="0"></div>
+    <div class="control-group"><label>a₁₂: <b id="val_a12">1.00</b></label><input type="range" id="a12" min="-3" max="3" step="0.1" value="1"></div>
+    <div class="control-group"><label>a₂₁: <b id="val_a21">-1.00</b></label><input type="range" id="a21" min="-3" max="3" step="0.1" value="-1"></div>
+    <div class="control-group"><label>a₂₂: <b id="val_a22">0.00</b></label><input type="range" id="a22" min="-3" max="3" step="0.1" value="0"></div>
+  </div>
+</div>
+<script>
+(() => {
+  const canvas = document.getElementById('simCanvas');
+  const ctx = canvas.getContext('2d');
+  let width, height, cx, cy;
+  const scale = 60;
+  let a11 = 0, a12 = 1, a21 = -1, a22 = 0;
+
+  function resize() {
+    width = canvas.width = canvas.parentElement.clientWidth;
+    height = canvas.height = canvas.parentElement.clientHeight;
+    cx = width / 2; cy = height / 2;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function toScreen(x, y) { return [cx + x * scale, cy - y * scale]; }
+
+  function render() {
+    ctx.fillStyle = '#090d16'; ctx.fillRect(0, 0, width, height);
+
+    // Ejes
+    ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(width, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, height); ctx.stroke();
+
+    // Circulo unitario original
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let th = 0; th <= 2 * Math.PI; th += 0.05) {
+      const [sx, sy] = toScreen(Math.cos(th), Math.sin(th));
+      if (th === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+    }
+    ctx.stroke();
+
+    // Elipse transformada por A
+    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let th = 0; th <= 2 * Math.PI; th += 0.05) {
+      const ox = Math.cos(th), oy = Math.sin(th);
+      const tx = a11 * ox + a12 * oy;
+      const ty = a21 * ox + a22 * oy;
+      const [sx, sy] = toScreen(tx, ty);
+      if (th === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+    }
+    ctx.stroke();
+
+    // Vectores base transformados
+    const [e1x, e1y] = toScreen(a11, a21);
+    const [e2x, e2y] = toScreen(a12, a22);
+    ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(e1x, e1y); ctx.stroke();
+    ctx.strokeStyle = '#10b981'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(e2x, e2y); ctx.stroke();
+
+    requestAnimationFrame(render);
+  }
+
+  ['a11','a12','a21','a22'].forEach(id => {
+    document.getElementById(id).addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      if (id === 'a11') a11 = v; if (id === 'a12') a12 = v;
+      if (id === 'a21') a21 = v; if (id === 'a22') a22 = v;
+      document.getElementById('val_' + id).innerText = v.toFixed(2);
+      document.getElementById('matDisplay').innerText = `A = [[${a11.toFixed(1)}, ${a12.toFixed(1)}], [${a21.toFixed(1)}, ${a22.toFixed(1)}]]`;
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

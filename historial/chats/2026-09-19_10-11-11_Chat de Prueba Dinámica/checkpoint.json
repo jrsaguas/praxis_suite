@@ -1,0 +1,15 @@
+{
+  "stageId": "theory",
+  "run": {
+    "plan": {
+      "titulo": "Prueba Checkpoint"
+    },
+    "resolver": {
+      "pasos": [
+        "Paso 1"
+      ]
+    }
+  },
+  "prompt": "Resolver oscilador amortiguado",
+  "updated_at": "2026-09-19 10:11:11"
+}

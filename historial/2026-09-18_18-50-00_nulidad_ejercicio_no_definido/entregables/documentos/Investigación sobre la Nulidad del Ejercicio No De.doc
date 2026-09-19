@@ -1,0 +1,30 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns:m='http://schemas.openxmlformats.org/officeDocument/2006/math' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Investigación sobre la Nulidad del Ejercicio No Definido</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]--><style>@page { size: 21.59cm 27.94cm; margin: 2.54cm; } body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.35; color: #171d29; } h1, h2, h3, h4 { font-family: Georgia, serif; }</style></head><body><h1 style='font-family:Georgia,serif;font-size:20pt;color:#1a73e8;margin-top:18pt;margin-bottom:8pt;'>Investigación sobre la Nulidad del Ejercicio No Definido</h1>
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>1. Estrategia y Planteamiento</h2>
+<br/>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>La presente investigación aborda el análisis riguroso del comportamiento límite y formal de un sistema carente de restricciones algebraicas iniciales. El objetivo principal es establecer la trivialidad formal y el comportamiento deductivo de un enunciado no especificado bajo el principio de explosión (<math xmlns='http://www.w3.org/1998/Math/MathML'><mrow><mi>ex \ falso \ quodlibet</mi></mrow></math>).</p>
+<br/>
+<h3 style='font-family:Georgia,serif;font-size:12.5pt;color:#171d29;margin-top:10pt;margin-bottom:4pt;'>Hipótesis y Supuestos Iniciales</h3>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>1. El enunciado de entrada pertenece al conjunto vacío <math xmlns='http://www.w3.org/1998/Math/MathML'><mrow><mi>\emptyset</mi></mrow></math>.</p>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>2. El espacio de estados del sistema es trivial, denotado por <math xmlns='http://www.w3.org/1998/Math/MathML'><mrow><mi>X = \emptyset</mi></mrow></math>.</p>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>3. No existe ninguna estructura algebraica, métrica o topológica predefinida.</p>
+<br/>
+<hr style='border:none;border-top:1px solid #cbd5e1;margin:14pt 0;' />
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>2. Desarrollo Paso a Paso</h2>
+<br/>
+<h3 style='font-family:Georgia,serif;font-size:12.5pt;color:#171d29;margin-top:10pt;margin-bottom:4pt;'>Paso 1: Formulación axiomática del estado nulo</h3>
+<div style='text-align:center;margin:14pt 0;'><math xmlns='http://www.w3.org/1998/Math/MathML' display='block'><mrow><mi>\forall x \; \neg(x \in \emptyset)</mi></mrow></math></div>
+<br/>
+<h3 style='font-family:Georgia,serif;font-size:12.5pt;color:#171d29;margin-top:10pt;margin-bottom:4pt;'>Paso 2: Aplicación del Principio de Explosión</h3>
+<div style='text-align:center;margin:14pt 0;'><math xmlns='http://www.w3.org/1998/Math/MathML' display='block'><mrow><mi>\bot \implies P</mi></mrow></math></div>
+<br/>
+<h3 style='font-family:Georgia,serif;font-size:12.5pt;color:#171d29;margin-top:10pt;margin-bottom:4pt;'>Paso 3: Análisis categórico del objeto inicial</h3>
+<div style='text-align:center;margin:14pt 0;'><math xmlns='http://www.w3.org/1998/Math/MathML' display='block'><mrow><mi>! : \emptyset \to A \implies \text{Resultado} = \emptyset \quad \forall P</mi></mrow></math></div>
+<br/>
+<hr style='border:none;border-top:1px solid #cbd5e1;margin:14pt 0;' />
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>3. Marco Teórico Formal</h2>
+<br/>
+<div style='background:#f8fafc;border-left:4px solid #1a73e8;padding:8pt 12pt;margin:8pt 0;font-size:10.5pt;color:#1e293b;'>**Definición (Conjunto Vacío):** Conjunto que no contiene elementos. Q.E.D. ■</div>
+<div style='background:#f8fafc;border-left:4px solid #1a73e8;padding:8pt 12pt;margin:8pt 0;font-size:10.5pt;color:#1e293b;'>**Teorema (Ex Falso Quodlibet):** De una contradicción se sigue cualquier proposición. Q.E.D. ■</div></body></html>

@@ -1,0 +1,9 @@
+{
+  "metadata": {
+    "titulo": "Análisis Dinámico de Órbitas y Estabilidad",
+    "consulta_usuario": "Resolver x' = y, y' = -x y clasificar órbitas.",
+    "fecha": "2026-09-19 05:21:13",
+    "total_agentes": 0
+  },
+  "trazas_por_agente": {}
+}

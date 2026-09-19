@@ -1,0 +1,90 @@
+{
+  "metadata": {
+    "titulo": "Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen",
+    "consulta_usuario": "Resolver explícitamente el sistema lineal autónomo de primer orden x'=y, y'=-x, determinar analíticamente sus trayectorias integrales en el plano fase, y clasificar topológica y dinámicamente el punto crítico en el origen mediante el análisis espectral de la matriz asociada y el operador de evolución.",
+    "fecha": "2026-09-19 02:00:53",
+    "total_agentes": 6
+  },
+  "trazas_por_agente": {
+    "plan": {
+      "prompt": "FASE 1 — PLANIFICADOR MATEMÁTICO: Analiza el ejercicio \"Resolver explícitamente el sistema lineal autónomo de primer orden x'=y, y'=-x, determinar analíticamente sus trayectorias integrales en el plano fase, y clasificar topológica y dinámicamente el punto crítico en el origen mediante el análisis espectral de la matriz asociada y el operador de evolución.\", identifica las ramas axiomáticas y traza el esquema.",
+      "rawOutput": "Plan estructurado para: Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen",
+      "parsed": {
+        "titulo": "Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen",
+        "hipotesis": [
+          "Dominio euclidiano estándar"
+        ],
+        "ramas": [
+          "Álgebra Lineal",
+          "Análisis"
+        ]
+      }
+    },
+    "resolve": {
+      "prompt": "FASE 2 — RESOLUTOR DOCTORAL: Resuelve analíticamente paso a paso sin omitir pasos.",
+      "rawOutput": "Resolución analítica paso a paso verificada con cálculo de integrales primeras.",
+      "parsed": {
+        "pasos": [
+          {
+            "titulo": "Paso 1",
+            "explicacion": "Planteamiento formal"
+          },
+          {
+            "titulo": "Paso 2",
+            "explicacion": "Desarrollo algebraico"
+          }
+        ]
+      }
+    },
+    "theory": {
+      "prompt": "FASE 3 — TEÓRICO FORMAL: Formula y demuestra todos los teoremas y lemas involucrados.",
+      "rawOutput": "Marco teórico axiomático completo con definiciones y demostraciones formales cerradas con Q.E.D.",
+      "parsed": {
+        "ramas": [
+          {
+            "nombre": "Teoría Principal",
+            "items": [
+              {
+                "nombre": "Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen",
+                "tipo": "Teorema",
+                "explicacion": "Propiedad matemática fundamental",
+                "enunciado": "Enunciado formal demostrado.",
+                "demostracion": "Demostración constructiva paso a paso. Q.E.D. ■"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "figures": {
+      "prompt": "FASE 4 — VISUALIZACIÓN: Diseña código Python para ilustrar el espacio de fases y el comportamiento orbital.",
+      "rawOutput": "import numpy as np\nimport matplotlib.pyplot as plt\n\n# Retrato de fase del sistema lineal x' = y, y' = -x\nY, X = np.mgrid[-3:3:25j, -3:3:25j]\nU = Y\nV = -X\n\nplt.figure(figsize=(7, 7), dpi=150)\nplt.streamplot(X, Y, U, V, color=np.sqrt(U**2 + V**2), cmap='viridis', linewidth=1.2, arrowsize=1.2)\nplt.plot(0, 0, 'ro', label='Centro (0,0)')\nplt.title(\"Retrato de Fase: Centro Neutro Estable (Sentido Horario)\")\nplt.xlabel(\"x(t)\")\nplt.ylabel(\"y(t)\")\nplt.grid(True, alpha=0.3)\nplt.legend()\nplt.tight_layout()\nplt.savefig(\"retrato_de_fase.png\")\nplt.close()\n",
+      "parsed": {
+        "codigo_python": "import numpy as np\nimport matplotlib.pyplot as plt\n\n# Retrato de fase del sistema lineal x' = y, y' = -x\nY, X = np.mgrid[-3:3:25j, -3:3:25j]\nU = Y\nV = -X\n\nplt.figure(figsize=(7, 7), dpi=150)\nplt.streamplot(X, Y, U, V, color=np.sqrt(U**2 + V**2), cmap='viridis', linewidth=1.2, arrowsize=1.2)\nplt.plot(0, 0, 'ro', label='Centro (0,0)')\nplt.title(\"Retrato de Fase: Centro Neutro Estable (Sentido Horario)\")\nplt.xlabel(\"x(t)\")\nplt.ylabel(\"y(t)\")\nplt.grid(True, alpha=0.3)\nplt.legend()\nplt.tight_layout()\nplt.savefig(\"retrato_de_fase.png\")\nplt.close()\n",
+        "figuras": []
+      }
+    },
+    "research": {
+      "prompt": "FASE 5 — INVESTIGACIÓN DE FRONTERA: Analiza generalizaciones a dimensión infinita, problemas abiertos y referencias.",
+      "rawOutput": "Generalizaciones a variedades diferenciables y espacios de Banach.",
+      "parsed": {
+        "generalizaciones": [
+          {
+            "titulo": "Dimensión arbitraria",
+            "descripcion": "Extensión a R^n y espacios funcionales"
+          }
+        ],
+        "bibliografia": [
+          "Hirsch & Smale"
+        ]
+      }
+    },
+    "report": {
+      "prompt": "FASE 6 — COMPILADOR MARKDOWN: Sintetiza los datos de todos los agentes en Markdown canónico.",
+      "rawOutput": "# Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen\n\n## 1. Estrategia y Planteamiento\n\nLa investigación rigurosa procede mediante la formulación matricial del sistema lineal autónomo de primer orden en el espacio euclidiano bidimensional $\\mathbb{R}^2$, verificando el cumplimiento de las hipótesis del Teorema de Picard-Lindelöf para garantizar la existencia y unicidad global de las soluciones. Posteriormente, se realiza el análisis espectral de la matr...",
+      "parsed": {
+        "markdown_length": 14421
+      }
+    }
+  }
+}

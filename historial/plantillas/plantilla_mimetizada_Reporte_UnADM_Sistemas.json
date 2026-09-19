@@ -1,0 +1,19 @@
+{
+  "id": "plantilla_mimetizada_Reporte_UnADM_Sistemas",
+  "nombre": "Plantilla Mimetizada: Reporte UnADM Sistemas",
+  "tipo": "mimetismo_escolar",
+  "fuente_pdf": "temp_upload.pdf",
+  "paginas_analizadas": 1,
+  "secciones_mimetizadas": [
+    "1. INTRODUCCION Y OBJETIVOS",
+    "2. MARCO TEORICO Y AXIOMATICA",
+    "3. MODELACION DEL SISTEMA",
+    "4. RESULTADOS Y CONCLUSIONES"
+  ],
+  "directrices_estilo": {
+    "estilo_encabezados": "Jerárquico formal con numeración decimal",
+    "densidad_matematica": "Exhaustiva con justificación axiomática completa",
+    "anexo_codigo": true,
+    "simulador_interactivo": true
+  }
+}

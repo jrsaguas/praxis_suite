@@ -1,0 +1,13 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns:m='http://schemas.openxmlformats.org/officeDocument/2006/math' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Borrador Personalizado: Cinemática de Manipuladores</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]--><style>@page { size: 21.59cm 27.94cm; margin: 2.54cm; } body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.35; color: #171d29; } h1, h2, h3, h4 { font-family: Georgia, serif; }</style></head><body><h1 style='font-family:Georgia,serif;font-size:20pt;color:#1a73e8;margin-top:18pt;margin-bottom:8pt;'>Borrador Personalizado: Cinemática de Manipuladores</h1>
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>1. Marco Teórico Axiomático</h2>
+<br/>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>Demostración paso a paso sin saltos algebraicos.</p>
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>2. Modelación del Manipulador en Lie SO(3)</h2>
+<br/>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>Ecuaciones de gobierno $<math xmlns='http://www.w3.org/1998/Math/MathML'><mrow><mi>X' = F(X)</mi></mrow></math>$ con algoritmo Runge-Kutta.</p>
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>3. Anexo de Simulación Interactiva</h2>
+<br/>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>Código del simulador Canvas HTML5.</p></body></html>

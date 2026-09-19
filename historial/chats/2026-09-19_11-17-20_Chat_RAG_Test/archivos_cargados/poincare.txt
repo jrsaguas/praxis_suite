@@ -1,0 +1,1 @@
+Teorema de Poincare Bendixson: En el plano real, cualquier conjunto limite no vacio es un punto o una orbita periodica.

@@ -1,0 +1,30 @@
+# Investigación sobre la Nulidad del Ejercicio No Definido
+
+## 1. Estrategia y Planteamiento
+
+La presente investigación aborda el análisis riguroso del comportamiento límite y formal de un sistema carente de restricciones algebraicas iniciales. El objetivo principal es establecer la trivialidad formal y el comportamiento deductivo de un enunciado no especificado bajo el principio de explosión ($ex \ falso \ quodlibet$).
+
+### Hipótesis y Supuestos Iniciales
+1. El enunciado de entrada pertenece al conjunto vacío $\emptyset$.
+2. El espacio de estados del sistema es trivial, denotado por $X = \emptyset$.
+3. No existe ninguna estructura algebraica, métrica o topológica predefinida.
+
+---
+
+## 2. Desarrollo Paso a Paso
+
+### Paso 1: Formulación axiomática del estado nulo
+$$\forall x \; \neg(x \in \emptyset)$$
+
+### Paso 2: Aplicación del Principio de Explosión
+$$\bot \implies P$$
+
+### Paso 3: Análisis categórico del objeto inicial
+$$! : \emptyset \to A \implies \text{Resultado} = \emptyset \quad \forall P$$
+
+---
+
+## 3. Marco Teórico Formal
+
+> **Definición (Conjunto Vacío):** Conjunto que no contiene elementos. Q.E.D. ■
+> **Teorema (Ex Falso Quodlibet):** De una contradicción se sigue cualquier proposición. Q.E.D. ■

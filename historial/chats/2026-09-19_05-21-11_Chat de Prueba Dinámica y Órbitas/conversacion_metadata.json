@@ -1,0 +1,19 @@
+{
+  "id": "2026-09-19_05-21-11_Chat de Prueba Dinámica y Órbitas",
+  "title": "Chat de Prueba Dinámica y Órbitas",
+  "created_at": "2026-09-19 05:21:11",
+  "updated_at": "2026-09-19 05:21:13",
+  "total_responses": 1,
+  "responses": [
+    {
+      "folder": "respuesta_001_2026-09-19_05-21-11_Análisis Dinámico de Órbitas y Estabilidad",
+      "title": "Análisis Dinámico de Órbitas y Estabilidad",
+      "prompt": "Resolver x' = y, y' = -x y clasificar órbitas.",
+      "timestamp": "2026-09-19 05:21:13",
+      "docx_filename": "Análisis Dinámico de Órbitas y Estabilidad.docx",
+      "doc_filename": "Análisis Dinámico de Órbitas y Estabilidad.doc",
+      "sim_filename": "simulador.html",
+      "markdown_snippet": "# Análisis Dinámico\n\nEcuación:\n19013\begin{pmatrix} x' \\ y' \\end{pmatrix} = \begin{pmatrix} 0 & 1 \\ -1 & 0 \\end{pmatrix} \begin{pmatrix} x \\ y \\end{pmatrix}19013\n\nResultado:\n19013x^2 + y^2 = R^219013..."
+    }
+  ]
+}

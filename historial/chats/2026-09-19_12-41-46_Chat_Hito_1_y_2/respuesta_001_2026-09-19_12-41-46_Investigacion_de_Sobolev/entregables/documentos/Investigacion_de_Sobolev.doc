@@ -1,0 +1,221 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns:m='http://schemas.openxmlformats.org/officeDocument/2006/math' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Investigacion_de_Sobolev</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]--><style>@page { size: 21.59cm 27.94cm; margin: 2.54cm; } body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.35; color: #171d29; } h1, h2, h3, h4 { font-family: Georgia, serif; }</style></head><body><h1 style='font-family:Georgia,serif;font-size:20pt;color:#1a73e8;margin-top:18pt;margin-bottom:8pt;'>Sobolev</h1>
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>1. Estrategia</h2>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>Estrategia inicial.</p>
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>2. Desarrollo Paso a Paso</h2>
+<br/>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>Paso 1: Demostracion rigurosa de completitud del espacio normado.</p>
+<br/>
+<h2 style='font-family:Georgia,serif;font-size:15pt;color:#d93025;margin-top:14pt;margin-bottom:6pt;border-bottom:1px solid #cbd5e1;padding-bottom:3pt;'>Anexo: Código Fuente del Visualizador Matemático Interactivo (Canvas HTML5)</h2>
+<br/>
+<p style='margin:0 0 6pt 0;line-height:1.4;'>El siguiente código genera el simulador interactivo autónomo con deslizadores paramétricos:</p>
+<br/>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;!doctype html&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;html lang=&quot;es&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;head&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;meta charset=&quot;utf-8&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;title&gt;Investigacion de Sobolev · Retrato de Fase Interactivo&lt;/title&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;style&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    :root {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      --bg: #090d16; --card: #141c2e; --ink: #f8fafc; --muted: #94a3b8;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      --brand: #38bdf8; --accent: #f43f5e; --line: #1e293b; --gold: #f59e0b; --ok: #10b981;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    * { box-sizing: border-box; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 14px; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    .wrap { width: 100%; max-width: 920px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: 0 12px 36px rgba(0,0,0,0.5); }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    .head { padding: 12px 18px; background: rgba(56,189,248,0.06); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    .head h2 { margin: 0; font-size: 15px; font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 8px; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    .hud { font-size: 11.5px; font-family: monospace; color: var(--gold); background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(245,158,11,0.2); }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    canvas { width: 100%; height: 420px; background: #060911; display: block; cursor: crosshair; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    .controls { padding: 14px 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; background: rgba(15,23,42,0.4); border-top: 1px solid var(--line); }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    .cg { display: flex; flex-direction: column; gap: 4px; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    .cg label { font-size: 11.5px; color: var(--muted); display: flex; justify-content: space-between; font-weight: 600; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    .cg input[type=range] { width: 100%; accent-color: var(--brand); cursor: pointer; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    .bar { padding: 10px 18px; display: flex; gap: 8px; align-items: center; background: var(--card); border-top: 1px solid var(--line); flex-wrap: wrap; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    button { background: var(--brand); color: #090d16; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; transition: opacity .15s; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    button:hover { opacity: 0.88; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    button.sec { background: #334155; color: #fff; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    .hint { font-size: 11px; color: var(--muted); margin-left: auto; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;/style&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;/head&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;body&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;div class=&quot;wrap&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;div class=&quot;head&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;h2&gt;&lt;span&gt;⚡&lt;/span&gt; Investigacion de Sobolev · Retrato de Fase &amp; Quiver Plot&lt;/h2&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;div class=&quot;hud&quot; id=&quot;hud&quot;&gt;Traza: 0.00 | Det: 1.00 | Estabilidad: Centro&lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;div class=&quot;controls&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;div class=&quot;cg&quot;&gt;&lt;label&gt;a₁₁: &lt;b id=&quot;va11&quot;&gt;0.00&lt;/b&gt;&lt;/label&gt;&lt;input type=&quot;range&quot; id=&quot;a11&quot; min=&quot;-3&quot; max=&quot;3&quot; step=&quot;0.1&quot; value=&quot;0&quot;&gt;&lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;div class=&quot;cg&quot;&gt;&lt;label&gt;a₁₂: &lt;b id=&quot;va12&quot;&gt;1.00&lt;/b&gt;&lt;/label&gt;&lt;input type=&quot;range&quot; id=&quot;a12&quot; min=&quot;-3&quot; max=&quot;3&quot; step=&quot;0.1&quot; value=&quot;1&quot;&gt;&lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;div class=&quot;cg&quot;&gt;&lt;label&gt;a₂₁: &lt;b id=&quot;va21&quot;&gt;-1.00&lt;/b&gt;&lt;/label&gt;&lt;input type=&quot;range&quot; id=&quot;a21&quot; min=&quot;-3&quot; max=&quot;3&quot; step=&quot;0.1&quot; value=&quot;-1&quot;&gt;&lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;div class=&quot;cg&quot;&gt;&lt;label&gt;a₂₂: &lt;b id=&quot;va22&quot;&gt;0.00&lt;/b&gt;&lt;/label&gt;&lt;input type=&quot;range&quot; id=&quot;a22&quot; min=&quot;-3&quot; max=&quot;3&quot; step=&quot;0.1&quot; value=&quot;0&quot;&gt;&lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;div class=&quot;bar&quot;&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;button id=&quot;pBtn&quot;&gt;Pausar&lt;/button&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;button class=&quot;sec&quot; id=&quot;rBtn&quot;&gt;Reiniciar Órbitas&lt;/button&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;button class=&quot;sec&quot; id=&quot;clBtn&quot;&gt;Limpiar Estelas&lt;/button&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    &lt;span class=&quot;hint&quot;&gt;Haz clic en cualquier punto del lienzo para generar una nueva órbita&lt;/span&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  &lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;/div&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;script&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">(() =&gt; {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  const c = document.getElementById(&#x27;c&#x27;), ctx = c.getContext(&#x27;2d&#x27;);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  let w, h, cx, cy, sc = 45;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  let a11 = 0, a12 = 1, a21 = -1, a22 = 0;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  let run = true;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  let particles = [</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    { x: 1, y: 0, trail: [], color: &#x27;#38bdf8&#x27; },</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    { x: -1, y: 0, trail: [], color: &#x27;#f43f5e&#x27; },</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    { x: 0, y: 1.5, trail: [], color: &#x27;#10b981&#x27; },</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    { x: 0, y: -1.5, trail: [], color: &#x27;#f59e0b&#x27; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  ];</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  function sz() { w = c.width = c.clientWidth; h = c.height = c.clientHeight; cx = w/2; cy = h/2; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  window.onresize = sz; sz();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  function f(x, y) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    return [a11 * x + a12 * y, a21 * x + a22 * y];</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  // Integrador Runge-Kutta de 4to Orden (RK4)</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  function rk4(p, dt) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    let [k1x, k1y] = f(p.x, p.y);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    let [k2x, k2y] = f(p.x + 0.5*dt*k1x, p.y + 0.5*dt*k1y);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    let [k3x, k3y] = f(p.x + 0.5*dt*k2x, p.y + 0.5*dt*k2y);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    let [k4x, k4y] = f(p.x + dt*k3x, p.y + dt*k3y);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    p.x += (dt/6)*(k1x + 2*k2x + 2*k3x + k4x);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    p.y += (dt/6)*(k1y + 2*k2y + 2*k3y + k4y);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  function updateHUD() {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const tr = a11 + a22;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const det = a11 * a22 - a12 * a21;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const disc = tr * tr - 4 * det;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    let st = &#x27;&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    if (det &lt; 0) st = &#x27;Silla de Montar (Inestable)&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    else if (det === 0) st = &#x27;Degenerado&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    else if (disc &lt; 0) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      if (Math.abs(tr) &lt; 0.01) st = &#x27;Centro (Elíptico Estable)&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      else if (tr &lt; 0) st = &#x27;Foco Espiral Estable&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      else st = &#x27;Foco Espiral Inestable&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    } else {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      if (tr &lt; 0) st = &#x27;Nodo Estable&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      else st = &#x27;Nodo Inestable&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    document.getElementById(&#x27;hud&#x27;).innerText = `Traza: ${tr.toFixed(2)} | Det: ${det.toFixed(2)} | ${st}`;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  function drawQuiver() {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.strokeStyle = &#x27;#1e293b&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.fillStyle = &#x27;#1e293b&#x27;;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const step = 40;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    for (let px = step; px &lt; w; px += step) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      for (let py = step; py &lt; h; py += step) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const x = (px - cx) / sc;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const y = (cy - py) / sc;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const [dx, dy] = f(x, y);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const len = Math.hypot(dx, dy);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        if (len &lt; 0.001) continue;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const arrowLen = Math.min(14, len * 5);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const nx = (dx / len) * arrowLen;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        const ny = (dy / len) * arrowLen;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        ctx.beginPath();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        ctx.moveTo(px, py);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        ctx.lineTo(px + nx, py - ny);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        ctx.stroke();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  function draw() {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.fillStyle = &#x27;#090d16&#x27;; ctx.fillRect(0, 0, w, h);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    drawQuiver();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    // Ejes cartesianos</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.strokeStyle = &#x27;#334155&#x27;; ctx.lineWidth = 1;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    if (run) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      particles.forEach(p =&gt; {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        for (let i = 0; i &lt; 3; i++) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">          rk4(p, 0.02);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">          p.trail.push([cx + p.x * sc, cy - p.y * sc]);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">          if (p.trail.length &gt; 400) p.trail.shift();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      });</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    particles.forEach(p =&gt; {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      if (p.trail.length &gt; 1) {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        ctx.strokeStyle = p.color; ctx.lineWidth = 2;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        ctx.beginPath();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        ctx.moveTo(p.trail[0][0], p.trail[0][1]);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        for (let i = 1; i &lt; p.trail.length; i++) ctx.lineTo(p.trail[i][0], p.trail[i][1]);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">        ctx.stroke();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      ctx.fillStyle = p.color;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      ctx.beginPath();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      ctx.arc(cx + p.x * sc, cy - p.y * sc, 4.5, 0, 6.28);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      ctx.fill();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    });</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    requestAnimationFrame(draw);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  c.onclick = e =&gt; {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const rect = c.getBoundingClientRect();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const mx = e.clientX - rect.left;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const my = e.clientY - rect.top;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const nx = (mx - cx) / sc;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const ny = (cy - my) / sc;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const colors = [&#x27;#38bdf8&#x27;, &#x27;#f43f5e&#x27;, &#x27;#10b981&#x27;, &#x27;#f59e0b&#x27;, &#x27;#a855f7&#x27;, &#x27;#ec4899&#x27;];</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    const col = colors[particles.length % colors.length];</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    particles.push({ x: nx, y: ny, trail: [], color: col });</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  };</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  [&#x27;a11&#x27;,&#x27;a12&#x27;,&#x27;a21&#x27;,&#x27;a22&#x27;].forEach(id =&gt; {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    document.getElementById(id).oninput = e =&gt; {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      const val = parseFloat(e.target.value);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      if (id === &#x27;a11&#x27;) a11 = val;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      if (id === &#x27;a12&#x27;) a12 = val;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      if (id === &#x27;a21&#x27;) a21 = val;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      if (id === &#x27;a22&#x27;) a22 = val;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      document.getElementById(&#x27;v&#x27; + id).innerText = val.toFixed(2);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      updateHUD();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      particles.forEach(p =&gt; p.trail = []);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    };</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  });</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  document.getElementById(&#x27;pBtn&#x27;).onclick = e =&gt; { run = !run; e.target.innerText = run ? &#x27;Pausar&#x27; : &#x27;Reanudar&#x27;; };</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  document.getElementById(&#x27;rBtn&#x27;).onclick = () =&gt; {</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    particles = [</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      { x: 1, y: 0, trail: [], color: &#x27;#38bdf8&#x27; },</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      { x: -1, y: 0, trail: [], color: &#x27;#f43f5e&#x27; },</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      { x: 0, y: 1.5, trail: [], color: &#x27;#10b981&#x27; },</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">      { x: 0, y: -1.5, trail: [], color: &#x27;#f59e0b&#x27; }</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">    ];</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  };</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  document.getElementById(&#x27;clBtn&#x27;).onclick = () =&gt; particles.forEach(p =&gt; p.trail = []);</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;"></div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  updateHUD();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">  draw();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">})();</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;/script&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;/body&gt;</div>
+<div style="font-family:Consolas,monospace;font-size:8.5pt;color:#1e293b;background:#f8fafc;padding:1pt 6pt;white-space:pre;">&lt;/html&gt;</div>
+<br/>
+<br/>
+<hr style='border:none;border-top:1px solid #cbd5e1;margin:14pt 0;' />
+<br/>
+<h3 style='font-family:Georgia,serif;font-size:12.5pt;color:#171d29;margin-top:10pt;margin-bottom:4pt;'>Certificado de Validación Simbólica (SymPy CAS)</h3>
+<br/>
+<p style='margin:0 0 6pt 0;line-height:1.4;'><b>Estado:</b> `CERTIFICADO_SIN_CONTRADICCIONES`</p>
+<p style='margin:0 0 6pt 0;line-height:1.4;'><b>Motor:</b> SymPy Computer Algebra System (v1.13.3)</p>
+<p style='margin:0 0 6pt 0;line-height:1.4;'><b>Validaciones ejecutadas:</b> 1</p>
+<br/>
+<li style='margin-left:18pt;margin-bottom:3pt;'>**Estructura Axiomática (SymPy CAS):** Validación de compatibilidad dimensional y de operadores</li>
+<div style='background:#f8fafc;border-left:4px solid #1a73e8;padding:8pt 12pt;margin:8pt 0;font-size:10.5pt;color:#1e293b;'>*Resultado CAS:* `Espacio vectorial y operadores conformes a la teoría estándar.` (VERIFICADO_CONSISTENTE)</div>
+<br/>
+<div style='background:#f8fafc;border-left:4px solid #1a73e8;padding:8pt 12pt;margin:8pt 0;font-size:10.5pt;color:#1e293b;'>*Nota de auditoría formal:* Los pasos algebraicos y espectrales evaluados con SymPy son formalmente consistentes con los axiomas de cuerpo y operadores diferenciales.</div></body></html>

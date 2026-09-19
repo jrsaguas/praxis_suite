@@ -1,0 +1,12 @@
+{
+  "id": "plantilla_usuario_Plantilla_Tarea_Mecatr_nica",
+  "nombre": "Plantilla Tarea Mecatrónica",
+  "tipo": "plantilla_usuario",
+  "creada_desde_borrador": "draft_2026-09-19_05-51-08_Borrador_Personalizado__Cinem_",
+  "secciones": [
+    "1. Marco Teórico Axiomático",
+    "2. Modelación del Manipulador en Lie SO(3)",
+    "3. Anexo de Simulación Interactiva"
+  ],
+  "fecha": "2026-09-19 05:51:09"
+}

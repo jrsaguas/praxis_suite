@@ -1,0 +1,18 @@
+{
+  "id": "plantilla_mimetizada_Plantilla_Examen",
+  "nombre": "Plantilla Mimetizada: Plantilla Examen",
+  "tipo": "mimetismo_escolar",
+  "fuente_pdf": "temp_upload.pdf",
+  "paginas_analizadas": 1,
+  "secciones_mimetizadas": [
+    "1. INTRODUCCION AL MODELADO MATEMATICO",
+    "2. DESARROLLO AXIOMATICO COMPLETO",
+    "3. CONCLUSIONES Y SIMULACION"
+  ],
+  "directrices_estilo": {
+    "estilo_encabezados": "Jerárquico formal con numeración decimal",
+    "densidad_matematica": "Exhaustiva con justificación axiomática completa",
+    "anexo_codigo": true,
+    "simulador_interactivo": true
+  }
+}

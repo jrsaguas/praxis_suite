@@ -1,0 +1,37 @@
+{
+  "id": "2026-09-19_05-16-11_Investigaciones Matemáticas Fundamentales",
+  "title": "Investigaciones Matemáticas Fundamentales",
+  "created_at": "2026-09-19 05:16:11",
+  "updated_at": "2026-09-19 05:16:11",
+  "total_responses": 4,
+  "responses": [
+    {
+      "folder": "respuesta_001_2026-09-18_17-30-00_sistema_lineal_autonomo",
+      "title": "Sistema Lineal Autónomo y Clasificación del Origen",
+      "prompt": "Sistema Lineal Autónomo y Clasificación del Origen",
+      "timestamp": "2026-09-18 17-30-00",
+      "sim_filename": "simulador.html"
+    },
+    {
+      "folder": "respuesta_002_2026-09-18_18-15-00_teorema_bolzano_weierstrass",
+      "title": "Teorema de Bolzano-Weierstrass en R^n",
+      "prompt": "Teorema de Bolzano-Weierstrass en R^n",
+      "timestamp": "2026-09-18 18-15-00",
+      "sim_filename": "simulador.html"
+    },
+    {
+      "folder": "respuesta_003_2026-09-18_18-50-00_nulidad_ejercicio_no_definido",
+      "title": "Nulidad del Ejercicio No Definido y Ex Falso",
+      "prompt": "Nulidad del Ejercicio No Definido y Ex Falso",
+      "timestamp": "2026-09-18 18-50-00",
+      "sim_filename": "simulador.html"
+    },
+    {
+      "folder": "respuesta_004_2026-09-18_19-20-00_sistema_dinamico_lineal_plano",
+      "title": "Sistema Dinámico Lineal Plano X' = AX",
+      "prompt": "Sistema Dinámico Lineal Plano X' = AX",
+      "timestamp": "2026-09-18 19-20-00",
+      "sim_filename": "simulador.html"
+    }
+  ]
+}

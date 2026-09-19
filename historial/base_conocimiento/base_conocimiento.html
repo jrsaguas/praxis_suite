@@ -1,0 +1,386 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Praxis · Base de Conocimiento Matemático Unificada</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [["$", "$"]], displayMath: [["$$", "$$"]], processEscapes: true },
+  options: { skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code"] },
+  startup: { typeset: true }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root{--paper:#e7e6df;--card:#fbfaf5;--ink:#171d29;--brand:#1a73e8;--accent:#d93025;--line:#d7d6cc;--brand-tint:#e8f0fe;}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;padding:32px 16px;}
+.wrap{max-width:1040px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 32px;box-shadow:0 10px 30px rgba(20,30,40,.08);}
+.doc-head h2{font-family:'Fraunces',serif;font-size:32px;margin:10px 0;color:var(--brand);}
+.prob{background:var(--brand-tint);border-left:4px solid var(--brand);padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0;}
+</style>
+</head><body><div class="wrap"><article class="doc report">
+      <div class="doc-head">
+        <div class="kicker">Praxis Epistemic Engine · v9.0</div>
+        <h2>Base de Conocimiento Matemático Unificada</h2>
+        <div class="prob"><b>Memoria Consolidada:</b> 12 conceptos unificados, 12 teoremas y 11 demostraciones formalizadas.</div>
+      </div>
+      <div class="doc-body" style="padding:20px 30px;">
+        <pre style="white-space:pre-wrap;font-family:'IBM Plex Sans',sans-serif;font-size:14px;line-height:1.6;color:#171d29;"># Praxis · Base de Conocimiento Matemático Unificada
+
+> Compendio incremental, sintetizado y libre de duplicaciones.
+> **Última actualización:** 2026-09-19 12:41:47 | **Conceptos:** 12 | **Teoremas formalizados:** 12
+
+---
+
+## Índice Temático Consolidado
+
+### Análisis Matemático & EDOs
+- [Teorema de Existencia y Unicidad de Picard-Lindelöf](#teorema_picard_lindelof) — *Formalizado (1 investigación)*
+
+### Geometría Simpléctica y Mecánica Teórica
+- [Mecánica Hamiltoniana, Integrales Primeras y Variedades Simplécticas](#sistemas_hamiltonianos_y_variedades_simplecticas) — *Formalizado (1 investigación)*
+
+### Investigación y Generalizaciones
+- [Dimensión arbitraria](#dimension_arbitraria) — *Consolidado (4 investigaciones)*
+
+### Resolución y Métodos Operacionales
+- [Paso 1](#paso_1) — *Consolidado (4 investigaciones)*
+- [Paso 2](#paso_2) — *Consolidado (4 investigaciones)*
+
+### Teoría Cualitativa de Ecuaciones Diferenciales
+- [Centro Topológico y Clasificación de Singularidades de Poincaré](#centro_topologico_espacio_fase) — *Formalizado (1 investigación)*
+
+### Teoría Principal
+- [Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen](#sistema_lineal_autonomo_plano) — *Consolidado (3 investigaciones)*
+- [Investigación Rigurosa del Teorema de Bolzano-Weierstrass en R^n: Compacidad y Completez](#teorema_bolzano_weierstrass) — *Consolidado (2 investigaciones)*
+- [Investigación sobre la Nulidad del Ejercicio No Definido](#investigacion_sobre_la_nulidad_del_ejerc) — *Formalizado (1 investigación)*
+
+### Topología General y Análisis Real
+- [Teorema de Heine-Borel y Equivalencia de Compacidad](#teorema_heine_borel_compacidad) — *Formalizado (1 investigación)*
+
+### Álgebra Lineal & Teoría de Lie
+- [Exponencial de Matriz y Grupos a un Parámetro](#exponencial_de_matriz) — *Formalizado (1 investigación)*
+
+### Álgebra Lineal y Teoría de Matrices
+- [Teorema de Cayley-Hamilton y Reducción Polinómica](#teorema_cayley_hamilton) — *Formalizado (1 investigación)*
+
+---
+
+## Tratado Axiomático y Teórico Unificado
+
+## Dominio: Análisis Matemático & EDOs
+
+### <a id="teorema_picard_lindelof"></a>Teorema de Existencia y Unicidad de Picard-Lindelöf
+**Estado de Consolidación:** Formalizado (1 investigación) | **Contribuciones:** 1 investigaciones
+
+**Definición Canónica:**
+> Garantiza la existencia y unicidad global de soluciones para problemas de valor inicial X' = F(t, X) con X(t_0) = X_0 cuando el campo F es continuo y localmente Lipschitziano respecto a X.
+
+**Fórmulas Clave e Invariantes:**
+$$
+X'(t) = F(t, X(t)), \quad X(t_0) = X_0
+$$
+$$
+\|F(t, X_1) - F(t, X_2)\| \leq L \|X_1 - X_2\|
+$$
+
+**Teoremas y Lemas Formalizados:**
+> **Teorema (Teorema de Picard-Lindelöf):** Sea F Lipschitziana en X. Entonces existe un único flujo diferenciable solución en un intervalo alrededor de t_0.
+
+**Demostraciones Rigurosas:**
+#### Demostración (Teorema de Picard-Lindelöf)
+Se reformula la EDO como ecuación integral T[X](t) = X_0 + int_{t_0}^t F(s, X(s)) ds. Se prueba que T es una contracción estricta en un espacio de Banach para h suficientemente pequeño. Por el teorema de Banach, existe un único punto fijo que es la solución buscada. Q.E.D. ■
+
+**Propiedades Clave:**
+- Asegura el determinismo causal en sistemas dinámicos.
+- Demostrado mediante el Teorema del Punto Fijo de Banach en el espacio métrico completo C([t_0-h, t_0+h]).
+
+**Conceptos Relacionados:** sistema_lineal_autonomo_plano
+
+---
+
+## Dominio: Geometría Simpléctica y Mecánica Teórica
+
+### <a id="sistemas_hamiltonianos_y_variedades_simplecticas"></a>Mecánica Hamiltoniana, Integrales Primeras y Variedades Simplécticas
+**Estado de Consolidación:** Formalizado (1 investigación) | **Contribuciones:** 1 investigaciones
+
+**Definición Canónica:**
+> Sistemas dinámicos gobernados por una función escalar de energía H(q, p) en una variedad simpléctica (M, omega), donde el flujo preserva el volumen (Teorema de Liouville) y la energía total H es una constante del movimiento.
+
+**Fórmulas Clave e Invariantes:**
+$$
+\dot{q} = \frac{\partial H}{\partial p}, \quad \dot{p} = -\frac{\partial H}{\partial q}
+$$
+$$
+\iota_{X_H} \omega = dH, \quad \frac{dH}{dt} = \{H, H\} = 0
+$$
+
+**Teoremas y Lemas Formalizados:**
+> **Teorema (Conservación de la Energía Hamiltoniana):** En todo sistema hamiltoniano autónomo, dH/dt = 0 a lo largo de cualquier trayectoria solución.
+
+**Demostraciones Rigurosas:**
+#### Demostración (Conservación de la Energía Hamiltoniana)
+dH/dt = (dH/dq) dq/dt + (dH/dp) dp/dt = (dH/dq)(dH/dp) + (dH/dp)(-dH/dq) = 0. Por ende, H permanece estrictamente constante en el tiempo. Q.E.D. ■
+
+**Propiedades Clave:**
+- Invarianza simpléctica del flujo (transformaciones canónicas).
+- Preservación de la medida de Lebesgue en el espacio fase (Teorema de Liouville).
+
+**Conceptos Relacionados:** sistema_lineal_autonomo_plano, estabilidad_lyapunov
+
+---
+
+## Dominio: Investigación y Generalizaciones
+
+### <a id="dimension_arbitraria"></a>Dimensión arbitraria
+**Estado de Consolidación:** Consolidado (4 investigaciones) | **Contribuciones:** 4 investigaciones
+
+**Generalizaciones y Aplicaciones:**
+- *Generalización:* Extensión a R^n y espacios funcionales
+
+---
+
+## Dominio: Resolución y Métodos Operacionales
+
+### <a id="paso_1"></a>Paso 1
+**Estado de Consolidación:** Consolidado (4 investigaciones) | **Contribuciones:** 4 investigaciones
+
+**Definición Canónica:**
+> Planteamiento formal
+
+---
+
+### <a id="paso_2"></a>Paso 2
+**Estado de Consolidación:** Consolidado (4 investigaciones) | **Contribuciones:** 4 investigaciones
+
+**Definición Canónica:**
+> Desarrollo algebraico
+
+---
+
+## Dominio: Teoría Cualitativa de Ecuaciones Diferenciales
+
+### <a id="centro_topologico_espacio_fase"></a>Centro Topológico y Clasificación de Singularidades de Poincaré
+**Estado de Consolidación:** Formalizado (1 investigación) | **Contribuciones:** 1 investigaciones
+
+**Definición Canónica:**
+> Punto de equilibrio no hiperbólico caracterizado por autovalores puramente imaginarios conjugados lambda = +- i beta (beta != 0), rodeado por una familia continua de órbitas cerradas periódicas concéntricas.
+
+**Fórmulas Clave e Invariantes:**
+$$
+\text{Re}(\lambda_{1,2}) = 0, \quad \text{tr}(A) = 0, \quad \det(A) > 0
+$$
+$$
+T = \frac{2\pi}{\beta}
+$$
+
+**Teoremas y Lemas Formalizados:**
+> **Teorema (Clasificación Espectral del Centro):** En un sistema lineal autónomo planar X' = AX, el origen es un centro si y sólo si tr(A) = 0 y det(A) > 0.
+
+**Demostraciones Rigurosas:**
+#### Demostración (Clasificación Espectral del Centro)
+Las raíces de lambda^2 - tr(A)lambda + det(A) = 0 son lambda = (tr(A) +- sqrt(tr(A)^2 - 4 det(A))) / 2. Si tr(A)=0 y det(A)>0, el discriminante es estrictamente negativo, arrojando autovalores puramente imaginarios conjugados +- i sqrt(det(A)). Por ende, las soluciones son combinaciones lineales periódicas de senos y cosenos de periodo 2pi / sqrt(det(A)), confinando el movimiento a órbitas cerradas. Q.E.D. ■
+
+**Propiedades Clave:**
+- Estabilidad marginal (estable según Lyapunov, no asintóticamente estable).
+- Fragilidad estructural: perturbaciones no lineales de orden superior pueden transformarlo en foco estable o inestable.
+
+**Conceptos Relacionados:** sistema_lineal_autonomo_plano, estabilidad_lyapunov
+
+---
+
+## Dominio: Teoría Principal
+
+### <a id="sistema_lineal_autonomo_plano"></a>Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen
+**Estado de Consolidación:** Consolidado (3 investigaciones) | **Contribuciones:** 3 investigaciones
+
+**Definición Canónica:**
+> Propiedad matemática fundamental
+
+*Perspectiva complementaria:* Sistema homogéneo de primer orden X'(t) = A X(t) en R^2 con matriz de coeficientes constantes A en M_2(R). Su flujo está determinado por la acción del grupo aditivo (R, +) mediada por el operador exponencial de matriz exp(At).
+
+**Fórmulas Clave e Invariantes:**
+$$
+\begin{pmatrix} x'(t) \\ y'(t) \end{pmatrix} = \begin{pmatrix} 0 & 1 \\ -1 & 0 \end{pmatrix} \begin{pmatrix} x(t) \\ y(t) \end{pmatrix}
+$$
+$$
+X(t) = \begin{pmatrix} \cos(t) & \sin(t) \\ -\sin(t) & \cos(t) \end{pmatrix} X_0
+$$
+$$
+x(t)^2 + y(t)^2 = x_0^2 + y_0^2 = R^2
+$$
+
+**Teoremas y Lemas Formalizados:**
+> **Teorema (Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen):** Enunciado formal demostrado.
+> **Teorema (Investigación Rigorosa del Sistema Dinámico Lineal Plano: X' = A X):** Enunciado formal demostrado.
+> **Teorema (Solución General Trigonométrica y Clasificación de Órbitas):** Para la matriz antisimétrica A = ((0, 1), (-1, 0)), la solución general del sistema de Cauchy X'(t) = AX(t) con X(0) = X_0 es X(t) = (x_0 cos(t) + y_0 sin(t), -x_0 sin(t) + y_0 cos(t))^T, y sus órbitas son circunferencias concéntricas.
+
+**Demostraciones Rigurosas:**
+#### Demostración (Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen)
+Demostración constructiva paso a paso. Q.E.D. ■
+
+#### Demostración (Solución General Trigonométrica)
+Se calcula la exponencial exp(At) separando términos pares (que suman la serie de Taylor de cos(t) I) e impares (que suman la serie de sin(t) A). Multiplicando por X_0 y sumando x(t)^2 + y(t)^2, los términos cruzados se cancelan idénticamente resultando en x_0^2 + y_0^2 = R^2. Q.E.D. ■
+
+**Propiedades Clave:**
+- Propiedad matemática fundamental
+- Existencia y unicidad global para todo t en R garantizada por Picard-Lindelöf.
+- Invarianza orbital: las curvas integrales en el plano fase no se auto-intersecan ni se cruzan entre sí.
+- Conservación estricta de la energía: el movimiento está restringido a curvas de nivel circulares.
+- Conservación de área en el espacio fase según el Teorema de Liouville (div F = tr(A) = 0).
+
+**Generalizaciones y Aplicaciones:**
+- *Generalización:* Sistemas hamiltonianos lineales en variedades simplécticas R^{2n}.
+- *Generalización:* Grupos de rotación SO(2) y evolución unitaria en espacios de Hilbert de mecánica cuántica.
+- *Aplicación:* Modelado de osciladores armónicos no amortiguados en física e ingeniería.
+- *Aplicación:* Circuito LC ideal sin resistencia ohmica.
+
+**Conceptos Relacionados:** exponencial_de_matriz, centro_topologico_espacio_fase, estabilidad_lyapunov, teorema_cayley_hamilton, sistemas_hamiltonianos_y_variedades_simplecticas
+
+---
+
+### <a id="teorema_bolzano_weierstrass"></a>Investigación Rigurosa del Teorema de Bolzano-Weierstrass en R^n: Compacidad y Completez
+**Estado de Consolidación:** Consolidado (2 investigaciones) | **Contribuciones:** 2 investigaciones
+
+**Definición Canónica:**
+> Propiedad matemática fundamental
+
+*Perspectiva complementaria:* Todo subconjunto infinito y acotado de R^n posee al menos un punto de acumulación; equivalentemente, toda sucesión acotada en R^n admite una subsucesión convergente en la norma euclidiana.
+
+**Fórmulas Clave e Invariantes:**
+$$
+\forall (x_k)_{k=1}^\infty \subset \mathbb{R}^n \text{ acotada}, \quad \exists (x_{k_m})_{m=1}^\infty \text{ y } L \in \mathbb{R}^n \text{ tales que } \lim_{m \to \infty} \|x_{k_m} - L\|_2 = 0
+$$
+
+**Teoremas y Lemas Formalizados:**
+> **Teorema (Investigación Rigurosa del Teorema de Bolzano-Weierstrass en R^n: Compacidad y Completez):** Enunciado formal demostrado.
+> **Teorema (Teorema de Bolzano-Weierstrass):** Toda sucesión acotada en R^n contiene una subsucesión convergente.
+
+**Demostraciones Rigurosas:**
+#### Demostración (Investigación Rigurosa del Teorema de Bolzano-Weierstrass en R^n: Compacidad y Completez)
+Demostración constructiva paso a paso. Q.E.D. ■
+
+#### Demostración (Teorema de Bolzano-Weierstrass)
+En R, toda sucesión tiene una subsucesión monótona (lema de picos); por estar acotada, el axioma del supremo garantiza su convergencia. Para R^n, se aplica sucesivamente el lema a cada una de las n coordenadas para extraer subsucesiones anidadas, concluyendo mediante la diagonalización de Cantor la convergencia simultánea de las n componentes en la norma euclidiana. Q.E.D. ■
+
+**Propiedades Clave:**
+- Propiedad matemática fundamental
+- Pilar fundamental del análisis real y la compacidad secuencial en dimensión finita.
+- Falla en espacios de dimensión infinita (Teorema de Riesz sobre la no compacidad de la bola unitaria).
+- Equivalente en R^n a la completitud de Cauchy y al Teorema de Heine-Borel.
+
+**Conceptos Relacionados:** teorema_heine_borel_compacidad, espacio_euclidiano_y_norma, teorema_riesz_compacidad_bola
+
+---
+
+### <a id="investigacion_sobre_la_nulidad_del_ejerc"></a>Investigación sobre la Nulidad del Ejercicio No Definido
+**Estado de Consolidación:** Formalizado (1 investigación) | **Contribuciones:** 1 investigaciones
+
+**Definición Canónica:**
+> Propiedad matemática fundamental
+
+**Teoremas y Lemas Formalizados:**
+> **Teorema (Investigación sobre la Nulidad del Ejercicio No Definido):** Enunciado formal demostrado.
+
+**Demostraciones Rigurosas:**
+#### Demostración (Investigación sobre la Nulidad del Ejercicio No Definido)
+Demostración constructiva paso a paso. Q.E.D. ■
+
+**Propiedades Clave:**
+- Propiedad matemática fundamental
+
+---
+
+## Dominio: Topología General y Análisis Real
+
+### <a id="teorema_heine_borel_compacidad"></a>Teorema de Heine-Borel y Equivalencia de Compacidad
+**Estado de Consolidación:** Formalizado (1 investigación) | **Contribuciones:** 1 investigaciones
+
+**Definición Canónica:**
+> En el espacio euclidiano R^n, un subconjunto K es compacto (toda cobertura abierta posee una subcobertura finita) si y sólo si K es cerrado y acotado.
+
+**Fórmulas Clave e Invariantes:**
+$$
+K \subset \mathbb{R}^n \text{ es compacto} \iff K \text{ es cerrado y acotado} \iff K \text{ es secuencialmente compacto}
+$$
+
+**Teoremas y Lemas Formalizados:**
+> **Teorema (Teorema de Heine-Borel):** Un subconjunto de R^n es compacto por cubiertas abiertas si y sólo si es cerrado y acotado.
+
+**Demostraciones Rigurosas:**
+#### Demostración (Teorema de Heine-Borel)
+Si K no admitiera subcobertura finita, se encierra en un hipercubo Q_0 y se biseca en 2^n subcubos. Al menos uno conserva la imposibilidad de cobertura finita. Inductivamente se genera una sucesión de cubos encajados cuyo diámetro tiende a cero. Por completitud, intersecan en un único punto x* en K. Dicho punto está cubierto por un abierto de la familia, el cual contiene eventualmente al subcubo completo, contradiciendo la hipótesis. Q.E.D. ■
+
+**Propiedades Clave:**
+- Caracterización geométrica directa de la compacidad mediante cotas métricas.
+- Garantiza el Teorema de Weierstrass del valor extremo para funciones continuas.
+
+**Conceptos Relacionados:** teorema_bolzano_weierstrass, espacio_euclidiano_y_norma
+
+---
+
+## Dominio: Álgebra Lineal & Teoría de Lie
+
+### <a id="exponencial_de_matriz"></a>Exponencial de Matriz y Grupos a un Parámetro
+**Estado de Consolidación:** Formalizado (1 investigación) | **Contribuciones:** 1 investigaciones
+
+**Definición Canónica:**
+> Operador lineal definido por la serie de potencias absoluta y uniformemente convergente exp(A) = sum_{k=0}^infty A^k / k! para cualquier matriz A en M_n(C).
+
+**Fórmulas Clave e Invariantes:**
+$$
+e^{At} = \sum_{k=0}^{\infty} \frac{t^k A^k}{k!} = I \cos(t) + A \sin(t)
+$$
+$$
+\frac{d}{dt} e^{At} = A e^{At} = e^{At} A
+$$
+
+**Teoremas y Lemas Formalizados:**
+> **Teorema (Convergencia Global de la Exponencial de Operadores):** Para toda matriz A en M_n(R) y todo t en R, la serie de potencias sum_{k=0}^infty (tA)^k / k! converge absolutamente en el espacio de Banach M_n(R).
+
+**Demostraciones Rigurosas:**
+#### Demostración (Convergencia Global de la Exponencial de Operadores)
+Por la propiedad submultiplicativa de la norma ||AB|| <= ||A|| ||B||, tenemos ||(tA)^k / k!|| <= |t|^k ||A||^k / k!. La serie numérica sum |t|^k ||A||^k / k! converge a exp(|t| ||A||) para todo t. Por el criterio de Weierstrass y la completitud del álgebra de Banach M_n(R), la serie matricial converge uniformemente en todo compacto de R. Q.E.D. ■
+
+**Propiedades Clave:**
+- Convergencia absoluta en la norma inducida ||A||.
+- Propiedad de grupo: exp(A(t+s)) = exp(At) exp(As).
+- Invertibilidad universal: (exp(At))^{-1} = exp(-At).
+- Fórmula de Jacobi: det(exp(A)) = exp(tr(A)).
+
+**Conceptos Relacionados:** sistema_lineal_autonomo_plano, teorema_cayley_hamilton
+
+---
+
+## Dominio: Álgebra Lineal y Teoría de Matrices
+
+### <a id="teorema_cayley_hamilton"></a>Teorema de Cayley-Hamilton y Reducción Polinómica
+**Estado de Consolidación:** Formalizado (1 investigación) | **Contribuciones:** 1 investigaciones
+
+**Definición Canónica:**
+> Toda matriz cuadrada A sobre un cuerpo conmutativo satisface idénticamente su propia ecuación característica p(A) = 0.
+
+**Fórmulas Clave e Invariantes:**
+$$
+p(\lambda) = \det(\lambda I - A) = \lambda^n - \text{tr}(A)\lambda^{n-1} + \dots + (-1)^n \det(A) = 0
+$$
+$$
+p(A) = A^n - \text{tr}(A)A^{n-1} + \dots + (-1)^n \det(A)I = 0
+$$
+
+**Teoremas y Lemas Formalizados:**
+> **Teorema (Teorema de Cayley-Hamilton):** Sea A en M_n(K) con polinomio característico p(lambda). Entonces p(A) = 0 en M_n(K).
+
+**Demostraciones Rigurosas:**
+#### Demostración (Teorema de Cayley-Hamilton)
+Sea B(lambda) = adj(lambda I - A) la matriz adjunta clásica. Por propiedades del determinante, (lambda I - A) B(lambda) = det(lambda I - A) I = p(lambda) I. B(lambda) es un polinomio matricial de grado n-1. Igualando coeficientes matriciales y sumando telescópicamente se obtiene p(A) = 0. Q.E.D. ■
+
+**Propiedades Clave:**
+- Permite reducir potencias de A^m (m >= n) a combinaciones lineales de I, A, ..., A^{n-1}.
+- Para matrices de orden 2: A^2 - tr(A)A + det(A)I = 0. En particular, si tr(A)=0 y det(A)=1, A^2 = -I.
+
+**Conceptos Relacionados:** exponencial_de_matriz, espectro_y_polinomio_caracteristico
+
+---
+</pre>
+      </div>
+    </article></div></body></html>

@@ -1,0 +1,1 @@
+El espacio de Sobolev W^{1,p} se define como el conjunto de funciones debilmente diferenciables cuya derivada esta en L^p.

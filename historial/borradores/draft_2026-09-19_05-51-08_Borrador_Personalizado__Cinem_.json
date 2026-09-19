@@ -1,0 +1,20 @@
+{
+  "title": "Borrador Personalizado: Cinemática de Manipuladores",
+  "sections": [
+    {
+      "title": "1. Marco Teórico Axiomático",
+      "content": "Demostración paso a paso sin saltos algebraicos."
+    },
+    {
+      "title": "2. Modelación del Manipulador en Lie SO(3)",
+      "content": "Ecuaciones de gobierno $$X' = F(X)$$ con algoritmo Runge-Kutta."
+    },
+    {
+      "title": "3. Anexo de Simulación Interactiva",
+      "content": "Código del simulador Canvas HTML5."
+    }
+  ],
+  "id": "draft_2026-09-19_05-51-08_Borrador_Personalizado__Cinem_",
+  "created_at": "2026-09-19 05:51:08",
+  "updated_at": "2026-09-19 05:51:08"
+}

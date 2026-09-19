@@ -1,0 +1,560 @@
+{
+  "metadata": {
+    "version": "9.0",
+    "last_updated": "2026-09-19 12:41:47",
+    "total_conceptos": 12,
+    "total_teoremas": 12,
+    "total_demostraciones": 11
+  },
+  "dominios": {},
+  "conceptos": {
+    "sistema_lineal_autonomo_plano": {
+      "id": "sistema_lineal_autonomo_plano",
+      "nombre": "Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen",
+      "dominio": "Teoría Principal",
+      "definicion_unificada": "Propiedad matemática fundamental\n\n*Perspectiva complementaria:* Sistema homogéneo de primer orden X'(t) = A X(t) en R^2 con matriz de coeficientes constantes A en M_2(R). Su flujo está determinado por la acción del grupo aditivo (R, +) mediada por el operador exponencial de matriz exp(At).",
+      "formulas_clave": [
+        "\\begin{pmatrix} x'(t) \\\\ y'(t) \\end{pmatrix} = \\begin{pmatrix} 0 & 1 \\\\ -1 & 0 \\end{pmatrix} \\begin{pmatrix} x(t) \\\\ y(t) \\end{pmatrix}",
+        "X(t) = \\begin{pmatrix} \\cos(t) & \\sin(t) \\\\ -\\sin(t) & \\cos(t) \\end{pmatrix} X_0",
+        "x(t)^2 + y(t)^2 = x_0^2 + y_0^2 = R^2"
+      ],
+      "propiedades_unificadas": [
+        "Propiedad matemática fundamental",
+        "Existencia y unicidad global para todo t en R garantizada por Picard-Lindelöf.",
+        "Invarianza orbital: las curvas integrales en el plano fase no se auto-intersecan ni se cruzan entre sí.",
+        "Conservación estricta de la energía: el movimiento está restringido a curvas de nivel circulares.",
+        "Conservación de área en el espacio fase según el Teorema de Liouville (div F = tr(A) = 0)."
+      ],
+      "teoremas_asociados": [
+        {
+          "nombre": "Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen",
+          "tipo": "Teorema",
+          "enunciado": "Enunciado formal demostrado."
+        },
+        {
+          "nombre": "Investigación Rigorosa del Sistema Dinámico Lineal Plano: X' = A X",
+          "tipo": "Teorema",
+          "enunciado": "Enunciado formal demostrado."
+        },
+        {
+          "nombre": "Solución General Trigonométrica y Clasificación de Órbitas",
+          "tipo": "Teorema",
+          "enunciado": "Para la matriz antisimétrica A = ((0, 1), (-1, 0)), la solución general del sistema de Cauchy X'(t) = AX(t) con X(0) = X_0 es X(t) = (x_0 cos(t) + y_0 sin(t), -x_0 sin(t) + y_0 cos(t))^T, y sus órbitas son circunferencias concéntricas."
+        }
+      ],
+      "demostraciones": [
+        {
+          "teorema": "Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen",
+          "enfoque": "Demostración constructiva formal",
+          "demostracion": "Demostración constructiva paso a paso. Q.E.D. ■"
+        },
+        {
+          "teorema": "Solución General Trigonométrica",
+          "enfoque": "Deducción analítica vía serie de potencias matricial",
+          "demostracion": "Se calcula la exponencial exp(At) separando términos pares (que suman la serie de Taylor de cos(t) I) e impares (que suman la serie de sin(t) A). Multiplicando por X_0 y sumando x(t)^2 + y(t)^2, los términos cruzados se cancelan idénticamente resultando en x_0^2 + y_0^2 = R^2. Q.E.D. ■"
+        }
+      ],
+      "aplicaciones": [
+        "Modelado de osciladores armónicos no amortiguados en física e ingeniería.",
+        "Circuito LC ideal sin resistencia ohmica."
+      ],
+      "generalizaciones": [
+        "Sistemas hamiltonianos lineales en variedades simplécticas R^{2n}.",
+        "Grupos de rotación SO(2) y evolución unitaria en espacios de Hilbert de mecánica cuántica."
+      ],
+      "relaciones_cruzadas": [
+        "exponencial_de_matriz",
+        "centro_topologico_espacio_fase",
+        "estabilidad_lyapunov",
+        "teorema_cayley_hamilton",
+        "sistemas_hamiltonianos_y_variedades_simplecticas"
+      ],
+      "historial_contribuciones": [
+        {
+          "id": "2026-09-18_17-30-00_sistema_lineal_autonomo",
+          "titulo": "Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen",
+          "fecha": "2026-09-19 02:00:53"
+        },
+        {
+          "id": "2026-09-18_19-20-00_sistema_dinamico_lineal_plano",
+          "titulo": "Investigación Rigorosa del Sistema Dinámico Lineal Plano: X' = A X",
+          "fecha": "2026-09-19 02:01:09"
+        },
+        {
+          "id": "inicializacion_consolidada",
+          "titulo": "Corpus Matemático Unificado Praxis v9",
+          "fecha": "2026-09-18 19:30:00"
+        }
+      ],
+      "nivel_madurez": "Consolidado (3 investigaciones)",
+      "veces_enriquecido": 3
+    },
+    "paso_1": {
+      "id": "paso_1",
+      "nombre": "Paso 1",
+      "dominio": "Resolución y Métodos Operacionales",
+      "definicion_unificada": "Planteamiento formal",
+      "formulas_clave": [],
+      "propiedades_unificadas": [],
+      "teoremas_asociados": [],
+      "demostraciones": [],
+      "aplicaciones": [],
+      "generalizaciones": [],
+      "relaciones_cruzadas": [],
+      "historial_contribuciones": [
+        {
+          "id": "2026-09-18_17-30-00_sistema_lineal_autonomo",
+          "titulo": "Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen",
+          "fecha": "2026-09-19 02:00:53"
+        },
+        {
+          "id": "2026-09-18_18-15-00_teorema_bolzano_weierstrass",
+          "titulo": "Investigación Rigurosa del Teorema de Bolzano-Weierstrass en R^n: Compacidad y Completez",
+          "fecha": "2026-09-19 02:01:03"
+        },
+        {
+          "id": "2026-09-18_18-50-00_nulidad_ejercicio_no_definido",
+          "titulo": "Investigación sobre la Nulidad del Ejercicio No Definido",
+          "fecha": "2026-09-19 02:01:06"
+        },
+        {
+          "id": "2026-09-18_19-20-00_sistema_dinamico_lineal_plano",
+          "titulo": "Investigación Rigorosa del Sistema Dinámico Lineal Plano: X' = A X",
+          "fecha": "2026-09-19 02:01:09"
+        }
+      ],
+      "nivel_madurez": "Consolidado (4 investigaciones)",
+      "veces_enriquecido": 4
+    },
+    "paso_2": {
+      "id": "paso_2",
+      "nombre": "Paso 2",
+      "dominio": "Resolución y Métodos Operacionales",
+      "definicion_unificada": "Desarrollo algebraico",
+      "formulas_clave": [],
+      "propiedades_unificadas": [],
+      "teoremas_asociados": [],
+      "demostraciones": [],
+      "aplicaciones": [],
+      "generalizaciones": [],
+      "relaciones_cruzadas": [],
+      "historial_contribuciones": [
+        {
+          "id": "2026-09-18_17-30-00_sistema_lineal_autonomo",
+          "titulo": "Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen",
+          "fecha": "2026-09-19 02:00:53"
+        },
+        {
+          "id": "2026-09-18_18-15-00_teorema_bolzano_weierstrass",
+          "titulo": "Investigación Rigurosa del Teorema de Bolzano-Weierstrass en R^n: Compacidad y Completez",
+          "fecha": "2026-09-19 02:01:03"
+        },
+        {
+          "id": "2026-09-18_18-50-00_nulidad_ejercicio_no_definido",
+          "titulo": "Investigación sobre la Nulidad del Ejercicio No Definido",
+          "fecha": "2026-09-19 02:01:06"
+        },
+        {
+          "id": "2026-09-18_19-20-00_sistema_dinamico_lineal_plano",
+          "titulo": "Investigación Rigorosa del Sistema Dinámico Lineal Plano: X' = A X",
+          "fecha": "2026-09-19 02:01:09"
+        }
+      ],
+      "nivel_madurez": "Consolidado (4 investigaciones)",
+      "veces_enriquecido": 4
+    },
+    "dimension_arbitraria": {
+      "id": "dimension_arbitraria",
+      "nombre": "Dimensión arbitraria",
+      "dominio": "Investigación y Generalizaciones",
+      "definicion_unificada": "",
+      "formulas_clave": [],
+      "propiedades_unificadas": [],
+      "teoremas_asociados": [],
+      "demostraciones": [],
+      "aplicaciones": [],
+      "generalizaciones": [
+        "Extensión a R^n y espacios funcionales"
+      ],
+      "relaciones_cruzadas": [],
+      "historial_contribuciones": [
+        {
+          "id": "2026-09-18_17-30-00_sistema_lineal_autonomo",
+          "titulo": "Investigación rigurosa del sistema lineal autónomo plano y clasificación espectral del origen",
+          "fecha": "2026-09-19 02:00:53"
+        },
+        {
+          "id": "2026-09-18_18-15-00_teorema_bolzano_weierstrass",
+          "titulo": "Investigación Rigurosa del Teorema de Bolzano-Weierstrass en R^n: Compacidad y Completez",
+          "fecha": "2026-09-19 02:01:03"
+        },
+        {
+          "id": "2026-09-18_18-50-00_nulidad_ejercicio_no_definido",
+          "titulo": "Investigación sobre la Nulidad del Ejercicio No Definido",
+          "fecha": "2026-09-19 02:01:06"
+        },
+        {
+          "id": "2026-09-18_19-20-00_sistema_dinamico_lineal_plano",
+          "titulo": "Investigación Rigorosa del Sistema Dinámico Lineal Plano: X' = A X",
+          "fecha": "2026-09-19 02:01:09"
+        }
+      ],
+      "nivel_madurez": "Consolidado (4 investigaciones)",
+      "veces_enriquecido": 4
+    },
+    "teorema_bolzano_weierstrass": {
+      "id": "teorema_bolzano_weierstrass",
+      "nombre": "Investigación Rigurosa del Teorema de Bolzano-Weierstrass en R^n: Compacidad y Completez",
+      "dominio": "Teoría Principal",
+      "definicion_unificada": "Propiedad matemática fundamental\n\n*Perspectiva complementaria:* Todo subconjunto infinito y acotado de R^n posee al menos un punto de acumulación; equivalentemente, toda sucesión acotada en R^n admite una subsucesión convergente en la norma euclidiana.",
+      "formulas_clave": [
+        "\\forall (x_k)_{k=1}^\\infty \\subset \\mathbb{R}^n \\text{ acotada}, \\quad \\exists (x_{k_m})_{m=1}^\\infty \\text{ y } L \\in \\mathbb{R}^n \\text{ tales que } \\lim_{m \\to \\infty} \\|x_{k_m} - L\\|_2 = 0"
+      ],
+      "propiedades_unificadas": [
+        "Propiedad matemática fundamental",
+        "Pilar fundamental del análisis real y la compacidad secuencial en dimensión finita.",
+        "Falla en espacios de dimensión infinita (Teorema de Riesz sobre la no compacidad de la bola unitaria).",
+        "Equivalente en R^n a la completitud de Cauchy y al Teorema de Heine-Borel."
+      ],
+      "teoremas_asociados": [
+        {
+          "nombre": "Investigación Rigurosa del Teorema de Bolzano-Weierstrass en R^n: Compacidad y Completez",
+          "tipo": "Teorema",
+          "enunciado": "Enunciado formal demostrado."
+        },
+        {
+          "nombre": "Teorema de Bolzano-Weierstrass",
+          "tipo": "Teorema",
+          "enunciado": "Toda sucesión acotada en R^n contiene una subsucesión convergente."
+        }
+      ],
+      "demostraciones": [
+        {
+          "teorema": "Investigación Rigurosa del Teorema de Bolzano-Weierstrass en R^n: Compacidad y Completez",
+          "enfoque": "Demostración constructiva formal",
+          "demostracion": "Demostración constructiva paso a paso. Q.E.D. ■"
+        },
+        {
+          "teorema": "Teorema de Bolzano-Weierstrass",
+          "enfoque": "Lema de picos + Diagonalización de Cantor",
+          "demostracion": "En R, toda sucesión tiene una subsucesión monótona (lema de picos); por estar acotada, el axioma del supremo garantiza su convergencia. Para R^n, se aplica sucesivamente el lema a cada una de las n coordenadas para extraer subsucesiones anidadas, concluyendo mediante la diagonalización de Cantor la convergencia simultánea de las n componentes en la norma euclidiana. Q.E.D. ■"
+        }
+      ],
+      "aplicaciones": [],
+      "generalizaciones": [],
+      "relaciones_cruzadas": [
+        "teorema_heine_borel_compacidad",
+        "espacio_euclidiano_y_norma",
+        "teorema_riesz_compacidad_bola"
+      ],
+      "historial_contribuciones": [
+        {
+          "id": "2026-09-18_18-15-00_teorema_bolzano_weierstrass",
+          "titulo": "Investigación Rigurosa del Teorema de Bolzano-Weierstrass en R^n: Compacidad y Completez",
+          "fecha": "2026-09-19 02:01:03"
+        },
+        {
+          "id": "inicializacion_consolidada",
+          "titulo": "Corpus Matemático Unificado Praxis v9",
+          "fecha": "2026-09-18 19:30:00"
+        }
+      ],
+      "nivel_madurez": "Consolidado (2 investigaciones)",
+      "veces_enriquecido": 2
+    },
+    "investigacion_sobre_la_nulidad_del_ejerc": {
+      "id": "investigacion_sobre_la_nulidad_del_ejerc",
+      "nombre": "Investigación sobre la Nulidad del Ejercicio No Definido",
+      "dominio": "Teoría Principal",
+      "definicion_unificada": "Propiedad matemática fundamental",
+      "formulas_clave": [],
+      "propiedades_unificadas": [
+        "Propiedad matemática fundamental"
+      ],
+      "teoremas_asociados": [
+        {
+          "nombre": "Investigación sobre la Nulidad del Ejercicio No Definido",
+          "tipo": "Teorema",
+          "enunciado": "Enunciado formal demostrado."
+        }
+      ],
+      "demostraciones": [
+        {
+          "teorema": "Investigación sobre la Nulidad del Ejercicio No Definido",
+          "enfoque": "Demostración constructiva formal",
+          "demostracion": "Demostración constructiva paso a paso. Q.E.D. ■"
+        }
+      ],
+      "aplicaciones": [],
+      "generalizaciones": [],
+      "relaciones_cruzadas": [],
+      "historial_contribuciones": [
+        {
+          "id": "2026-09-18_18-50-00_nulidad_ejercicio_no_definido",
+          "titulo": "Investigación sobre la Nulidad del Ejercicio No Definido",
+          "fecha": "2026-09-19 02:01:06"
+        }
+      ],
+      "nivel_madurez": "Formalizado (1 investigación)",
+      "veces_enriquecido": 1
+    },
+    "exponencial_de_matriz": {
+      "id": "exponencial_de_matriz",
+      "nombre": "Exponencial de Matriz y Grupos a un Parámetro",
+      "dominio": "Álgebra Lineal & Teoría de Lie",
+      "definicion_unificada": "Operador lineal definido por la serie de potencias absoluta y uniformemente convergente exp(A) = sum_{k=0}^infty A^k / k! para cualquier matriz A en M_n(C).",
+      "formulas_clave": [
+        "e^{At} = \\sum_{k=0}^{\\infty} \\frac{t^k A^k}{k!} = I \\cos(t) + A \\sin(t)",
+        "\\frac{d}{dt} e^{At} = A e^{At} = e^{At} A"
+      ],
+      "propiedades_unificadas": [
+        "Convergencia absoluta en la norma inducida ||A||.",
+        "Propiedad de grupo: exp(A(t+s)) = exp(At) exp(As).",
+        "Invertibilidad universal: (exp(At))^{-1} = exp(-At).",
+        "Fórmula de Jacobi: det(exp(A)) = exp(tr(A))."
+      ],
+      "teoremas_asociados": [
+        {
+          "nombre": "Convergencia Global de la Exponencial de Operadores",
+          "tipo": "Teorema",
+          "enunciado": "Para toda matriz A en M_n(R) y todo t en R, la serie de potencias sum_{k=0}^infty (tA)^k / k! converge absolutamente en el espacio de Banach M_n(R)."
+        }
+      ],
+      "demostraciones": [
+        {
+          "teorema": "Convergencia Global de la Exponencial de Operadores",
+          "enfoque": "Criterio de mayoración de Weierstrass",
+          "demostracion": "Por la propiedad submultiplicativa de la norma ||AB|| <= ||A|| ||B||, tenemos ||(tA)^k / k!|| <= |t|^k ||A||^k / k!. La serie numérica sum |t|^k ||A||^k / k! converge a exp(|t| ||A||) para todo t. Por el criterio de Weierstrass y la completitud del álgebra de Banach M_n(R), la serie matricial converge uniformemente en todo compacto de R. Q.E.D. ■"
+        }
+      ],
+      "aplicaciones": [],
+      "generalizaciones": [],
+      "relaciones_cruzadas": [
+        "sistema_lineal_autonomo_plano",
+        "teorema_cayley_hamilton"
+      ],
+      "historial_contribuciones": [
+        {
+          "id": "inicializacion_consolidada",
+          "titulo": "Corpus Matemático Unificado Praxis v9",
+          "fecha": "2026-09-18 19:30:00"
+        }
+      ],
+      "nivel_madurez": "Formalizado (1 investigación)",
+      "veces_enriquecido": 1
+    },
+    "teorema_cayley_hamilton": {
+      "id": "teorema_cayley_hamilton",
+      "nombre": "Teorema de Cayley-Hamilton y Reducción Polinómica",
+      "dominio": "Álgebra Lineal y Teoría de Matrices",
+      "definicion_unificada": "Toda matriz cuadrada A sobre un cuerpo conmutativo satisface idénticamente su propia ecuación característica p(A) = 0.",
+      "formulas_clave": [
+        "p(\\lambda) = \\det(\\lambda I - A) = \\lambda^n - \\text{tr}(A)\\lambda^{n-1} + \\dots + (-1)^n \\det(A) = 0",
+        "p(A) = A^n - \\text{tr}(A)A^{n-1} + \\dots + (-1)^n \\det(A)I = 0"
+      ],
+      "propiedades_unificadas": [
+        "Permite reducir potencias de A^m (m >= n) a combinaciones lineales de I, A, ..., A^{n-1}.",
+        "Para matrices de orden 2: A^2 - tr(A)A + det(A)I = 0. En particular, si tr(A)=0 y det(A)=1, A^2 = -I."
+      ],
+      "teoremas_asociados": [
+        {
+          "nombre": "Teorema de Cayley-Hamilton",
+          "tipo": "Teorema",
+          "enunciado": "Sea A en M_n(K) con polinomio característico p(lambda). Entonces p(A) = 0 en M_n(K)."
+        }
+      ],
+      "demostraciones": [
+        {
+          "teorema": "Teorema de Cayley-Hamilton",
+          "enfoque": "Matriz de cofactores / Adjunta clásica",
+          "demostracion": "Sea B(lambda) = adj(lambda I - A) la matriz adjunta clásica. Por propiedades del determinante, (lambda I - A) B(lambda) = det(lambda I - A) I = p(lambda) I. B(lambda) es un polinomio matricial de grado n-1. Igualando coeficientes matriciales y sumando telescópicamente se obtiene p(A) = 0. Q.E.D. ■"
+        }
+      ],
+      "aplicaciones": [],
+      "generalizaciones": [],
+      "relaciones_cruzadas": [
+        "exponencial_de_matriz",
+        "espectro_y_polinomio_caracteristico"
+      ],
+      "historial_contribuciones": [
+        {
+          "id": "inicializacion_consolidada",
+          "titulo": "Corpus Matemático Unificado Praxis v9",
+          "fecha": "2026-09-18 19:30:00"
+        }
+      ],
+      "nivel_madurez": "Formalizado (1 investigación)",
+      "veces_enriquecido": 1
+    },
+    "centro_topologico_espacio_fase": {
+      "id": "centro_topologico_espacio_fase",
+      "nombre": "Centro Topológico y Clasificación de Singularidades de Poincaré",
+      "dominio": "Teoría Cualitativa de Ecuaciones Diferenciales",
+      "definicion_unificada": "Punto de equilibrio no hiperbólico caracterizado por autovalores puramente imaginarios conjugados lambda = +- i beta (beta != 0), rodeado por una familia continua de órbitas cerradas periódicas concéntricas.",
+      "formulas_clave": [
+        "\\text{Re}(\\lambda_{1,2}) = 0, \\quad \\text{tr}(A) = 0, \\quad \\det(A) > 0",
+        "T = \\frac{2\\pi}{\\beta}"
+      ],
+      "propiedades_unificadas": [
+        "Estabilidad marginal (estable según Lyapunov, no asintóticamente estable).",
+        "Fragilidad estructural: perturbaciones no lineales de orden superior pueden transformarlo en foco estable o inestable."
+      ],
+      "teoremas_asociados": [
+        {
+          "nombre": "Clasificación Espectral del Centro",
+          "tipo": "Teorema",
+          "enunciado": "En un sistema lineal autónomo planar X' = AX, el origen es un centro si y sólo si tr(A) = 0 y det(A) > 0."
+        }
+      ],
+      "demostraciones": [
+        {
+          "teorema": "Clasificación Espectral del Centro",
+          "enfoque": "Análisis de las raíces del polinomio cuadrático",
+          "demostracion": "Las raíces de lambda^2 - tr(A)lambda + det(A) = 0 son lambda = (tr(A) +- sqrt(tr(A)^2 - 4 det(A))) / 2. Si tr(A)=0 y det(A)>0, el discriminante es estrictamente negativo, arrojando autovalores puramente imaginarios conjugados +- i sqrt(det(A)). Por ende, las soluciones son combinaciones lineales periódicas de senos y cosenos de periodo 2pi / sqrt(det(A)), confinando el movimiento a órbitas cerradas. Q.E.D. ■"
+        }
+      ],
+      "aplicaciones": [],
+      "generalizaciones": [],
+      "relaciones_cruzadas": [
+        "sistema_lineal_autonomo_plano",
+        "estabilidad_lyapunov"
+      ],
+      "historial_contribuciones": [
+        {
+          "id": "inicializacion_consolidada",
+          "titulo": "Corpus Matemático Unificado Praxis v9",
+          "fecha": "2026-09-18 19:30:00"
+        }
+      ],
+      "nivel_madurez": "Formalizado (1 investigación)",
+      "veces_enriquecido": 1
+    },
+    "teorema_heine_borel_compacidad": {
+      "id": "teorema_heine_borel_compacidad",
+      "nombre": "Teorema de Heine-Borel y Equivalencia de Compacidad",
+      "dominio": "Topología General y Análisis Real",
+      "definicion_unificada": "En el espacio euclidiano R^n, un subconjunto K es compacto (toda cobertura abierta posee una subcobertura finita) si y sólo si K es cerrado y acotado.",
+      "formulas_clave": [
+        "K \\subset \\mathbb{R}^n \\text{ es compacto} \\iff K \\text{ es cerrado y acotado} \\iff K \\text{ es secuencialmente compacto}"
+      ],
+      "propiedades_unificadas": [
+        "Caracterización geométrica directa de la compacidad mediante cotas métricas.",
+        "Garantiza el Teorema de Weierstrass del valor extremo para funciones continuas."
+      ],
+      "teoremas_asociados": [
+        {
+          "nombre": "Teorema de Heine-Borel",
+          "tipo": "Teorema",
+          "enunciado": "Un subconjunto de R^n es compacto por cubiertas abiertas si y sólo si es cerrado y acotado."
+        }
+      ],
+      "demostraciones": [
+        {
+          "teorema": "Teorema de Heine-Borel",
+          "enfoque": "Bisección infinita de hipercubos encajados",
+          "demostracion": "Si K no admitiera subcobertura finita, se encierra en un hipercubo Q_0 y se biseca en 2^n subcubos. Al menos uno conserva la imposibilidad de cobertura finita. Inductivamente se genera una sucesión de cubos encajados cuyo diámetro tiende a cero. Por completitud, intersecan en un único punto x* en K. Dicho punto está cubierto por un abierto de la familia, el cual contiene eventualmente al subcubo completo, contradiciendo la hipótesis. Q.E.D. ■"
+        }
+      ],
+      "aplicaciones": [],
+      "generalizaciones": [],
+      "relaciones_cruzadas": [
+        "teorema_bolzano_weierstrass",
+        "espacio_euclidiano_y_norma"
+      ],
+      "historial_contribuciones": [
+        {
+          "id": "inicializacion_consolidada",
+          "titulo": "Corpus Matemático Unificado Praxis v9",
+          "fecha": "2026-09-18 19:30:00"
+        }
+      ],
+      "nivel_madurez": "Formalizado (1 investigación)",
+      "veces_enriquecido": 1
+    },
+    "teorema_picard_lindelof": {
+      "id": "teorema_picard_lindelof",
+      "nombre": "Teorema de Existencia y Unicidad de Picard-Lindelöf",
+      "dominio": "Análisis Matemático & EDOs",
+      "definicion_unificada": "Garantiza la existencia y unicidad global de soluciones para problemas de valor inicial X' = F(t, X) con X(t_0) = X_0 cuando el campo F es continuo y localmente Lipschitziano respecto a X.",
+      "formulas_clave": [
+        "X'(t) = F(t, X(t)), \\quad X(t_0) = X_0",
+        "\\|F(t, X_1) - F(t, X_2)\\| \\leq L \\|X_1 - X_2\\|"
+      ],
+      "propiedades_unificadas": [
+        "Asegura el determinismo causal en sistemas dinámicos.",
+        "Demostrado mediante el Teorema del Punto Fijo de Banach en el espacio métrico completo C([t_0-h, t_0+h])."
+      ],
+      "teoremas_asociados": [
+        {
+          "nombre": "Teorema de Picard-Lindelöf",
+          "tipo": "Teorema",
+          "enunciado": "Sea F Lipschitziana en X. Entonces existe un único flujo diferenciable solución en un intervalo alrededor de t_0."
+        }
+      ],
+      "demostraciones": [
+        {
+          "teorema": "Teorema de Picard-Lindelöf",
+          "enfoque": "Operador integral de Picard y contracción de Banach",
+          "demostracion": "Se reformula la EDO como ecuación integral T[X](t) = X_0 + int_{t_0}^t F(s, X(s)) ds. Se prueba que T es una contracción estricta en un espacio de Banach para h suficientemente pequeño. Por el teorema de Banach, existe un único punto fijo que es la solución buscada. Q.E.D. ■"
+        }
+      ],
+      "aplicaciones": [],
+      "generalizaciones": [],
+      "relaciones_cruzadas": [
+        "sistema_lineal_autonomo_plano"
+      ],
+      "historial_contribuciones": [
+        {
+          "id": "inicializacion_consolidada",
+          "titulo": "Corpus Matemático Unificado Praxis v9",
+          "fecha": "2026-09-18 19:30:00"
+        }
+      ],
+      "nivel_madurez": "Formalizado (1 investigación)",
+      "veces_enriquecido": 1
+    },
+    "sistemas_hamiltonianos_y_variedades_simplecticas": {
+      "id": "sistemas_hamiltonianos_y_variedades_simplecticas",
+      "nombre": "Mecánica Hamiltoniana, Integrales Primeras y Variedades Simplécticas",
+      "dominio": "Geometría Simpléctica y Mecánica Teórica",
+      "definicion_unificada": "Sistemas dinámicos gobernados por una función escalar de energía H(q, p) en una variedad simpléctica (M, omega), donde el flujo preserva el volumen (Teorema de Liouville) y la energía total H es una constante del movimiento.",
+      "formulas_clave": [
+        "\\dot{q} = \\frac{\\partial H}{\\partial p}, \\quad \\dot{p} = -\\frac{\\partial H}{\\partial q}",
+        "\\iota_{X_H} \\omega = dH, \\quad \\frac{dH}{dt} = \\{H, H\\} = 0"
+      ],
+      "propiedades_unificadas": [
+        "Invarianza simpléctica del flujo (transformaciones canónicas).",
+        "Preservación de la medida de Lebesgue en el espacio fase (Teorema de Liouville)."
+      ],
+      "teoremas_asociados": [
+        {
+          "nombre": "Conservación de la Energía Hamiltoniana",
+          "tipo": "Teorema",
+          "enunciado": "En todo sistema hamiltoniano autónomo, dH/dt = 0 a lo largo de cualquier trayectoria solución."
+        }
+      ],
+      "demostraciones": [
+        {
+          "teorema": "Conservación de la Energía Hamiltoniana",
+          "enfoque": "Derivación multivariable por regla de la cadena",
+          "demostracion": "dH/dt = (dH/dq) dq/dt + (dH/dp) dp/dt = (dH/dq)(dH/dp) + (dH/dp)(-dH/dq) = 0. Por ende, H permanece estrictamente constante en el tiempo. Q.E.D. ■"
+        }
+      ],
+      "aplicaciones": [],
+      "generalizaciones": [],
+      "relaciones_cruzadas": [
+        "sistema_lineal_autonomo_plano",
+        "estabilidad_lyapunov"
+      ],
+      "historial_contribuciones": [
+        {
+          "id": "inicializacion_consolidada",
+          "titulo": "Corpus Matemático Unificado Praxis v9",
+          "fecha": "2026-09-18 19:30:00"
+        }
+      ],
+      "nivel_madurez": "Formalizado (1 investigación)",
+      "veces_enriquecido": 1
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": "plantilla_mimetizada_Mi_Formato_UnADM",
+  "nombre": "Plantilla Mimetizada: Mi Formato UnADM",
+  "tipo": "mimetismo_escolar",
+  "fuente_pdf": "test_pure_python.pdf",
+  "paginas_analizadas": 1,
+  "secciones_mimetizadas": [
+    "1. INTRODUCCION AL MODELADO MATEMATICO",
+    "2. DESARROLLO AXIOMATICO COMPLETO",
+    "3. CONCLUSIONES Y SIMULACION"
+  ],
+  "directrices_estilo": {
+    "estilo_encabezados": "Jerárquico formal con numeración decimal",
+    "densidad_matematica": "Exhaustiva con justificación axiomática completa",
+    "anexo_codigo": true,
+    "simulador_interactivo": true
+  }
+}

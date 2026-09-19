@@ -1,0 +1,19 @@
+{
+  "id": "2026-09-19_10-22-50_Simulacion_Rob_tica_Lie",
+  "title": "Simulacion Robótica Lie",
+  "created_at": "2026-09-19 10:22:50",
+  "updated_at": "2026-09-19 10:22:53",
+  "total_responses": 1,
+  "responses": [
+    {
+      "folder": "respuesta_001_2026-09-19_10-22-50_Cinem_tica_en_SE_3",
+      "title": "Cinemática en SE(3)",
+      "prompt": "Desarrollar la ecuación diferencial de un manipulador",
+      "timestamp": "2026-09-19 10:22:53",
+      "docx_filename": "Cinem_tica_en_SE_3.docx",
+      "doc_filename": "Cinem_tica_en_SE_3.doc",
+      "sim_filename": "simulador.html",
+      "markdown_snippet": "# Cinemática en SE(3)\n\n## 1. Estrategia\nFormulación en álgebra de Lie.\n\n$$\nX' = A X\n$$\n..."
+    }
+  ]
+}
