@@ -62,6 +62,7 @@ import investigation_store
 import artifact_command_executor
 import experience_analyzer
 import experience_store
+import strategy_registry
 import rag_engine
 import refinement_engine
 import cas_verifier
@@ -149,6 +150,8 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_artifact_command()
         elif path == '/api/experience/analyze':
             self.handle_experience_analysis()
+        elif path == '/api/strategies':
+            self.handle_strategy_registry()
         elif path == '/api/refine_section':
             self.handle_refine_section()
         elif path == '/api/verify_cas':
@@ -723,6 +726,46 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
         except Exception as e:
             self.send_error(500, str(e))
+
+    def handle_strategy_registry(self):
+        try:
+            data = json.loads(self._read_body().decode('utf-8'))
+            registry = strategy_registry.StrategyRegistry(chat_manager.CHATS_DIR)
+            chat_id = data.get('chat_id')
+            action = data.get('action', 'list')
+
+            if action == 'list':
+                result = registry.list(chat_id, data.get('status'))
+            elif action == 'register':
+                strategy = strategy_registry.create_candidate(
+                    data.get('name', ''),
+                    data.get('objective', ''),
+                    data.get('rules', []),
+                    required_tests=data.get('required_tests', []),
+                    evidence_ids=data.get('evidence_ids', []),
+                    metrics=data.get('metrics', {}),
+                )
+                result = registry.register(chat_id, strategy).to_dict()
+            elif action == 'promote':
+                decision = strategy_registry.PromotionDecision(
+                    strategy_id=data['strategy_id'],
+                    approved=bool(data['approved']),
+                    reason=data.get('reason', ''),
+                    baseline_score=float(data.get('baseline_score', 0)),
+                    candidate_score=float(data.get('candidate_score', 0)),
+                    required_tests=tuple(data.get('required_tests', [])),
+                    passed_tests=tuple(data.get('passed_tests', [])),
+                )
+                result = registry.promote(chat_id, decision)
+            else:
+                raise ValueError('Acción de estrategia no soportada')
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+        except Exception as e:
+            self.send_error(400, str(e))
 
     # --- VERSIONADO LÓGICO DE INVESTIGACIONES ---
 
