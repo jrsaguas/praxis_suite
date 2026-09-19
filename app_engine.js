@@ -1371,7 +1371,25 @@ async function handleSpecialIntent(intent) {
       return;
     }
     try {
-      const resp = await fetch('/api/investigations/version', {
+      // Ejecutar primero: una versión no representa un cambio real hasta que
+      // el artefacto haya sido materializado y validado.
+      const execResp = await fetch('/api/investigations/artifact-command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          folder,
+          instruction: intent.instruction,
+          title: S.lastRun?.plan?.titulo || folder
+        })
+      });
+      const execData = await execResp.json();
+      if (!execResp.ok || execData.status !== 'ok') {
+        throw new Error(execData.message || execData.error || 'No se pudo ejecutar el comando de artefacto');
+      }
+
+      // Solo después de una ejecución exitosa registramos la nueva versión.
+      const versionResp = await fetch('/api/investigations/version', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1381,18 +1399,22 @@ async function handleSpecialIntent(intent) {
           title: S.lastRun?.plan?.titulo || folder,
           source: 'artifact_command',
           commands: [intent.instruction],
-          artifact_types: ['md', 'html', 'docx', 'doc']
+          artifact_types: execData.artifact_types || []
         })
       });
-      const data = await resp.json();
-      if (!resp.ok || data.status !== 'ok') throw new Error(data.error || 'No se pudo registrar la versión');
-      window.pendingArtifactCommand.version = data.version;
+      const versionData = await versionResp.json();
+      if (!versionResp.ok || versionData.status !== 'ok') {
+        throw new Error(versionData.error || 'El artefacto cambió, pero no se pudo registrar la versión');
+      }
+
+      window.pendingArtifactCommand.execution = execData;
+      window.pendingArtifactCommand.version = versionData.version;
       renderArtifactCommandNotice(
         intent.instruction,
-        'Comando registrado como nueva versión lógica. La ejecución del artefacto queda aislada del pipeline matemático.'
+        '✓ Artefacto ejecutado y nueva versión registrada. El pipeline matemático no fue invocado.'
       );
     } catch (err) {
-      renderArtifactCommandNotice(intent.instruction, 'No se pudo registrar la versión: ' + err.message);
+      renderArtifactCommandNotice(intent.instruction, 'No se aplicó ninguna nueva versión: ' + err.message);
     }
     return;
   }
