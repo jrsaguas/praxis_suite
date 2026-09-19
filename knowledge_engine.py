@@ -12,6 +12,8 @@ import json
 import re
 import datetime
 
+from epistemic_gate import can_consolidate, make_provenance
+
 KNOWLEDGE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "historial", "base_conocimiento")
 JSON_PATH = os.path.join(KNOWLEDGE_DIR, "conocimiento_unificado.json")
 MD_PATH = os.path.join(KNOWLEDGE_DIR, "base_conocimiento.md")
@@ -148,6 +150,15 @@ def deduplicate_and_merge_strings(existing_list, new_item):
 
 def update_or_add_concept(db, canon_key, concept_data, investigation_ref):
     conceptos = db.setdefault("conceptos", {})
+    provenance = concept_data.get("provenance") or make_provenance(investigation_ref.get("id", "unknown"))
+    if not can_consolidate(provenance):
+        db.setdefault("candidatos_pendientes", []).append({
+            "concepto": canon_key,
+            "datos": concept_data,
+            "proveniencia": provenance,
+            "fecha": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        })
+        return
     
     if canon_key not in conceptos:
         # Nuevo concepto
@@ -164,8 +175,10 @@ def update_or_add_concept(db, canon_key, concept_data, investigation_ref):
             "generalizaciones": concept_data.get("generalizaciones", []),
             "relaciones_cruzadas": concept_data.get("relaciones", []),
             "historial_contribuciones": [investigation_ref],
+            "proveniencia": provenance,
             "nivel_madurez": "Formalizado (1 investigación)",
-            "veces_enriquecido": 1
+            "veces_enriquecido": 1,
+            "proveniencia": provenance
         }
     else:
         # Robustecer y unificar concepto existente (NO duplicar)
@@ -225,7 +238,8 @@ def process_investigation_run(run_data, investigation_id, investigation_title):
     inv_ref = {
         "id": investigation_id,
         "titulo": investigation_title,
-        "fecha": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "fecha": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "provenance": run_data.get("provenance") or make_provenance(investigation_id),
     }
 
     # 1. Extraer ítems teóricos formales
