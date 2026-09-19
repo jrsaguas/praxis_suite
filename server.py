@@ -60,6 +60,8 @@ import interactive_engine
 import chat_manager
 import investigation_store
 import artifact_command_executor
+import experience_analyzer
+import experience_store
 import rag_engine
 import refinement_engine
 import cas_verifier
@@ -145,6 +147,8 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_register_investigation_version()
         elif path == '/api/investigations/artifact-command':
             self.handle_artifact_command()
+        elif path == '/api/experience/analyze':
+            self.handle_experience_analysis()
         elif path == '/api/refine_section':
             self.handle_refine_section()
         elif path == '/api/verify_cas':
@@ -693,6 +697,27 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             )
             status = 200 if result.get('status') == 'ok' else 400
             self.send_response(status)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+        except Exception as e:
+            self.send_error(500, str(e))
+
+    def handle_experience_analysis(self):
+        try:
+            data = json.loads(self._read_body().decode('utf-8'))
+            chat_id = data.get('chat_id')
+            query = data.get('query', '')
+            records = experience_store.list_records(
+                chat_manager.CHATS_DIR, chat_id, limit=data.get('limit', 100)
+            )
+            refs = experience_analyzer.select_references(
+                records, query, limit=data.get('reference_limit', 5)
+            )
+            patterns = experience_analyzer.detect_patterns(records)
+            result = experience_analyzer.fuse_reference_patterns(refs, patterns)
+            result['strategy_summary'] = experience_store.summarize_strategies(records)
+            self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
             self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
