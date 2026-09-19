@@ -43,6 +43,7 @@ class PromotionDecision:
     candidate_score: float
     required_tests: tuple[str, ...]
     passed_tests: tuple[str, ...] = ()
+    regressions: tuple[str, ...] = ()
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -114,6 +115,7 @@ def evaluate_promotion(
         candidate_score=float(candidate_score),
         required_tests=required,
         passed_tests=passed,
+        regressions=regression_list,
     )
 
 
