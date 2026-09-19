@@ -240,6 +240,19 @@ def save_response_to_chat(chat_id, data):
     )
 
     # 7. Actualizar metadata del chat
+    # 7.1 Identidad de investigación/versionado lógico.
+    # Se apoya en la carpeta existente: no crea una jerarquía paralela.
+    from investigation_model import InvestigationVersion, slug_investigation_id
+    investigation_id = slug_investigation_id(chat_id, resp_folder)
+    version = InvestigationVersion.create(
+        investigation_id=investigation_id,
+        prompt=prompt,
+        title=title,
+        response_folder=resp_folder,
+        source="pipeline",
+        artifact_types=["md", "html", "docx", "doc", "simulador", "proceso_agentes"],
+    )
+
     resp_entry = {
         "folder": resp_folder,
         "title": title,
@@ -248,7 +261,13 @@ def save_response_to_chat(chat_id, data):
         "docx_filename": f"{safe_title}.docx",
         "doc_filename": f"{safe_title}.doc",
         "sim_filename": "simulador.html",
-        "markdown_snippet": markdown[:300] + "..."
+        "markdown_snippet": markdown[:300] + "...",
+        "investigation_id": investigation_id,
+        "version_id": version.version_id,
+        "parent_version_id": version.parent_version_id,
+        "version_source": version.source,
+        "artifact_types": version.artifact_types,
+        "evaluation": None
     }
     meta["updated_at"] = resp_entry["timestamp"]
     meta["total_responses"] = resp_num
