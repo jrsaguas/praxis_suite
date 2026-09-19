@@ -30,6 +30,12 @@ class StrategyRegistryTests(unittest.TestCase):
         )
         self.assertTrue(approved.approved)
 
+        regressed = evaluate_promotion(
+            strategy, baseline_score=0.90, candidate_score=0.94,
+            passed_tests=["t1", "t2"], regressions=["visualization"]
+        )
+        self.assertFalse(regressed.approved)
+
     def test_registry_promotes_only_approved_decision(self):
         with tempfile.TemporaryDirectory() as tmp:
             registry = StrategyRegistry(tmp)
