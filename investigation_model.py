@@ -124,3 +124,25 @@ def slug_investigation_id(chat_id: str, response_folder: str) -> str:
     safe_chat = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(chat_id)).strip("_")
     safe_folder = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(response_folder)).strip("_")
     return f"{safe_chat}/{safe_folder}"
+
+
+
+@dataclass(frozen=True)
+class ExperienceReference:
+    """A reusable reference selected from prior evaluated investigations."""
+
+    investigation_id: str
+    version_id: str
+    relevance: float
+    reason: str
+    evaluation: EvaluationProfile | None = None
+
+    def __post_init__(self) -> None:
+        if not 0.0 <= float(self.relevance) <= 1.0:
+            raise ValueError("relevance must be between 0 and 1")
+
+    def to_dict(self) -> Dict[str, Any]:
+        data = asdict(self)
+        if self.evaluation is not None:
+            data["evaluation"] = asdict(self.evaluation)
+        return data
