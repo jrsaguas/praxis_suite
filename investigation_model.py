@@ -68,6 +68,7 @@ class InvestigationVersion:
     references: List[str] = field(default_factory=list)
     evaluation: Optional[EvaluationProfile] = None
     artifact_types: List[str] = field(default_factory=list)
+    status: str = "succeeded"
 
     @staticmethod
     def create(
@@ -82,6 +83,7 @@ class InvestigationVersion:
         references: Optional[List[str]] = None,
         evaluation: Optional[EvaluationProfile] = None,
         artifact_types: Optional[List[str]] = None,
+        status: str = "succeeded",
     ) -> "InvestigationVersion":
         now = datetime.now(timezone.utc).isoformat()
         seed = "|".join(
@@ -107,6 +109,7 @@ class InvestigationVersion:
             references=list(references or []),
             evaluation=evaluation,
             artifact_types=list(artifact_types or []),
+            status=status,
         )
 
     def to_dict(self) -> Dict[str, Any]:
