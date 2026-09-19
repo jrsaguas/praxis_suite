@@ -25,6 +25,8 @@ class InvestigationModelTests(unittest.TestCase):
         self.assertNotEqual(first.version_id, second.version_id)
         self.assertEqual(second.parent_version_id, first.version_id)
         self.assertEqual(second.source, "artifact_command")
+        self.assertEqual(first.status, "succeeded")
+        self.assertEqual(second.to_dict()["status"], "succeeded")
 
     def test_id_uses_existing_folder_identity(self):
         self.assertEqual(
