@@ -1,6 +1,6 @@
 import unittest
 
-from experience_analyzer import detect_patterns, select_references, fuse_reference_patterns
+from experience_analyzer import detect_patterns, select_references, fuse_reference_patterns, build_strategy_candidate
 
 
 class ExperienceAnalyzerTests(unittest.TestCase):
@@ -36,6 +36,14 @@ class ExperienceAnalyzerTests(unittest.TestCase):
         refs = select_references(self.records, "superficies con Canvas y sliders", limit=2)
         self.assertEqual(refs[0].investigation_id, "chat/r1")
         self.assertLessEqual(len(refs), 2)
+
+    def test_build_candidate_from_evidence_without_promoting(self):
+        refs = select_references(self.records, "superficies Canvas")
+        patterns = detect_patterns(self.records)
+        candidate = build_strategy_candidate(refs, patterns)
+        self.assertEqual(candidate.status, "candidate")
+        self.assertEqual(candidate.source, "experience-analysis")
+        self.assertIn("strategy-regression", candidate.required_tests)
 
     def test_fusion_is_not_promotion(self):
         refs = select_references(self.records, "superficies Canvas")
