@@ -46,6 +46,8 @@ class AgentGraphPlanner:
         requested = set(requested_agents or ())
         artifacts = set(required_artifacts)
         selected = self._closure(requested, artifacts)
+        selected.update(self._agents_required_by_depth(depth_requirements or {}))
+        selected = self._closure(selected, set())
         tasks = []
         for agent_id in self._topological(selected):
             spec = self._agents[agent_id]
@@ -59,6 +61,24 @@ class AgentGraphPlanner:
                 quality_gates=spec.quality_gates,
             ))
         return ExecutionPlan(tuple(tasks), tuple(a.agent_id for a in tasks), depth_requirements or {})
+
+
+    @staticmethod
+    def _agents_required_by_depth(requirements: Mapping[str, object]) -> set[str]:
+        required = set()
+        if int(requirements.get("proof_expectation", 0)) >= 60:
+            required.add("proof_specialist")
+        if int(requirements.get("research_expectation", 0)) >= 60:
+            required.add("research_specialist")
+        if int(requirements.get("visualization_expectation", 0)) >= 60:
+            required.add("representation_designer")
+        if int(requirements.get("experimentation_expectation", 0)) >= 70:
+            required.update(("python_visualizer", "code_reviewer"))
+        if int(requirements.get("formalism_expectation", 0)) >= 80:
+            required.add("foundation_analyst")
+        if int(requirements.get("generalization_expectation", 0)) >= 80:
+            required.add("research_specialist")
+        return required
 
     def _closure(self, requested: set[str], artifacts: set[str]) -> set[str]:
         owners = {
