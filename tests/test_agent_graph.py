@@ -24,6 +24,20 @@ class AgentGraphTests(unittest.TestCase):
         )
         self.assertEqual(plan.depth_requirements["proof_expectation"], 92)
 
+    def test_doctoral_depth_activates_proof_research_and_experimentation(self):
+        plan = AgentGraphPlanner().plan(
+            requested_agents=["mathematical_resolver"],
+            depth_requirements={
+                "proof_expectation": 92,
+                "research_expectation": 92,
+                "experimentation_expectation": 78,
+                "formalism_expectation": 95,
+                "generalization_expectation": 92,
+            },
+        )
+        ids = {x.agent_id for x in plan.tasks}
+        self.assertTrue({"proof_specialist","research_specialist","python_visualizer","code_reviewer","foundation_analyst"} <= ids)
+
 
 if __name__ == "__main__":
     unittest.main()
