@@ -13,6 +13,15 @@ class ProcessReportTests(unittest.TestCase):
             self.assertTrue(Path(result["html_path"]).exists())
             self.assertIn("2+2", Path(result["json_path"]).read_text(encoding="utf-8"))
 
+    def test_report_accepts_execution_event_objects(self):
+        import agent_runtime
+        event = agent_runtime.ExecutionEvent(1, "task:a", "a", "task", "completed", ("x",), ("md",), "completed")
+        with tempfile.TemporaryDirectory() as td:
+            result = generate_process_report(td, "x", "Runtime", {}, {"events": [event]})
+            md = Path(result["md_path"]).read_text(encoding="utf-8")
+            self.assertIn("task:a", md)
+            self.assertIn("md", md)
+
     def test_report_includes_runtime_observable_events(self):
         with tempfile.TemporaryDirectory() as td:
             result = generate_process_report(
