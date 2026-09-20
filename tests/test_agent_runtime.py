@@ -33,6 +33,23 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("task:canvas_engineer", trace.blocked)
         self.assertNotIn("task:canvas_engineer", trace.completed)
 
+    def test_trace_serializes_to_json_safe_dict(self):
+        plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
+        trace = AgentRuntime(lambda task, context: {task.agent_id: True}).run(plan)
+        data = trace.to_dict()
+        self.assertEqual(data["status"], "completed")
+        self.assertTrue(data["events"])
+        self.assertIsInstance(data["events"][0]["input_keys"], list)
+        self.assertIsInstance(data["events"][0]["output_keys"], list)
+        self.assertNotIn("results", data["events"][0])
+
+    def test_runtime_event_sink_receives_observable_events(self):
+        plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
+        seen = []
+        AgentRuntime(lambda task, context: {task.agent_id: True}, event_sink=seen.append).run(plan)
+        self.assertTrue(seen)
+        self.assertEqual(seen[0].phase, "task")
+
     def test_runtime_emits_structured_events(self):
         plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
         trace = AgentRuntime(lambda task, context: {task.agent_id: True}).run(plan)
