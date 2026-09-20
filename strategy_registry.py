@@ -185,3 +185,19 @@ class StrategyRegistry:
                 self._save(chat_id, data)
                 return strategy
         raise KeyError(f"Strategy not found: {strategy_id}")
+
+    def reactivate(self, chat_id: str, strategy_id: str, *, reason: str, evidence: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        data = self._load(chat_id)
+        for strategy in data["strategies"]:
+            if strategy.get("strategy_id") == strategy_id:
+                if strategy.get("status") not in {"retired", "degraded"}:
+                    raise ValueError("Solo una estrategia retirada o degradada puede reactivarse.")
+                strategy["status"] = "promoted"
+                strategy["reactivated_at"] = datetime.now(timezone.utc).isoformat()
+                strategy["reactivation"] = {
+                    "reason": str(reason),
+                    "evidence": evidence or {},
+                }
+                self._save(chat_id, data)
+                return strategy
+        raise KeyError(f"Strategy not found: {strategy_id}")
