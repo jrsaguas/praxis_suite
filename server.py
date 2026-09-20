@@ -66,6 +66,7 @@ import strategy_registry
 import learning_bridge
 import task_family
 import experience_trends
+import strategy_selector
 import rag_engine
 import refinement_engine
 import cas_verifier
@@ -153,6 +154,32 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_artifact_command()
         elif path == '/api/experience/analyze':
             self.handle_experience_analysis()
+        elif path == '/api/strategies/select':
+            try:
+                data = json.loads(self._read_body().decode('utf-8'))
+                chat_id = data.get('chat_id')
+                if not chat_id:
+                    raise ValueError('chat_id es obligatorio')
+                registry = strategy_registry.StrategyRegistry(chat_manager.CHATS_DIR)
+                strategies = registry.list(chat_id)
+                preferences = None
+                if data.get('preferences'):
+                    from preference_profiles import preference_from_dict
+                    preferences = preference_from_dict(data['preferences'])
+                ranked = strategy_selector.select_strategies(
+                    strategies,
+                    task_family=data.get('task_family'),
+                    preferences=preferences,
+                    trends=data.get('trends') or [],
+                    include_candidates=bool(data.get('include_candidates', False)),
+                    limit=int(data.get('limit', 5)),
+                )
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'strategies': ranked}, ensure_ascii=False).encode('utf-8'))
+            except Exception as e:
+                self.send_error(400, str(e))
         elif path == '/api/experience/record':
             self.handle_learning_record()
         elif path == '/api/strategies':
