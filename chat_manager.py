@@ -276,6 +276,14 @@ def save_response_to_chat(chat_id, data):
     meta["total_responses"] = resp_num
     meta.setdefault("responses", []).append(resp_entry)
 
+    # Registrar el estado físico real de los artefactos en la misma metadata.
+    import investigation_store
+    manifest = investigation_store.build_artifact_manifest(
+        CHATS_DIR, chat_id, resp_folder, version_id=version.version_id
+    )
+    resp_entry["artifact_manifest"] = manifest
+    resp_entry["artifact_manifest_version_id"] = version.version_id
+
     with open(meta_file, "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
 
