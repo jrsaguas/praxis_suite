@@ -115,6 +115,7 @@ def save_response_to_chat(chat_id, data):
     python_code = data.get('python_code', '')
     svgs = data.get('svgs', [])
     traces = data.get('traces', {})
+    strategy_context = data.get('strategy_context') or {}
 
     # Si no se envía chat_id válido, crear o usar el más reciente
     if not chat_id or not os.path.exists(os.path.join(CHATS_DIR, chat_id)):
@@ -251,6 +252,7 @@ def save_response_to_chat(chat_id, data):
         response_folder=resp_folder,
         source="pipeline",
         artifact_types=["md", "html", "docx", "doc", "simulador", "proceso_agentes"],
+        strategy_context=strategy_context,
     )
 
     resp_entry = {
@@ -267,7 +269,8 @@ def save_response_to_chat(chat_id, data):
         "parent_version_id": version.parent_version_id,
         "version_source": version.source,
         "artifact_types": version.artifact_types,
-        "evaluation": None
+        "evaluation": None,
+        "strategy_context": strategy_context,
     }
     meta["updated_at"] = resp_entry["timestamp"]
     meta["total_responses"] = resp_num
