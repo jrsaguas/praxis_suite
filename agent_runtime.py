@@ -98,7 +98,7 @@ class AgentRuntime:
                 break
 
         status = "completed" if not pending and not blocked else "partial" if completed else "failed"
-        return ExecutionTrace(status, tuple(results), dict(artifacts), tuple(completed), tuple(sorted(set(blocked)),), tuple(events))
+        return ExecutionTrace(status, tuple(results), dict(artifacts), tuple(completed), tuple(sorted(set(blocked))), tuple(events))
 
     def _run_task(self, task: AgentTask, artifacts: Mapping[str, Any]) -> TaskResult:
         last_error = None
