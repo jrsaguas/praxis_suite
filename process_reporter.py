@@ -35,6 +35,10 @@ def generate_process_report(folder_path, user_prompt, title, traces, run_data):
 
     # 1.5 Incorporar la traza operacional observable del runtime.
     runtime_events = (run_data or {}).get("events", [])
+    runtime_events = [
+        event.to_dict() if hasattr(event, "to_dict") else dict(event)
+        for event in runtime_events
+    ]
     if runtime_events:
         traces = dict(traces)
         traces["_runtime"] = {
