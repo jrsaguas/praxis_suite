@@ -157,6 +157,57 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_artifact_command()
         elif path == '/api/experience/analyze':
             self.handle_experience_analysis()
+        elif path == '/api/strategies/promote':
+            try:
+                data = json.loads(self._read_body().decode('utf-8'))
+                chat_id = data.get('chat_id')
+                strategy_id = data.get('strategy_id')
+                if not chat_id or not strategy_id:
+                    raise ValueError('chat_id y strategy_id son obligatorios')
+                registry = strategy_registry.StrategyRegistry(chat_manager.CHATS_DIR)
+                item = next((x for x in registry.list(chat_id) if x.get('strategy_id') == strategy_id), None)
+                if not item:
+                    raise ValueError('Estrategia no encontrada')
+                if item.get('status') == 'promoted':
+                    raise ValueError('La estrategia ya está promovida')
+                outcomes = experience_store.list_records(chat_manager.CHATS_DIR, chat_id, limit=1000)
+                comparison = promotion_gate.compare_strategy_to_baseline(
+                    outcomes, strategy_id=strategy_id,
+                    baseline_id=str(data.get('baseline_id', 'baseline-v1')),
+                    task_family=data.get('task_family'),
+                    min_samples=int(data.get('min_samples', 3)),
+                )
+                decision_raw = promotion_gate.evaluate_gate(
+                    comparison,
+                    passed_tests=data.get('passed_tests') or [],
+                    required_tests=item.get('required_tests') or [],
+                    min_improvement=float(data.get('min_improvement', 0.02)),
+                    regressions=data.get('regressions') or [],
+                    max_regressions=int(data.get('max_regressions', 0)),
+                )
+                decision = strategy_registry.PromotionDecision(
+                    strategy_id=strategy_id,
+                    approved=bool(decision_raw['approved']),
+                    reason=str(decision_raw['reason']),
+                    baseline_score=float(comparison['baseline_score']),
+                    candidate_score=float(comparison['candidate_score']),
+                    required_tests=tuple(decision_raw['required_tests']),
+                    passed_tests=tuple(decision_raw['passed_tests']),
+                    regressions=tuple(decision_raw['regressions']),
+                )
+                if not decision.approved:
+                    raise ValueError('Promotion Gate rechazó la estrategia: ' + decision.reason)
+                promoted = registry.promote(chat_id, decision)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    'status': 'promoted',
+                    'strategy': promoted,
+                    'decision': decision.to_dict()
+                }, ensure_ascii=False).encode('utf-8'))
+            except Exception as e:
+                self.send_error(400, str(e))
         elif path == '/api/strategies/promotion-check':
             try:
                 data = json.loads(self._read_body().decode('utf-8'))
