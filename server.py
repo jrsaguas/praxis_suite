@@ -1005,7 +1005,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                 instruction,
                 title=data.get('title', folder),
             )
-            investigation_store.record_execution(
+            event = investigation_store.record_execution(
                 chat_manager.CHATS_DIR,
                 chat_id,
                 folder,
@@ -1017,6 +1017,17 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                 message=result.get('message', ''),
                 plan=result.get('plan') or {},
             )
+            if result.get('status') == 'ok':
+                version = investigation_store.promote_execution_to_version(
+                    chat_manager.CHATS_DIR,
+                    chat_id,
+                    folder,
+                    event=event,
+                    prompt=instruction,
+                    title=data.get('title', folder),
+                    strategy_context=data.get('strategy_context') or {},
+                )
+                result['version'] = version
             status = 200 if result.get('status') == 'ok' else 400
             self.send_response(status)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
