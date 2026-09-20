@@ -94,5 +94,23 @@ class InvestigationStoreTests(unittest.TestCase):
             self.assertEqual(version["status"], "succeeded")
             self.assertEqual(version["source"], "artifact_execution")
 
+    def test_version_navigation_does_not_mutate_history(self):
+        with tempfile.TemporaryDirectory() as td:
+            chat_id = "chat_nav"
+            folder = "respuesta_nav"
+            self._write_response(td, chat_id, folder)
+            first = investigation_store.register_version(
+                td, chat_id, folder, prompt="p1", title="T1", source="pipeline"
+            )
+            second = investigation_store.register_version(
+                td, chat_id, folder, prompt="p2", title="T2", source="artifact_execution"
+            )
+            nav = investigation_store.navigate_versions(td, chat_id, folder, first["version_id"])
+            self.assertEqual(nav["current"]["version_id"], first["version_id"])
+            self.assertIsNone(nav["previous"])
+            self.assertEqual(nav["next"]["version_id"], second["version_id"])
+            self.assertEqual(len(investigation_store.list_versions(td, chat_id, folder)), 2)
+
+
 if __name__ == "__main__":
     unittest.main()
