@@ -76,6 +76,9 @@ import rag_engine
 import refinement_engine
 import cas_verifier
 import draft_manager
+import agent_graph
+import mathematical_depth
+import operational_context
 try:
     import pdf_mimicry_engine
 except Exception as e:
@@ -155,6 +158,8 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_rag_chat_docs()
         elif path == '/api/investigations/version':
             self.handle_register_investigation_version()
+        elif path == '/api/agent-graph/plan':
+            self.handle_agent_graph_plan()
         elif path == '/api/investigations/artifact-command':
             self.handle_artifact_command()
         elif path == '/api/experience/analyze':
@@ -416,6 +421,50 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_verify_cas()
         else:
             self.send_error(404, "Endpoint no encontrado")
+
+    def handle_agent_graph_plan(self):
+        try:
+            data = json.loads(self._read_body().decode('utf-8'))
+            task = str(data.get('task', '')).strip()
+            if not task:
+                raise ValueError('task es obligatorio')
+            profile_data = data.get('depth_profile') or {'level': data.get('level', 'licenciatura')}
+            profile = mathematical_depth.MathematicalDepthProfile.from_dict(profile_data)
+            depth_context = mathematical_depth.build_depth_context(profile)
+            required_artifacts = data.get('required_artifacts') or []
+            requested_agents = data.get('requested_agents') or []
+            plan = agent_graph.AgentGraphPlanner().plan(
+                requested_agents=requested_agents,
+                required_artifacts=required_artifacts,
+                depth_requirements=depth_context['requirements'],
+            )
+            strategy = data.get('strategy_context') or {}
+            context = operational_context.build_operational_context(
+                strategy_context=strategy,
+                task=task,
+                investigation_id=data.get('investigation_id'),
+            )
+            context['depth_context'] = depth_context
+            context['agent_plan'] = {
+                'selected_agents': plan.selected_agents,
+                'tasks': [
+                    {
+                        'task_id': t.task_id,
+                        'agent_id': t.agent_id,
+                        'inputs': t.inputs,
+                        'outputs': t.outputs,
+                        'depends_on': t.depends_on,
+                        'quality_gates': t.quality_gates,
+                    }
+                    for t in plan.tasks
+                ],
+            }
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'ok', 'plan': context['agent_plan'], 'context': context}, ensure_ascii=False).encode('utf-8'))
+        except Exception as e:
+            self.send_error(400, str(e))
 
     def do_GET(self):
         parsed = urlparse(self.path)
