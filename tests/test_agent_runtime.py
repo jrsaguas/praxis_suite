@@ -28,6 +28,7 @@ class AgentRuntimeTests(unittest.TestCase):
                 return {"passed": False, "reason": "representation mismatch"}
             return {"passed": True}
         trace = AgentRuntime(execute, gate, max_retries=1).run(plan)
+        self.assertEqual(trace.status, "completed")
         self.assertEqual(attempts["task:representation_designer"], 2)
         self.assertIn("task:canvas_engineer", trace.blocked)
         self.assertNotIn("task:canvas_engineer", trace.completed)
