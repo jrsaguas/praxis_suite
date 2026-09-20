@@ -2349,6 +2349,34 @@ async function runPipeline(resumeFromStage = null, existingRun = null) {
     };
     setStage('md', 'done', 'Listo para Word, DOCX y Pandoc');
 
+    // Registrar el resultado real de la estrategia seleccionada.
+    try {
+      const evalProfile = run.evaluation_profile || {
+        mathematics: 0, depth: 0, explanation: 0, visualization: 0,
+        interactivity: 0, images: 0, code: 0, structure: 0
+      };
+      const selected = (run.strategy_context?.strategy_ids || [])[0];
+      if (S.activeChatId && selected) {
+        const expResp = await fetch('/api/experience/strategy-outcome', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: S.activeChatId,
+            strategy_context: run.strategy_context,
+            evaluation_profile: evalProfile,
+            score: Number(run.evaluation_score ?? 1),
+            consistent: run.evaluation_consistent !== false,
+            investigation_id: run.investigation_id || null,
+            version_id: run.version_id || null,
+            metadata: { completed_stages: 8 }
+          })
+        });
+        if (expResp.ok) log('Resultado de estrategia registrado en Experience Store.');
+      }
+    } catch (e) {
+      console.warn('No se pudo registrar el resultado de estrategia:', e);
+    }
+
     window.saveRunToHistory(run, userPrompt);
     assembleReport(run, false); // INFORME FINAL COMPLETO
     S.lastRun = run;
