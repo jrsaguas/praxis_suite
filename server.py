@@ -69,6 +69,7 @@ import experience_trends
 import strategy_selector
 import strategy_context
 import promotion_gate
+import strategy_health
 import preference_store
 import rag_engine
 import refinement_engine
@@ -157,6 +158,32 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_artifact_command()
         elif path == '/api/experience/analyze':
             self.handle_experience_analysis()
+        elif path == '/api/strategies/health':
+            try:
+                data = json.loads(self._read_body().decode('utf-8'))
+                chat_id = data.get('chat_id')
+                strategy_id = data.get('strategy_id')
+                if not chat_id or not strategy_id:
+                    raise ValueError('chat_id y strategy_id son obligatorios')
+                registry = strategy_registry.StrategyRegistry(chat_manager.CHATS_DIR)
+                strategy = next((x for x in registry.list(chat_id) if x.get('strategy_id') == strategy_id), None)
+                if not strategy:
+                    raise ValueError('Estrategia no encontrada')
+                outcomes = experience_store.list_records(chat_manager.CHATS_DIR, chat_id, limit=1000)
+                health = strategy_health.assess_degradation(
+                    outcomes,
+                    strategy_id=strategy_id,
+                    task_family=data.get('task_family'),
+                    recent_limit=int(data.get('recent_limit', 5)),
+                    min_score=float(data.get('min_score', .70)),
+                    max_decline=float(data.get('max_decline', .05)),
+                )
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'ok', 'strategy': strategy, 'health': health}, ensure_ascii=False).encode('utf-8'))
+            except Exception as e:
+                self.send_error(400, str(e))
         elif path == '/api/strategies/promote':
             try:
                 data = json.loads(self._read_body().decode('utf-8'))
@@ -240,6 +267,25 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.end_headers()
                 self.wfile.write(json.dumps({'status': 'ok', 'comparison': comparison, 'decision': decision}, ensure_ascii=False).encode('utf-8'))
+            except Exception as e:
+                self.send_error(400, str(e))
+        elif path == '/api/strategies/retire':
+            try:
+                data = json.loads(self._read_body().decode('utf-8'))
+                chat_id = data.get('chat_id')
+                strategy_id = data.get('strategy_id')
+                if not chat_id or not strategy_id:
+                    raise ValueError('chat_id y strategy_id son obligatorios')
+                registry = strategy_registry.StrategyRegistry(chat_manager.CHATS_DIR)
+                outcomes = experience_store.list_records(chat_manager.CHATS_DIR, chat_id, limit=1000)
+                health = strategy_health.assess_degradation(outcomes, strategy_id=strategy_id, task_family=data.get('task_family'))
+                if not health.get('degraded'):
+                    raise ValueError('La evidencia disponible no justifica retirar la estrategia.')
+                retired = registry.retire(chat_id, strategy_id, reason='degradacion_detectada', evidence=health)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'retired', 'strategy': retired, 'health': health}, ensure_ascii=False).encode('utf-8'))
             except Exception as e:
                 self.send_error(400, str(e))
         elif path == '/api/strategies/context':
