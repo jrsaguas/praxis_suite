@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional
 from preference_profiles import PreferenceProfile
 from strategy_selector import select_strategies
 from task_family import classify_task_family
+from mathematical_depth import MathematicalDepthProfile, build_depth_context
 
 
 def build_strategy_context(
@@ -16,6 +17,7 @@ def build_strategy_context(
     preferences: Optional[PreferenceProfile] = None,
     trends=(),
     limit: int = 5,
+    depth_profile: Optional[MathematicalDepthProfile] = None,
 ) -> Dict[str, Any]:
     record = {"metadata": {"topic": task}, "task_fingerprint": task}
     family = classify_task_family(record)
@@ -26,8 +28,11 @@ def build_strategy_context(
         trends=trends,
         limit=limit,
     )
+    depth = depth_profile or MathematicalDepthProfile.preset("licenciatura")
+    depth_context = build_depth_context(depth)
     return {
         "task_family": family,
+        "depth_context": depth_context,
         "selection_policy": "promoted_only",
         "strategy_ids": [x["strategy"].get("strategy_id") for x in ranked],
         "strategies": ranked,
