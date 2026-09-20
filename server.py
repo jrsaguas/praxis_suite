@@ -70,6 +70,7 @@ import strategy_selector
 import strategy_context
 import promotion_gate
 import strategy_health
+import strategy_recovery
 import preference_store
 import rag_engine
 import refinement_engine
@@ -158,6 +159,24 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_artifact_command()
         elif path == '/api/experience/analyze':
             self.handle_experience_analysis()
+        elif path == '/api/strategies/recovery-candidate':
+            try:
+                data = json.loads(self._read_body().decode('utf-8'))
+                chat_id, family = data.get('chat_id'), data.get('task_family')
+                if not chat_id or not family:
+                    raise ValueError('chat_id y task_family son obligatorios')
+                outcomes = experience_store.list_records(chat_manager.CHATS_DIR, chat_id, limit=1000)
+                result = strategy_recovery.recovery_candidate(
+                    outcomes, family=family,
+                    excluded_strategy_ids=data.get('excluded_strategy_ids') or [],
+                    min_score=float(data.get('min_score', .75)),
+                )
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status':'ok','recovery':result}, ensure_ascii=False).encode('utf-8'))
+            except Exception as e:
+                self.send_error(400, str(e))
         elif path == '/api/strategies/health':
             try:
                 data = json.loads(self._read_body().decode('utf-8'))
@@ -267,6 +286,28 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.end_headers()
                 self.wfile.write(json.dumps({'status': 'ok', 'comparison': comparison, 'decision': decision}, ensure_ascii=False).encode('utf-8'))
+            except Exception as e:
+                self.send_error(400, str(e))
+        elif path == '/api/strategies/reactivate':
+            try:
+                data = json.loads(self._read_body().decode('utf-8'))
+                chat_id, strategy_id = data.get('chat_id'), data.get('strategy_id')
+                if not chat_id or not strategy_id:
+                    raise ValueError('chat_id y strategy_id son obligatorios')
+                registry = strategy_registry.StrategyRegistry(chat_manager.CHATS_DIR)
+                strategy = next((x for x in registry.list(chat_id) if x.get('strategy_id') == strategy_id), None)
+                if not strategy:
+                    raise ValueError('Estrategia no encontrada')
+                outcomes = experience_store.list_records(chat_manager.CHATS_DIR, chat_id, limit=1000)
+                family = data.get('task_family')
+                recovery = strategy_recovery.recovery_candidate(outcomes, family=family, excluded_strategy_ids=[strategy_id], min_score=float(data.get('min_score', .75)))
+                if not recovery.get('eligible') or recovery.get('candidate', {}).get('strategy_id') != strategy_id:
+                    raise ValueError('La evidencia actual no justifica reactivar esta estrategia.')
+                reactivated = registry.reactivate(chat_id, strategy_id, reason='recuperacion_basada_en_historial', evidence=recovery)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status':'reactivated','strategy':reactivated,'recovery':recovery}, ensure_ascii=False).encode('utf-8'))
             except Exception as e:
                 self.send_error(400, str(e))
         elif path == '/api/strategies/retire':
