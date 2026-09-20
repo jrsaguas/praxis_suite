@@ -1,6 +1,6 @@
 import unittest
-from preference_profiles import PreferenceProfile
 from strategy_context import build_strategy_context
+from preference_profiles import PreferenceProfile
 
 
 class StrategyContextTests(unittest.TestCase):
@@ -10,6 +10,7 @@ class StrategyContextTests(unittest.TestCase):
             "strategy_id": "s1", "status": "promoted",
             "task_families": ["linear_algebra"],
             "evaluation_profile": {"mathematics": 95},
+            "rules": ["demostrar cada transformación"],
         }]
         context = build_strategy_context(
             "resolver una matriz y determinar su determinante",
@@ -17,6 +18,7 @@ class StrategyContextTests(unittest.TestCase):
         )
         self.assertEqual(context["task_family"], "linear_algebra")
         self.assertEqual(context["strategy_ids"], ["s1"])
+        self.assertEqual(context["operational_instructions"], ["demostrar cada transformación"])
         self.assertEqual(context["preference_version"], 1)
 
 
