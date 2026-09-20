@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from investigation_store import list_versions, register_version, record_execution
+from investigation_store import list_versions, register_version, record_execution, promote_execution_to_version
 
 
 class InvestigationStoreTests(unittest.TestCase):
@@ -65,6 +65,34 @@ class InvestigationStoreTests(unittest.TestCase):
             saved = json.loads((chat / "conversacion_metadata.json").read_text(encoding="utf-8"))
             self.assertEqual(event["status"], "ok")
             self.assertEqual(saved["responses"][0]["execution_history"][0]["operation"], "generate_canvas")
+    def test_failed_execution_cannot_be_promoted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            chats = Path(tmp) / "chats"
+            chat = chats / "chat-1"
+            chat.mkdir(parents=True)
+            meta = {"id": "chat-1", "responses": [{"folder": "respuesta_001", "version_id": "v-root"}]}
+            (chat / "conversacion_metadata.json").write_text(json.dumps(meta), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                promote_execution_to_version(
+                    str(chats), "chat-1", "respuesta_001",
+                    event={"status": "failed", "instruction": "corrige Canvas"},
+                    prompt="corrige Canvas", title="Canvas",
+                )
+
+    def test_successful_execution_promotes_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            chats = Path(tmp) / "chats"
+            chat = chats / "chat-1"
+            chat.mkdir(parents=True)
+            meta = {"id": "chat-1", "responses": [{"folder": "respuesta_001", "version_id": "v-root"}]}
+            (chat / "conversacion_metadata.json").write_text(json.dumps(meta), encoding="utf-8")
+            version = promote_execution_to_version(
+                str(chats), "chat-1", "respuesta_001",
+                event={"status": "ok", "instruction": "genera Canvas", "artifact_types": ["simulador"]},
+                prompt="genera Canvas", title="Canvas",
+            )
+            self.assertEqual(version["status"], "succeeded")
+            self.assertEqual(version["source"], "artifact_execution")
 
 if __name__ == "__main__":
     unittest.main()
