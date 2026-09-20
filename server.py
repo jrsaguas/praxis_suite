@@ -1005,6 +1005,18 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                 instruction,
                 title=data.get('title', folder),
             )
+            investigation_store.record_execution(
+                chat_manager.CHATS_DIR,
+                chat_id,
+                folder,
+                operation=result.get('operation', 'unknown'),
+                instruction=instruction,
+                status=result.get('status', 'unknown'),
+                changed_files=result.get('changed_files') or [],
+                artifact_types=result.get('artifact_types') or [],
+                message=result.get('message', ''),
+                plan=result.get('plan') or {},
+            )
             status = 200 if result.get('status') == 'ok' else 400
             self.send_response(status)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
