@@ -57,6 +57,7 @@ def register_version(
     references: Optional[list[str]] = None,
     artifact_types: Optional[list[str]] = None,
     status: str = "succeeded",
+    strategy_context: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     meta = _load(chats_dir, chat_id)
     response = get_response(meta, folder)
@@ -78,6 +79,7 @@ def register_version(
         references=references,
         artifact_types=artifact_types or response.get("artifact_types", []),
         status=status,
+        strategy_context=strategy_context or {},
     )
     response["version_id"] = version.version_id
     response["parent_version_id"] = version.parent_version_id
