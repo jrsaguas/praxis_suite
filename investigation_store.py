@@ -155,3 +155,31 @@ def record_execution(
     response["last_execution"] = event
     _save(chats_dir, chat_id, meta)
     return event
+
+
+
+def promote_execution_to_version(
+    chats_dir: str,
+    chat_id: str,
+    folder: str,
+    *,
+    event: Dict[str, Any],
+    prompt: str,
+    title: str,
+    strategy_context: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Create a succeeded investigation version only after real execution succeeded."""
+    if str(event.get("status")) != "ok":
+        raise ValueError("Only successful execution events can be promoted to a version")
+    return register_version(
+        chats_dir,
+        chat_id,
+        folder,
+        prompt=prompt,
+        title=title,
+        source="artifact_execution",
+        commands=[str(event.get("instruction", ""))],
+        artifact_types=list(event.get("artifact_types") or []),
+        status="succeeded",
+        strategy_context=strategy_context or {},
+    )
