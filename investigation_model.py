@@ -69,6 +69,7 @@ class InvestigationVersion:
     evaluation: Optional[EvaluationProfile] = None
     artifact_types: List[str] = field(default_factory=list)
     status: str = "succeeded"
+    strategy_context: Dict[str, Any] = field(default_factory=dict)
 
     @staticmethod
     def create(
@@ -84,6 +85,7 @@ class InvestigationVersion:
         evaluation: Optional[EvaluationProfile] = None,
         artifact_types: Optional[List[str]] = None,
         status: str = "succeeded",
+        strategy_context: Optional[Dict[str, Any]] = None,
     ) -> "InvestigationVersion":
         now = datetime.now(timezone.utc).isoformat()
         seed = "|".join(
@@ -110,6 +112,7 @@ class InvestigationVersion:
             evaluation=evaluation,
             artifact_types=list(artifact_types or []),
             status=status,
+            strategy_context=dict(strategy_context or {}),
         )
 
     def to_dict(self) -> Dict[str, Any]:
