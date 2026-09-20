@@ -28,6 +28,7 @@ def build_strategy_context(
     )
     return {
         "task_family": family,
+        "selection_policy": "promoted_only",
         "strategy_ids": [x["strategy"].get("strategy_id") for x in ranked],
         "strategies": ranked,
         "operational_instructions": [
@@ -36,5 +37,6 @@ def build_strategy_context(
             for rule in item["strategy"].get("rules", [])
         ],
         "preference_version": preferences.version if preferences else None,
-        "strategy_context_version": 1,
+        "strategy_context_version": 2,
+        "selected_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
     }
