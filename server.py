@@ -1016,6 +1016,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                 artifact_types=result.get('artifact_types') or [],
                 message=result.get('message', ''),
                 plan=result.get('plan') or {},
+                runtime_trace=data.get('runtime_trace') or {},
             )
             if result.get('status') == 'ok':
                 version = investigation_store.promote_execution_to_version(
