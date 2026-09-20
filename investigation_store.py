@@ -130,6 +130,7 @@ def record_execution(
     artifact_types: Optional[list[str]] = None,
     message: str = "",
     plan: Optional[Dict[str, Any]] = None,
+    runtime_trace: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Append an auditable execution event without creating another hierarchy."""
     from datetime import datetime, timezone
@@ -152,6 +153,7 @@ def record_execution(
         "changed_files": list(changed_files or []),
         "artifact_types": list(artifact_types or []),
         "plan": dict(plan or {}),
+        "runtime_trace": dict(runtime_trace or {}),
     }
     response.setdefault("execution_history", []).append(event)
     response["last_execution"] = event
