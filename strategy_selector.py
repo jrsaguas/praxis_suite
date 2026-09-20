@@ -65,6 +65,8 @@ def select_strategies(
     for strategy in strategies:
         if not include_candidates and strategy.get("status") != "promoted":
             continue
+        if strategy.get("status") in {"retired", "degraded"} and not include_candidates:
+            continue
         family = _family_match(strategy, task_family)
         preference = _preference_fit(strategy, preferences)
         trend = _trend_fit(strategy, trends)
