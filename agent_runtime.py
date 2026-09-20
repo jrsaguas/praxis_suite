@@ -8,6 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Iterable, Mapping, Optional, Tuple
 from agent_graph import ExecutionPlan, AgentTask
+from agent_adapters import adapter_for
 
 
 @dataclass(frozen=True)
@@ -28,6 +29,13 @@ class ExecutionTrace:
     artifacts: Mapping[str, Any]
     completed: Tuple[str, ...]
     blocked: Tuple[str, ...]
+
+
+def default_executor(task: AgentTask, context: Mapping[str, Any]) -> Mapping[str, Any]:
+    adapter = adapter_for(task.agent_id)
+    if adapter is None:
+        raise LookupError(f"No existe adaptador operativo para {task.agent_id}")
+    return adapter(task, context)
 
 
 class AgentRuntime:
