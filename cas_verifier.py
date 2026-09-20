@@ -104,21 +104,23 @@ def verify_mathematical_derivation(steps=None, final_result="", user_prompt=""):
             except Exception:
                 pass
 
-    # Si no se detectaron expresiones parseables automáticamente, generar certificación axiomática
+    # No convertir la ausencia de una prueba automática en un certificado.
+    # La ausencia de registros significa que no hubo una validación CAS suficiente.
     if not verification_records:
         verification_records.append({
-            "tipo": "Estructura Axiomática (SymPy CAS)",
-            "operacion": "Validación de compatibilidad dimensional y de operadores",
-            "resultado_cas": "Espacio vectorial y operadores conformes a la teoría estándar.",
-            "estado": "VERIFICADO_CONSISTENTE"
+            "tipo": "Cobertura CAS",
+            "operacion": "No se detectó una expresión verificable automáticamente.",
+            "resultado_cas": "Sin validación simbólica ejecutada.",
+            "estado": "NO_VALIDACION_AUTOMATICA"
         })
 
+    validated = any(r.get("estado") == "VALIDADO_SIMBOLICAMENTE" for r in verification_records)
     certificate = {
-        "modulo": "SymPy Computer Algebra System (v1.13.3)",
-        "estado_global": "CERTIFICADO_SIN_CONTRADICCIONES",
+        "modulo": "SymPy Computer Algebra System",
+        "estado_global": "VALIDADO_CAS" if validated else "NO_VALIDADO_CAS",
         "total_validaciones": len(verification_records),
         "registros": verification_records,
-        "nota_certificacion": "Los pasos algebraicos y espectrales evaluados con SymPy son formalmente consistentes con los axiomas de cuerpo y operadores diferenciales."
+        "nota_certificacion": ("Se ejecutaron una o más validaciones simbólicas con SymPy." if validated else "El motor no encontró una expresión suficiente para emitir una certificación simbólica; el resultado no debe interpretarse como prueba de corrección.")
     }
 
     return certificate

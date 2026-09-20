@@ -17,6 +17,8 @@ import glob
 import datetime
 import subprocess
 
+from security_utils import validate_component, safe_filename, safe_child_path
+
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 HISTORIAL_DIR = os.path.join(DIRECTORY, "historial")
 CHATS_DIR = os.path.join(HISTORIAL_DIR, "chats")
@@ -80,7 +82,8 @@ def create_chat(title="Nueva Conversación"):
 
 def get_chat(chat_id):
     """Carga los mensajes y entregables de una conversación específica"""
-    chat_dir = os.path.join(CHATS_DIR, chat_id)
+    chat_id = validate_component(chat_id, "chat_id")
+    chat_dir = safe_child_path(CHATS_DIR, chat_id)
     meta_file = os.path.join(chat_dir, "conversacion_metadata.json")
     if not os.path.exists(meta_file):
         return None
@@ -112,6 +115,7 @@ def save_response_to_chat(chat_id, data):
     python_code = data.get('python_code', '')
     svgs = data.get('svgs', [])
     traces = data.get('traces', {})
+    strategy_context = data.get('strategy_context') or {}
 
     # Si no se envía chat_id válido, crear o usar el más reciente
     if not chat_id or not os.path.exists(os.path.join(CHATS_DIR, chat_id)):
@@ -122,7 +126,8 @@ def save_response_to_chat(chat_id, data):
             new_c = create_chat(f"Investigación {title[:30]}")
             chat_id = new_c["id"]
 
-    chat_dir = os.path.join(CHATS_DIR, chat_id)
+    chat_id = validate_component(chat_id, "chat_id")
+    chat_dir = safe_child_path(CHATS_DIR, chat_id)
     meta_file = os.path.join(chat_dir, "conversacion_metadata.json")
     meta = {}
     if os.path.exists(meta_file):
@@ -236,6 +241,20 @@ def save_response_to_chat(chat_id, data):
     )
 
     # 7. Actualizar metadata del chat
+    # 7.1 Identidad de investigación/versionado lógico.
+    # Se apoya en la carpeta existente: no crea una jerarquía paralela.
+    from investigation_model import InvestigationVersion, slug_investigation_id
+    investigation_id = slug_investigation_id(chat_id, resp_folder)
+    version = InvestigationVersion.create(
+        investigation_id=investigation_id,
+        prompt=prompt,
+        title=title,
+        response_folder=resp_folder,
+        source="pipeline",
+        artifact_types=["md", "html", "docx", "doc", "simulador", "proceso_agentes"],
+        strategy_context=strategy_context,
+    )
+
     resp_entry = {
         "folder": resp_folder,
         "title": title,
@@ -244,11 +263,26 @@ def save_response_to_chat(chat_id, data):
         "docx_filename": f"{safe_title}.docx",
         "doc_filename": f"{safe_title}.doc",
         "sim_filename": "simulador.html",
-        "markdown_snippet": markdown[:300] + "..."
+        "markdown_snippet": markdown[:300] + "...",
+        "investigation_id": investigation_id,
+        "version_id": version.version_id,
+        "parent_version_id": version.parent_version_id,
+        "version_source": version.source,
+        "artifact_types": version.artifact_types,
+        "evaluation": None,
+        "strategy_context": strategy_context,
     }
     meta["updated_at"] = resp_entry["timestamp"]
     meta["total_responses"] = resp_num
     meta.setdefault("responses", []).append(resp_entry)
+
+    # Registrar el estado físico real de los artefactos en la misma metadata.
+    import investigation_store
+    manifest = investigation_store.build_artifact_manifest(
+        CHATS_DIR, chat_id, resp_folder, version_id=version.version_id
+    )
+    resp_entry["artifact_manifest"] = manifest
+    resp_entry["artifact_manifest_version_id"] = version.version_id
 
     with open(meta_file, "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
@@ -320,7 +354,8 @@ if __name__ == "__main__":
 def save_checkpoint(chat_id, checkpoint_data):
     """Guarda el estado de ejecución de un pipeline interrumpido o en progreso."""
     if not chat_id: return None
-    chat_dir = os.path.join(CHATS_DIR, chat_id)
+    chat_id = validate_component(chat_id, "chat_id")
+    chat_dir = safe_child_path(CHATS_DIR, chat_id)
     os.makedirs(chat_dir, exist_ok=True)
     cp_file = os.path.join(chat_dir, "checkpoint.json")
     checkpoint_data["updated_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -331,7 +366,8 @@ def save_checkpoint(chat_id, checkpoint_data):
 def get_checkpoint(chat_id):
     """Obtiene el último checkpoint registrado para el chat."""
     if not chat_id: return None
-    cp_file = os.path.join(CHATS_DIR, chat_id, "checkpoint.json")
+    chat_id = validate_component(chat_id, "chat_id")
+    cp_file = os.path.join(safe_child_path(CHATS_DIR, chat_id), "checkpoint.json")
     if not os.path.exists(cp_file): return None
     try:
         with open(cp_file, "r", encoding="utf-8") as f:
@@ -342,15 +378,18 @@ def get_checkpoint(chat_id):
 def clear_checkpoint(chat_id):
     """Elimina el checkpoint tras completar el flujo exitosamente."""
     if not chat_id: return
-    cp_file = os.path.join(CHATS_DIR, chat_id, "checkpoint.json")
+    chat_id = validate_component(chat_id, "chat_id")
+    cp_file = os.path.join(safe_child_path(CHATS_DIR, chat_id), "checkpoint.json")
     if os.path.exists(cp_file):
         try: os.remove(cp_file)
         except Exception: pass
 
 def get_response_detail(chat_id, folder_name):
     """Obtiene el contenido completo (HTML, MD, rutas) de una investigación pasada."""
-    chat_dir = os.path.join(CHATS_DIR, chat_id)
-    resp_path = os.path.join(chat_dir, folder_name)
+    chat_id = validate_component(chat_id, "chat_id")
+    folder_name = validate_component(folder_name, "folder_name")
+    chat_dir = safe_child_path(CHATS_DIR, chat_id)
+    resp_path = safe_child_path(chat_dir, folder_name)
     if not os.path.exists(resp_path): return None
 
     doc_dir = os.path.join(resp_path, "entregables", "documentos")
@@ -435,10 +474,11 @@ def save_chat_attachment(chat_id, filename, file_bytes):
     """Guarda un archivo subido por el usuario en la carpeta específica del chat."""
     if not chat_id:
         chat_id = "general"
-    upload_dir = os.path.join(CHATS_DIR, chat_id, "archivos_cargados")
+    chat_id = validate_component(chat_id, "chat_id")
+    safe_fn = safe_filename(filename)
+    upload_dir = safe_child_path(CHATS_DIR, chat_id, "archivos_cargados")
     os.makedirs(upload_dir, exist_ok=True)
-    safe_fn = "".join([c if c.isalnum() or c in "._- " else "_" for c in filename])
-    dest_path = os.path.join(upload_dir, safe_fn)
+    dest_path = safe_child_path(upload_dir, safe_fn)
     with open(dest_path, "wb") as f:
         f.write(file_bytes)
     return {

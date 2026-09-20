@@ -38,60 +38,153 @@ def find_pandoc():
     return None
 
 def latex_to_omml(tex, is_block=False):
+    """Convierte un subconjunto seguro de LaTeX matemático a OMML editable de Word.
+
+    La capa es deliberadamente determinista: Markdown sigue siendo la fuente
+    canónica y esta función solo representa su matemática para DOCX.
+    """
     tex = sanitize_xml(tex).strip()
-    
-    def parse_inner(t):
-        t = t.strip()
-        if not t: return ""
 
-        # Matrices
-        if r"\begin{pmatrix}" in t or r"\begin{bmatrix}" in t or r"\begin{matrix}" in t:
-            m = re.search(r'\\begin\{(?:pmatrix|bmatrix|matrix)\}(.*?)\\end\{(?:pmatrix|bmatrix|matrix)\}', t, re.DOTALL)
+    M_NS = "http://schemas.openxmlformats.org/officeDocument/2006/math"
+
+    def esc(value):
+        return (str(value)
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace('"', "&quot;"))
+
+    def run(value):
+        return "<m:r><m:t>" + esc(value) + "</m:t></m:r>"
+
+    greek = {
+        r"\alpha": "α", r"\beta": "β", r"\gamma": "γ", r"\delta": "δ",
+        r"\epsilon": "ϵ", r"\varepsilon": "ε", r"\theta": "θ",
+        r"\lambda": "λ", r"\mu": "μ", r"\pi": "π", r"\rho": "ρ",
+        r"\sigma": "σ", r"\phi": "ϕ", r"\varphi": "φ", r"\omega": "ω",
+        r"\Gamma": "Γ", r"\Delta": "Δ", r"\Theta": "Θ",
+        r"\Lambda": "Λ", r"\Pi": "Π", r"\Sigma": "Σ", r"\Phi": "Φ",
+        r"\Omega": "Ω",
+    }
+    operators = {
+        r"\pm": "±", r"\mp": "∓", r"\times": "×", r"\cdot": "·",
+        r"\le": "≤", r"\leq": "≤", r"\ge": "≥", r"\geq": "≥",
+        r"\neq": "≠", r"\approx": "≈", r"\infty": "∞", r"\to": "→",
+        r"\rightarrow": "→", r"\leftarrow": "←", r"\sum": "∑",
+        r"\prod": "∏", r"\int": "∫",
+    }
+
+    def read_group(text, pos):
+        if pos >= len(text) or text[pos] != "{":
+            return None, pos
+        depth = 0
+        for i in range(pos, len(text)):
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    return text[pos + 1:i], i + 1
+        return None, pos
+
+    def read_atom(text, pos):
+        while pos < len(text) and text[pos].isspace():
+            pos += 1
+        if pos >= len(text):
+            return "", pos
+        if text[pos] == "{":
+            group, nxt = read_group(text, pos)
+            if group is not None:
+                return parse(group), nxt
+        if text[pos] == "\\":
+            m = re.match(r"\\[A-Za-z]+", text[pos:])
             if m:
-                rows = m.group(1).strip().split(r"\\")
-                xml_rows = ""
-                for r in rows:
-                    cols = r.split("&")
-                    xml_cols = "".join(["<m:e>" + parse_inner(c.strip()) + "</m:e>" for c in cols if c.strip()])
-                    xml_rows += "<m:mr>" + xml_cols + "</m:mr>"
-                mat_xml = "<m:m><m:mPr><m:baseJc m:val='center'/></m:mPr>" + xml_rows + "</m:m>"
-                return "<m:d><m:dPr><m:begChr m:val='('/><m:endChr m:val=')'/></m:dPr><m:e>" + mat_xml + "</m:e></m:d>"
+                token = m.group(0)
+                return run(greek.get(token, operators.get(token, token[1:]))) , pos + len(token)
+        return run(text[pos]), pos + 1
 
-        # Fracciones
-        frac_m = re.search(r'\\frac\{([^{}]+)\}\{([^{}]+)\}', t)
-        if frac_m:
-            num = parse_inner(frac_m.group(1))
-            den = parse_inner(frac_m.group(2))
-            return "<m:f><m:num>" + num + "</m:num><m:den>" + den + "</m:den></m:f>"
+    def parse(text):
+        text = text.strip()
+        if not text:
+            return ""
 
-        # Raiz
-        sqrt_m = re.search(r'\\sqrt\{([^{}]+)\}', t)
-        if sqrt_m:
-            content = parse_inner(sqrt_m.group(1))
-            return "<m:rad><m:radPr><m:degHide m:val='on'/></m:radPr><m:deg/><m:e>" + content + "</m:e></m:rad>"
+        parts = []
+        i = 0
+        while i < len(text):
+            if text[i].isspace():
+                i += 1
+                continue
 
-        # Sub y Sup
-        subsup_m = re.search(r'([a-zA-Z0-9\(\)]+)_([a-zA-Z0-9]+)\^([a-zA-Z0-9]+)', t)
-        if subsup_m:
-            return "<m:sSubSup><m:e><m:r><m:t>" + subsup_m.group(1) + "</m:t></m:r></m:e><m:sub><m:r><m:t>" + subsup_m.group(2) + "</m:t></m:r></m:sub><m:sup><m:r><m:t>" + subsup_m.group(3) + "</m:t></m:r></m:sup></m:sSubSup>"
+            # Fracción: \frac{numerador}{denominador}
+            if text.startswith(r"\frac", i):
+                pos = i + len(r"\frac")
+                while pos < len(text) and text[pos].isspace():
+                    pos += 1
+                num, pos2 = read_group(text, pos)
+                if num is not None:
+                    pos = pos2
+                    while pos < len(text) and text[pos].isspace():
+                        pos += 1
+                    den, pos2 = read_group(text, pos)
+                    if den is not None:
+                        parts.append(
+                            "<m:f><m:num>" + parse(num) +
+                            "</m:num><m:den>" + parse(den) + "</m:den></m:f>"
+                        )
+                        i = pos2
+                        continue
 
-        # Sup solo
-        sup_m = re.search(r'([a-zA-Z0-9\(\)]+)\^\{?([a-zA-Z0-9\+\-]+)\}?', t)
-        if sup_m:
-            return "<m:sSup><m:e><m:r><m:t>" + sup_m.group(1) + "</m:t></m:r></m:e><m:sup><m:r><m:t>" + sup_m.group(2) + "</m:t></m:r></m:sup></m:sSup>"
+            # Raíz cuadrada: \sqrt{...}
+            if text.startswith(r"\sqrt", i):
+                pos = i + len(r"\sqrt")
+                while pos < len(text) and text[pos].isspace():
+                    pos += 1
+                rad, pos2 = read_group(text, pos)
+                if rad is not None:
+                    parts.append(
+                        "<m:rad><m:radPr><m:degHide m:val='on'/></m:radPr>"
+                        "<m:deg/><m:e>" + parse(rad) + "</m:e></m:rad>"
+                    )
+                    i = pos2
+                    continue
 
-        # Sub solo
-        sub_m = re.search(r'([a-zA-Z0-9\(\)]+)_\{?([a-zA-Z0-9\+\-]+)\}?', t)
-        if sub_m:
-            return "<m:sSub><m:e><m:r><m:t>" + sub_m.group(1) + "</m:t></m:r></m:e><m:sub><m:r><m:t>" + sub_m.group(2) + "</m:t></m:r></m:sub></m:sSub>"
+            base, pos = read_atom(text, i)
+            if not base:
+                i += 1
+                continue
 
-        safe = t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        return "<m:r><m:t>" + safe + "</m:t></m:r>"
+            # Exponente y subíndice asociados al átomo anterior.
+            sup = sub = None
+            while pos < len(text) and text[pos] in "_^":
+                marker = text[pos]
+                pos += 1
+                while pos < len(text) and text[pos].isspace():
+                    pos += 1
+                if pos < len(text) and text[pos] == "{":
+                    value, pos = read_group(text, pos)
+                    value = parse(value or "")
+                else:
+                    value, pos = read_atom(text, pos)
+                if marker == "^":
+                    sup = value
+                else:
+                    sub = value
 
-    elem = parse_inner(tex)
+            if sup is not None and sub is not None:
+                base = "<m:sSubSup><m:e>" + base + "</m:e><m:sub>" + sub + "</m:sub><m:sup>" + sup + "</m:sup></m:sSubSup>"
+            elif sup is not None:
+                base = "<m:sSup><m:e>" + base + "</m:e><m:sup>" + sup + "</m:sup></m:sSup>"
+            elif sub is not None:
+                base = "<m:sSub><m:e>" + base + "</m:e><m:sub>" + sub + "</m:sub></m:sSub>"
+            parts.append(base)
+            i = pos
+
+        return "".join(parts)
+
+    elem = parse(tex)
     if is_block:
-        return "<m:oMathPara xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\"><m:oMath>" + elem + "</m:oMath></m:oMathPara>"
-    return "<m:oMath xmlns:m=\"http://schemas.openxmlformats.org/officeDocument/2006/math\">" + elem + "</m:oMath>"
+        return '<m:oMathPara xmlns:m="' + M_NS + '"><m:oMath>' + elem + "</m:oMath></m:oMathPara>"
+    return '<m:oMath xmlns:m="' + M_NS + '">' + elem + "</m:oMath>"
 
 def convert_with_pandoc(input_md, output_docx):
     p = find_pandoc()
