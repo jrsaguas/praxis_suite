@@ -209,6 +209,28 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({'strategies': ranked}, ensure_ascii=False).encode('utf-8'))
             except Exception as e:
                 self.send_error(400, str(e))
+        elif path == '/api/experience/strategy-outcome':
+            try:
+                data = json.loads(self._read_body().decode('utf-8'))
+                chat_id = data.get('chat_id')
+                if not chat_id or not data.get('strategy_context'):
+                    raise ValueError('chat_id y strategy_context son obligatorios')
+                saved = learning_bridge.persist_strategy_outcome(
+                    chat_manager.CHATS_DIR, chat_id,
+                    strategy_context=data['strategy_context'],
+                    evaluation_profile=data.get('evaluation_profile') or {},
+                    score=float(data.get('score', 0)),
+                    consistent=bool(data.get('consistent', False)),
+                    investigation_id=data.get('investigation_id'),
+                    version_id=data.get('version_id'),
+                    metadata=data.get('metadata'),
+                )
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'ok', 'experience': saved}, ensure_ascii=False).encode('utf-8'))
+            except Exception as e:
+                self.send_error(400, str(e))
         elif path == '/api/experience/record':
             self.handle_learning_record()
         elif path == '/api/strategies':
