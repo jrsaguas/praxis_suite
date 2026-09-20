@@ -2115,6 +2115,8 @@ async function runPipeline(resumeFromStage = null, existingRun = null) {
       log('Contexto de estrategia no disponible; usando flujo base.');
     }
     run.strategy_context = strategyContext || { strategy_context_version: 1, strategy_ids: [] };
+    const strategyOps = (run.strategy_context.operational_instructions || []).join('\n');
+    const strategyPromptContext = strategyOps ? '\n\n[ESTRATEGIA OPERATIVA APROBADA PARA ESTA INVESTIGACIÓN]:\n' + strategyOps : '';
 
     // 0. Consultar Base de Conocimiento y Puente Epistémico entre Chats
     let knowledgeCtx = '';
@@ -2153,7 +2155,7 @@ async function runPipeline(resumeFromStage = null, existingRun = null) {
     // 1. Planificador Maestro
     if (startIdx <= 0 || !run.plan) {
       setStage('plan', 'running', 'analizando ejercicio y trazando plan maestro…');
-      const pPlan = promptPlanner(userPrompt + (knowledgeCtx ? '\n\n' + knowledgeCtx : ''), files, aud, dep);
+      const pPlan = promptPlanner(userPrompt + (knowledgeCtx ? '\n\n' + knowledgeCtx : '') + strategyPromptContext, files, aud, dep);
       const rawPlan = await callGemini(pPlan, { json: true, temperature: 0.4 });
       run.plan = extractJSON(rawPlan);
       window.recordAgentTrace('plan', pPlan, rawPlan, run.plan);
