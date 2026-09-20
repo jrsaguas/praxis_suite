@@ -53,3 +53,54 @@ def persist_learning_record(
         ),
         metadata=merged_metadata,
     )
+
+
+
+def persist_strategy_outcome(
+    chats_dir: str,
+    chat_id: str,
+    *,
+    strategy_context: Dict[str, Any],
+    evaluation_profile: Dict[str, int],
+    score: float,
+    consistent: bool,
+    investigation_id: Optional[str] = None,
+    version_id: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Record the concrete outcome of a context-selected strategy."""
+    strategy_ids = strategy_context.get("strategy_ids") or ["baseline-v1"]
+    selected = str(strategy_ids[0])
+    merged = dict(metadata or {})
+    merged.update({
+        "strategy_context_version": strategy_context.get("strategy_context_version"),
+        "selection_score": (
+            strategy_context.get("strategies", [{}])[0].get("selection_score")
+            if strategy_context.get("strategies") else None
+        ),
+        "task_family": strategy_context.get("task_family"),
+        "features": [
+            str(x.get("feature"))
+            for x in strategy_context.get("temporal_trends", [])
+            if x.get("feature")
+        ],
+        "evaluation_profile": {str(k): int(v) for k, v in evaluation_profile.items()},
+    })
+    return append_record(
+        chats_dir,
+        chat_id,
+        task_fingerprint=str(strategy_context.get("task_fingerprint", "")),
+        evaluation={
+            "consistent": bool(consistent),
+            "score": max(0.0, min(1.0, float(score))),
+            "errors": [],
+            "strengths": [],
+            "required_retries": [],
+            "recommendation": "ACCEPT" if consistent else "REVIEW",
+            "reasons": ["post_run_strategy_outcome"],
+        },
+        strategy_id=selected,
+        investigation_id=investigation_id,
+        version_id=version_id,
+        metadata=merged,
+    )
