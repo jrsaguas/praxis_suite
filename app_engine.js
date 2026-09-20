@@ -1388,27 +1388,10 @@ async function handleSpecialIntent(intent) {
         throw new Error(execData.message || execData.error || 'No se pudo ejecutar el comando de artefacto');
       }
 
-      // Solo después de una ejecución exitosa registramos la nueva versión.
-      const versionResp = await fetch('/api/investigations/version', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          folder,
-          prompt: intent.instruction,
-          title: S.lastRun?.plan?.titulo || folder,
-          source: 'artifact_command',
-          commands: [intent.instruction],
-          artifact_types: execData.artifact_types || []
-        })
-      });
-      const versionData = await versionResp.json();
-      if (!versionResp.ok || versionData.status !== 'ok') {
-        throw new Error(versionData.error || 'El artefacto cambió, pero no se pudo registrar la versión');
-      }
-
+      // El servidor ya registra la versión únicamente después de materializar
+      // y validar la ejecución. Nunca crear una segunda versión desde la UI.
       window.pendingArtifactCommand.execution = execData;
-      window.pendingArtifactCommand.version = versionData.version;
+      window.pendingArtifactCommand.version = execData.version || null;
       renderArtifactCommandNotice(
         intent.instruction,
         '✓ Artefacto ejecutado y nueva versión registrada. El pipeline matemático no fue invocado.'
@@ -2083,6 +2066,8 @@ async function runPipeline(resumeFromStage = null, existingRun = null) {
 
   const files = S.files, aud = S.audience, dep = S.depth;
   const run = existingRun || { plan: null, resolver: null, theory: null, figures: null, modeling: null, research: null, report: null, markdown: '' };
+  window._activePraxisRun = run;
+  run.observable_events = Array.isArray(run.observable_events) ? run.observable_events : [];
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   // Orden secuencial de etapas
@@ -2444,6 +2429,7 @@ async function runPipeline(resumeFromStage = null, existingRun = null) {
           figures: run.figures,
           research: run.research,
           traces: window.agentTraces || {},
+          runtime_trace: { status: 'completed', events: run.observable_events || [] },
           strategy_context: run.strategy_context || {}
         })
       });
@@ -3200,6 +3186,19 @@ window.renderKnowledgeList = function(query) {
 window.agentTraces = window.agentTraces || {};
 
 window.recordAgentTrace = function(stageId, prompt, rawOutput, parsed, error = null) {
+  const observable = {
+    sequence: (window._praxisTraceSequence = (window._praxisTraceSequence || 0) + 1),
+    task_id: 'stage:' + stageId,
+    agent_id: stageId,
+    phase: 'task',
+    status: error ? 'failed' : 'completed',
+    input_keys: ['prompt'],
+    output_keys: parsed ? [stageId] : [],
+    message: error ? String(error.message || error) : 'completed'
+  };
+  if (window._activePraxisRun && Array.isArray(window._activePraxisRun.observable_events)) {
+    window._activePraxisRun.observable_events.push(observable);
+  }
   window.agentTraces[stageId] = {
     prompt: String(prompt || ''),
     rawOutput: String(rawOutput || ''),
