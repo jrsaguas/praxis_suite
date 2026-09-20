@@ -33,6 +33,18 @@ class ExecutionEvent:
     output_keys: Tuple[str, ...] = ()
     message: str = ""
 
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "sequence": self.sequence,
+            "task_id": self.task_id,
+            "agent_id": self.agent_id,
+            "phase": self.phase,
+            "status": self.status,
+            "input_keys": list(self.input_keys),
+            "output_keys": list(self.output_keys),
+            "message": self.message,
+        }
+
 
 @dataclass(frozen=True)
 class ExecutionTrace:
@@ -42,6 +54,26 @@ class ExecutionTrace:
     completed: Tuple[str, ...]
     blocked: Tuple[str, ...]
     events: Tuple[ExecutionEvent, ...] = ()
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "status": self.status,
+            "completed": list(self.completed),
+            "blocked": list(self.blocked),
+            "events": [event.to_dict() for event in self.events],
+            "results": [
+                {
+                    "task_id": result.task_id,
+                    "agent_id": result.agent_id,
+                    "status": result.status,
+                    "outputs": dict(result.outputs),
+                    "quality": dict(result.quality),
+                    "error": result.error,
+                    "attempts": result.attempts,
+                }
+                for result in self.results
+            ],
+        }
 
 
 def default_executor(task: AgentTask, context: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -58,8 +90,10 @@ class AgentRuntime:
         quality_gate: Optional[Callable[[AgentTask, Mapping[str, Any]], Mapping[str, Any]]] = None,
         *,
         max_retries: int = 1,
+        event_sink: Optional[Callable[[ExecutionEvent], None]] = None,
     ):
         self.executor = executor
+        self.event_sink = event_sink
         self.quality_gate = quality_gate or (lambda task, result: {"passed": True})
         self.max_retries = max(0, int(max_retries))
 
@@ -83,7 +117,10 @@ class AgentRuntime:
                 before_keys = tuple(sorted(artifacts.keys()))
                 result = self._run_task(task, artifacts)
                 sequence += 1
-                events.append(ExecutionEvent(sequence, task.task_id, task.agent_id, "task", result.status, before_keys, tuple(sorted(result.outputs.keys())), result.error or "completed"))
+                event = ExecutionEvent(sequence, task.task_id, task.agent_id, "task", result.status, before_keys, tuple(sorted(result.outputs.keys())), result.error or "completed")
+                events.append(event)
+                if self.event_sink is not None:
+                    self.event_sink(event)
                 results.append(result)
                 pending.pop(task.task_id, None)
                 if result.status == "completed":
