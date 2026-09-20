@@ -23,12 +23,25 @@ class TaskResult:
 
 
 @dataclass(frozen=True)
+class ExecutionEvent:
+    sequence: int
+    task_id: str
+    agent_id: str
+    phase: str
+    status: str
+    input_keys: Tuple[str, ...] = ()
+    output_keys: Tuple[str, ...] = ()
+    message: str = ""
+
+
+@dataclass(frozen=True)
 class ExecutionTrace:
     status: str
     results: Tuple[TaskResult, ...]
     artifacts: Mapping[str, Any]
     completed: Tuple[str, ...]
     blocked: Tuple[str, ...]
+    events: Tuple[ExecutionEvent, ...] = ()
 
 
 def default_executor(task: AgentTask, context: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -54,7 +67,9 @@ class AgentRuntime:
         artifacts: Dict[str, Any] = dict(initial_context or {})
         completed = []
         results = []
+        events = []
         blocked = []
+        sequence = 0
         pending = {task.task_id: task for task in plan.tasks}
 
         while pending:
@@ -65,7 +80,10 @@ class AgentRuntime:
 
             progress = False
             for task in ready:
+                before_keys = tuple(sorted(artifacts.keys()))
                 result = self._run_task(task, artifacts)
+                sequence += 1
+                events.append(ExecutionEvent(sequence, task.task_id, task.agent_id, "task", result.status, before_keys, tuple(sorted(result.outputs.keys())), result.error or "completed"))
                 results.append(result)
                 pending.pop(task.task_id, None)
                 if result.status == "completed":
@@ -80,7 +98,7 @@ class AgentRuntime:
                 break
 
         status = "completed" if not pending and not blocked else "partial" if completed else "failed"
-        return ExecutionTrace(status, tuple(results), dict(artifacts), tuple(completed), tuple(sorted(set(blocked))))
+        return ExecutionTrace(status, tuple(results), dict(artifacts), tuple(completed), tuple(sorted(set(blocked)),), tuple(events))
 
     def _run_task(self, task: AgentTask, artifacts: Mapping[str, Any]) -> TaskResult:
         last_error = None
