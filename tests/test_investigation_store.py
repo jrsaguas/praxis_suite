@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from investigation_store import list_versions, register_version
+from investigation_store import list_versions, register_version, record_execution
 
 
 class InvestigationStoreTests(unittest.TestCase):
@@ -47,6 +47,24 @@ class InvestigationStoreTests(unittest.TestCase):
             saved = json.loads((chat / "conversacion_metadata.json").read_text(encoding="utf-8"))
             self.assertEqual(saved["responses"][0]["version_id"], version["version_id"])
 
+    def test_execution_history_is_persisted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            chats = Path(tmp) / "chats"
+            chat = chats / "chat-1"
+            chat.mkdir(parents=True)
+            meta = {"id": "chat-1", "responses": [{"folder": "respuesta_001"}]}
+            (chat / "conversacion_metadata.json").write_text(json.dumps(meta), encoding="utf-8")
+            event = record_execution(
+                str(chats), "chat-1", "respuesta_001",
+                operation="generate_canvas",
+                instruction="genera un Canvas",
+                status="ok",
+                changed_files=["simulador.html"],
+                artifact_types=["simulador"],
+            )
+            saved = json.loads((chat / "conversacion_metadata.json").read_text(encoding="utf-8"))
+            self.assertEqual(event["status"], "ok")
+            self.assertEqual(saved["responses"][0]["execution_history"][0]["operation"], "generate_canvas")
 
 if __name__ == "__main__":
     unittest.main()
