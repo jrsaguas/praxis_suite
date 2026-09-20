@@ -91,6 +91,33 @@ def register_version(
     return version.to_dict()
 
 
+
+def get_version(chats_dir, chat_id, folder, version_id):
+    """Return one logical version from the existing response metadata."""
+    versions = list_versions(chats_dir, chat_id, folder)
+    for version in versions:
+        if version.get("version_id") == str(version_id):
+            return version
+    return None
+
+
+def navigate_versions(chats_dir, chat_id, folder, version_id):
+    """Return previous/current/next positions without mutating history."""
+    versions = list_versions(chats_dir, chat_id, folder)
+    if not versions:
+        raise ValueError("La investigación no contiene versiones")
+    ids = [v.get("version_id") for v in versions]
+    try:
+        idx = ids.index(str(version_id))
+    except ValueError:
+        raise ValueError("Versión no encontrada")
+    return {
+        "current": versions[idx],
+        "index": idx,
+        "count": len(versions),
+        "previous": versions[idx - 1] if idx > 0 else None,
+        "next": versions[idx + 1] if idx + 1 < len(versions) else None,
+    }
 def list_versions(chats_dir: str, chat_id: str, folder: str) -> list[Dict[str, Any]]:
     meta = _load(chats_dir, chat_id)
     response = get_response(meta, folder)
