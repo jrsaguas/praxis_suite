@@ -65,6 +65,7 @@ import experience_store
 import strategy_registry
 import learning_bridge
 import task_family
+import experience_trends
 import rag_engine
 import refinement_engine
 import cas_verifier
@@ -780,6 +781,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             result = experience_analyzer.fuse_reference_patterns(refs, patterns)
             candidate = experience_analyzer.build_strategy_candidate(refs, patterns)
             result['task_families'] = task_family.family_summary(records)
+            result['temporal_trends'] = experience_trends.temporal_feature_summary(records)
             result['strategy_summary'] = experience_store.summarize_strategies(records)
             result['candidate_strategy'] = candidate.to_dict()
             self.send_response(200)
