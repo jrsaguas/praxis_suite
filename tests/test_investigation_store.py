@@ -112,5 +112,21 @@ class InvestigationStoreTests(unittest.TestCase):
             self.assertEqual(len(investigation_store.list_versions(td, chat_id, folder)), 2)
 
 
+    def test_artifact_manifest_hashes_existing_files(self):
+        with tempfile.TemporaryDirectory() as td:
+            chat_id = "chat_artifacts"
+            folder = "respuesta_artifacts"
+            response_path = self._write_response(td, chat_id, folder)
+            doc_dir = Path(response_path) / "entregables" / "documentos"
+            doc_dir.mkdir(parents=True, exist_ok=True)
+            target = doc_dir / "test.md"
+            target.write_text("# Hola", encoding="utf-8")
+            manifest = investigation_store.build_artifact_manifest(td, chat_id, folder, version_id="v-test")
+            found = [a for a in manifest["artifacts"] if a["path"] == "entregables/documentos/test.md"]
+            self.assertEqual(len(found), 1)
+            self.assertEqual(found[0]["version_id"], "v-test")
+            self.assertEqual(len(found[0]["sha256"]), 64)
+
+
 if __name__ == "__main__":
     unittest.main()
