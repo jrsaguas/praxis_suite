@@ -2096,6 +2096,26 @@ async function runPipeline(resumeFromStage = null, existingRun = null) {
   }
 
   try {
+    // 0. Contexto de estrategia aprendido: se calcula antes de invocar agentes.
+    let strategyContext = null;
+    try {
+      const sResp = await fetch('/api/strategies/context', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: S.activeChatId, query: userPrompt })
+      });
+      if (sResp.ok) {
+        const sd = await sResp.json();
+        strategyContext = sd.strategy_context || null;
+        if (strategyContext?.strategy_ids?.length) {
+          log('Contexto de estrategia aplicado: ' + strategyContext.strategy_ids.join(', '));
+        }
+      }
+    } catch (e) {
+      log('Contexto de estrategia no disponible; usando flujo base.');
+    }
+    run.strategy_context = strategyContext || { strategy_context_version: 1, strategy_ids: [] };
+
     // 0. Consultar Base de Conocimiento y Puente Epistémico entre Chats
     let knowledgeCtx = '';
     try {
@@ -2350,7 +2370,8 @@ async function runPipeline(resumeFromStage = null, existingRun = null) {
           theory: run.theory,
           figures: run.figures,
           research: run.research,
-          traces: window.agentTraces || {}
+          traces: window.agentTraces || {},
+          strategy_context: run.strategy_context || {}
         })
       });
       if (resp.ok) {
