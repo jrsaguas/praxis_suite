@@ -68,6 +68,7 @@ import task_family
 import experience_trends
 import strategy_selector
 import strategy_context
+import promotion_gate
 import preference_store
 import rag_engine
 import refinement_engine
@@ -156,6 +157,40 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_artifact_command()
         elif path == '/api/experience/analyze':
             self.handle_experience_analysis()
+        elif path == '/api/strategies/promotion-check':
+            try:
+                data = json.loads(self._read_body().decode('utf-8'))
+                chat_id = data.get('chat_id')
+                strategy_id = data.get('strategy_id')
+                if not chat_id or not strategy_id:
+                    raise ValueError('chat_id y strategy_id son obligatorios')
+                registry = strategy_registry.StrategyRegistry(chat_manager.CHATS_DIR)
+                strategy_items = registry.list(chat_id)
+                selected = next((x for x in strategy_items if x.get('strategy_id') == strategy_id), None)
+                if not selected:
+                    raise ValueError('Estrategia no encontrada')
+                outcomes = experience_store.list_records(chat_manager.CHATS_DIR, chat_id, limit=1000)
+                comparison = promotion_gate.compare_strategy_to_baseline(
+                    outcomes,
+                    strategy_id=strategy_id,
+                    baseline_id=str(data.get('baseline_id', 'baseline-v1')),
+                    task_family=data.get('task_family'),
+                    min_samples=int(data.get('min_samples', 3)),
+                )
+                decision = promotion_gate.evaluate_gate(
+                    comparison,
+                    passed_tests=data.get('passed_tests') or [],
+                    required_tests=selected.get('required_tests') or [],
+                    min_improvement=float(data.get('min_improvement', 0.02)),
+                    regressions=data.get('regressions') or [],
+                    max_regressions=int(data.get('max_regressions', 0)),
+                )
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'ok', 'comparison': comparison, 'decision': decision}, ensure_ascii=False).encode('utf-8'))
+            except Exception as e:
+                self.send_error(400, str(e))
         elif path == '/api/strategies/context':
             try:
                 data = json.loads(self._read_body().decode('utf-8'))
