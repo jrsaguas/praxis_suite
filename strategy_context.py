@@ -30,6 +30,11 @@ def build_strategy_context(
         "task_family": family,
         "strategy_ids": [x["strategy"].get("strategy_id") for x in ranked],
         "strategies": ranked,
+        "operational_instructions": [
+            rule
+            for item in ranked[:3]
+            for rule in item["strategy"].get("rules", [])
+        ],
         "preference_version": preferences.version if preferences else None,
         "strategy_context_version": 1,
     }
