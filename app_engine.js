@@ -2115,6 +2115,49 @@ async function runPipeline(resumeFromStage = null, existingRun = null) {
       log('Contexto de estrategia no disponible; usando flujo base.');
     }
     run.strategy_context = strategyContext || { strategy_context_version: 1, strategy_ids: [] };
+
+    // El perfil de profundidad ya no es solo una etiqueta de UI: se materializa
+    // en el grafo operativo antes de ejecutar las etapas existentes.
+    try {
+      const depthLevelMap = {
+        doctor: 'doctorado',
+        maestro: 'maestria',
+        licenciatura: 'licenciatura',
+        publico: 'fundamental'
+      };
+      const depthProfile = {
+        level: depthLevelMap[aud] || 'licenciatura',
+        // La profundidad visual/procedimental de la UI puede complementar el preset.
+        custom_rules: dep === 'profunda'
+          ? ['explicar los saltos matemáticos relevantes', 'proponer representación visual cuando aporte comprensión']
+          : []
+      };
+      const graphResp = await fetch('/api/agent-graph/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task: userPrompt,
+          chat_id: S.activeChatId,
+          investigation_id: S.lastRun?.investigation_id || null,
+          depth_profile: depthProfile,
+          required_artifacts: ['python', 'canvas', 'markdown'],
+          strategy_context: run.strategy_context
+        })
+      });
+      if (graphResp.ok) {
+        const graphData = await graphResp.json();
+        run.agent_plan = graphData.plan || null;
+        run.operational_context = graphData.context || null;
+        if (run.agent_plan?.selected_agents?.length) {
+          log('Grafo operativo seleccionado: ' + run.agent_plan.selected_agents.join(', '));
+        }
+      } else {
+        log('Grafo operativo no disponible; se conserva el pipeline existente.');
+      }
+    } catch (e) {
+      log('No fue posible materializar el grafo operativo; se conserva el pipeline existente.');
+    }
+
     const strategyOps = (run.strategy_context.operational_instructions || []).join('\n');
     const strategyPromptContext = strategyOps ? '\n\n[ESTRATEGIA OPERATIVA APROBADA PARA ESTA INVESTIGACIÓN]:\n' + strategyOps : '';
 
