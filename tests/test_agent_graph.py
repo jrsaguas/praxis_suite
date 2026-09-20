@@ -27,3 +27,5 @@ class AgentGraphTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+# CI graph regression coverage.
