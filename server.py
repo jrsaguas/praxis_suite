@@ -64,6 +64,7 @@ import experience_analyzer
 import experience_store
 import strategy_registry
 import learning_bridge
+import task_family
 import rag_engine
 import refinement_engine
 import cas_verifier
@@ -766,12 +767,19 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             records = experience_store.list_records(
                 chat_manager.CHATS_DIR, chat_id, limit=data.get('limit', 100)
             )
+            family = data.get('task_family')
+            if family:
+                records = [
+                    r for r in records
+                    if task_family.classify_task_family(r) == str(family).strip().lower().replace(' ', '_')
+                ]
             refs = experience_analyzer.select_references(
                 records, query, limit=data.get('reference_limit', 5)
             )
             patterns = experience_analyzer.detect_patterns(records)
             result = experience_analyzer.fuse_reference_patterns(refs, patterns)
             candidate = experience_analyzer.build_strategy_candidate(refs, patterns)
+            result['task_families'] = task_family.family_summary(records)
             result['strategy_summary'] = experience_store.summarize_strategies(records)
             result['candidate_strategy'] = candidate.to_dict()
             self.send_response(200)
