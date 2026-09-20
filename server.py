@@ -300,9 +300,11 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                     raise ValueError('Estrategia no encontrada')
                 outcomes = experience_store.list_records(chat_manager.CHATS_DIR, chat_id, limit=1000)
                 family = data.get('task_family')
-                recovery = strategy_recovery.recovery_candidate(outcomes, family=family, excluded_strategy_ids=[strategy_id], min_score=float(data.get('min_score', .75)))
-                if not recovery.get('eligible') or recovery.get('candidate', {}).get('strategy_id') != strategy_id:
-                    raise ValueError('La evidencia actual no justifica reactivar esta estrategia.')
+                recovery = strategy_recovery.recovery_candidate(outcomes, family=family, min_score=float(data.get('min_score', .75)))
+                target = next((x for x in recovery.get('candidates', []) if x.get('strategy_id') == strategy_id), None)
+                if not target:
+                    raise ValueError('La evidencia histórica actual no justifica reactivar esta estrategia.')
+                recovery['selected_reactivation'] = target
                 reactivated = registry.reactivate(chat_id, strategy_id, reason='recuperacion_basada_en_historial', evidence=recovery)
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
