@@ -67,6 +67,8 @@ import learning_bridge
 import task_family
 import experience_trends
 import strategy_selector
+import strategy_context
+import preference_store
 import rag_engine
 import refinement_engine
 import cas_verifier
@@ -154,6 +156,33 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_artifact_command()
         elif path == '/api/experience/analyze':
             self.handle_experience_analysis()
+        elif path == '/api/strategies/context':
+            try:
+                data = json.loads(self._read_body().decode('utf-8'))
+                chat_id = data.get('chat_id')
+                query = str(data.get('query', '')).strip()
+                if not query:
+                    raise ValueError('query es obligatorio')
+                records = experience_store.list_records(chat_manager.CHATS_DIR, chat_id, limit=100) if chat_id else []
+                preferences = preference_store.effective_profile(chat_manager.CHATS_DIR, chat_id) if chat_id else None
+                family = task_family.classify_task_family({"metadata": {"topic": query}, "task_fingerprint": query})
+                trends = experience_trends.temporal_feature_summary(records)
+                registry = strategy_registry.StrategyRegistry(chat_manager.CHATS_DIR)
+                context = strategy_context.build_strategy_context(
+                    query,
+                    records=records,
+                    strategies=registry.list(chat_id) if chat_id else [],
+                    preferences=preferences,
+                    trends=trends,
+                )
+                context["evidence_count"] = len(records)
+                context["trend_count"] = len(trends)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'ok', 'strategy_context': context}, ensure_ascii=False).encode('utf-8'))
+            except Exception as e:
+                self.send_error(400, str(e))
         elif path == '/api/strategies/select':
             try:
                 data = json.loads(self._read_body().decode('utf-8'))
