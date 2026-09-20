@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import json
 import os
+import hashlib
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 from security_utils import validate_component, safe_child_path
@@ -43,6 +45,69 @@ def get_response(meta: Dict[str, Any], folder: str) -> Optional[Dict[str, Any]]:
             return response
     return None
 
+
+
+
+_ARTIFACT_ROOTS = {
+    "md": ("entregables", "documentos"),
+    "html": ("entregables", "documentos"),
+    "docx": ("entregables", "documentos"),
+    "doc": ("entregables", "documentos"),
+    "simulador": ("entregables", "visualizador_interactivo"),
+    "imagenes": ("entregables", "imagenes"),
+    "codigo": ("entregables", "codigo_graficos"),
+    "proceso_agentes": ("proceso_agentes",),
+}
+
+
+def _sha256_file(path: str) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def build_artifact_manifest(chats_dir: str, chat_id: str, folder: str, *, version_id: Optional[str] = None) -> Dict[str, Any]:
+    """Inspect the existing response folder and describe actual artifacts on disk."""
+    response_path = safe_child_path(safe_child_path(chats_dir, validate_component(chat_id, "chat_id")), validate_component(folder, "folder"))
+    artifacts: list[Dict[str, Any]] = []
+    for artifact_type, parts in _ARTIFACT_ROOTS.items():
+        root = response_path
+        for part in parts:
+            root = os.path.join(root, part)
+        if not os.path.isdir(root):
+            continue
+        for dirpath, _, filenames in os.walk(root):
+            for filename in sorted(filenames):
+                path = os.path.join(dirpath, filename)
+                rel = os.path.relpath(path, response_path).replace(os.sep, "/")
+                stat = os.stat(path)
+                artifacts.append({
+                    "artifact_id": f"artifact-{hashlib.sha256(rel.encode('utf-8')).hexdigest()[:16]}",
+                    "type": artifact_type,
+                    "path": rel,
+                    "filename": filename,
+                    "size": stat.st_size,
+                    "sha256": _sha256_file(path),
+                    "updated_at": datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
+                    "status": "current",
+                    "version_id": version_id,
+                })
+    return {"generated_at": datetime.now(timezone.utc).isoformat(), "version_id": version_id, "artifacts": artifacts}
+
+
+def refresh_artifact_manifest(chats_dir: str, chat_id: str, folder: str, *, version_id: Optional[str] = None) -> Dict[str, Any]:
+    """Persist a fresh manifest in the existing response metadata."""
+    meta = _load(chats_dir, chat_id)
+    response = get_response(meta, folder)
+    if response is None:
+        raise KeyError(f"Response folder not found: {folder}")
+    manifest = build_artifact_manifest(chats_dir, chat_id, folder, version_id=version_id or response.get("version_id"))
+    response["artifact_manifest"] = manifest
+    response["artifact_manifest_version_id"] = manifest["version_id"]
+    _save(chats_dir, chat_id, meta)
+    return manifest
 
 def register_version(
     chats_dir: str,
