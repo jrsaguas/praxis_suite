@@ -33,6 +33,15 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertIn("task:canvas_engineer", trace.blocked)
         self.assertNotIn("task:canvas_engineer", trace.completed)
 
+    def test_runtime_emits_structured_events(self):
+        plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
+        trace = AgentRuntime(lambda task, context: {task.agent_id: True}).run(plan)
+        self.assertTrue(trace.events)
+        first = trace.events[0]
+        self.assertEqual(first.phase, "task")
+        self.assertEqual(first.status, "completed")
+        self.assertIsInstance(first.input_keys, tuple)
+        self.assertIsInstance(first.output_keys, tuple)
 
 if __name__ == "__main__":
     unittest.main()
