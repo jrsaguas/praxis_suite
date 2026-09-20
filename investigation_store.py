@@ -113,3 +113,45 @@ def list_versions(chats_dir: str, chat_id: str, folder: str) -> list[Dict[str, A
         "evaluation": response.get("evaluation"),
         "artifact_types": response.get("artifact_types", []),
     }]
+
+
+
+def record_execution(
+    chats_dir: str,
+    chat_id: str,
+    folder: str,
+    *,
+    operation: str,
+    instruction: str,
+    status: str,
+    changed_files: Optional[list[str]] = None,
+    artifact_types: Optional[list[str]] = None,
+    message: str = "",
+    plan: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Append an auditable execution event without creating another hierarchy."""
+    from datetime import datetime, timezone
+    import hashlib
+
+    meta = _load(chats_dir, chat_id)
+    response = get_response(meta, folder)
+    if response is None:
+        raise KeyError(f"Response folder not found: {folder}")
+    now = datetime.now(timezone.utc).isoformat()
+    seed = "|".join((chat_id, folder, operation, instruction, now))
+    event_id = "exec-" + hashlib.sha256(seed.encode("utf-8")).hexdigest()[:16]
+    event = {
+        "event_id": event_id,
+        "created_at": now,
+        "operation": operation,
+        "instruction": instruction,
+        "status": status,
+        "message": message,
+        "changed_files": list(changed_files or []),
+        "artifact_types": list(artifact_types or []),
+        "plan": dict(plan or {}),
+    }
+    response.setdefault("execution_history", []).append(event)
+    response["last_execution"] = event
+    _save(chats_dir, chat_id, meta)
+    return event
