@@ -29,6 +29,8 @@ class StrategyDefinition:
     metrics: Dict[str, float] = field(default_factory=dict)
     created_at: str = ""
     promoted_at: Optional[str] = None
+    retired_at: Optional[str] = None
+    degradation: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -167,3 +169,19 @@ class StrategyRegistry:
                 self._save(chat_id, data)
                 return strategy
         raise KeyError(f"Strategy not found: {decision.strategy_id}")
+
+    def retire(self, chat_id: str, strategy_id: str, *, reason: str, evidence: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        data = self._load(chat_id)
+        for strategy in data["strategies"]:
+            if strategy.get("strategy_id") == strategy_id:
+                if strategy.get("status") != "promoted":
+                    raise ValueError("Solo una estrategia promovida puede degradarse/retirarse.")
+                strategy["status"] = "retired"
+                strategy["retired_at"] = datetime.now(timezone.utc).isoformat()
+                strategy["degradation"] = {
+                    "reason": str(reason),
+                    "evidence": evidence or {},
+                }
+                self._save(chat_id, data)
+                return strategy
+        raise KeyError(f"Strategy not found: {strategy_id}")
