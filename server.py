@@ -488,6 +488,27 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
         elif path.startswith('/api/chats/'):
             chat_id = unquote(path[len('/api/chats/'):]).strip('/')
             self.handle_get_chat(chat_id)
+
+        elif path.startswith('/api/investigations/') and '/versions/' in path:
+            parts = path[len('/api/investigations/'):].split('/versions/', 1)
+            bits = parts[0].strip('/').split('/', 1)
+            version_id = unquote(parts[1]).strip('/')
+            if len(bits) != 2:
+                self.send_error(400, 'Ruta de investigación inválida')
+                return
+            chat_id, folder = unquote(bits[0]), unquote(bits[1])
+            try:
+                navigation = investigation_store.navigate_versions(
+                    chat_manager.CHATS_DIR, chat_id, folder, version_id
+                )
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'ok', **navigation}, ensure_ascii=False).encode('utf-8'))
+            except ValueError as e:
+                self.send_error(404, str(e))
+            except Exception as e:
+                self.send_error(500, str(e))
         elif path.startswith('/api/investigations/') and path.endswith('/versions'):
             parts = path[len('/api/investigations/'):].rsplit('/versions', 1)[0].strip('/')
             bits = parts.split('/', 1)
