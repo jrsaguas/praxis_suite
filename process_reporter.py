@@ -33,6 +33,16 @@ def generate_process_report(folder_path, user_prompt, title, traces, run_data):
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(full_trace_data, f, ensure_ascii=False, indent=2)
 
+    # 1.5 Incorporar la traza operacional observable del runtime.
+    runtime_events = (run_data or {}).get("events", [])
+    if runtime_events:
+        traces = dict(traces)
+        traces["_runtime"] = {
+            "phase": "runtime",
+            "events": runtime_events,
+            "note": "Eventos observables del runtime; no representan razonamiento interno del modelo."
+        }
+
     # 2. Construir informe_proceso.md
     md_lines = [
         f"# Informe Completo de Auditoría y Trazabilidad Cognitiva",
@@ -202,7 +212,22 @@ def generate_process_report(folder_path, user_prompt, title, traces, run_data):
         md_lines.append("---")
         md_lines.append("")
 
-    md_lines.append("## 3. Conclusión de la Auditoría")
+    if runtime_events:
+        md_lines.append("## 3. Bitácora Operacional Observable")
+        md_lines.append("")
+        md_lines.append("Los siguientes eventos proceden del runtime y describen acciones observables del sistema. No constituyen una reconstrucción del razonamiento interno del modelo.")
+        md_lines.append("")
+        md_lines.append("| # | Tarea | Agente | Estado | Entradas | Salidas |")
+        md_lines.append("|---:|---|---|---|---|---|")
+        for ev in runtime_events:
+            md_lines.append(
+                f"| {ev.get('sequence','')} | {ev.get('task_id','')} | {ev.get('agent_id','')} | "
+                f"{ev.get('status','')} | {', '.join(ev.get('input_keys', []))} | {', '.join(ev.get('output_keys', []))} |"
+            )
+        md_lines.append("")
+        md_lines.append("## 4. Conclusión de la Auditoría")
+    else:
+        md_lines.append("## 3. Conclusión de la Auditoría")
     md_lines.append("El proceso de orquestación finalizó exitosamente. Todos los agentes cumplieron su rol cognitivo sin errores fatales, logrando una síntesis coherente, matemáticamente rigurosa y preservada en los formatos de entrega (.docx, .doc, .md, .html, .py, imágenes).")
 
     md_content = "\n".join(md_lines)
