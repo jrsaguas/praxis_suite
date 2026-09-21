@@ -15,6 +15,7 @@ from agent_adapters import adapter_for
 class TaskResult:
     task_id: str
     agent_id: str
+    model_id: Optional[str] = None
     status: str
     outputs: Mapping[str, Any] = field(default_factory=dict)
     quality: Mapping[str, Any] = field(default_factory=dict)
@@ -38,6 +39,7 @@ class ExecutionEvent:
             "sequence": self.sequence,
             "task_id": self.task_id,
             "agent_id": self.agent_id,
+            "model_id": self.model_id,
             "phase": self.phase,
             "status": self.status,
             "input_keys": list(self.input_keys),
@@ -99,6 +101,8 @@ class AgentRuntime:
 
     def run(self, plan: ExecutionPlan, initial_context: Optional[Mapping[str, Any]] = None) -> ExecutionTrace:
         artifacts: Dict[str, Any] = dict(initial_context or {})
+        if "model_assignments" not in artifacts:
+            artifacts["model_assignments"] = {t.agent_id: t.model_id for t in plan.tasks if t.model_id}
         completed = []
         results = []
         events = []
