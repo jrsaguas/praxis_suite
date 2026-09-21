@@ -419,6 +419,25 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_error(400, str(e))
         elif path == '/api/experience/record':
             self.handle_learning_record()
+        elif path == '/api/experience/feedback':
+            try:
+                data = json.loads(self._read_body().decode('utf-8'))
+                chat_id = data.get('chat_id')
+                record_id = data.get('record_id')
+                if not chat_id or not record_id:
+                    raise ValueError('chat_id y record_id son obligatorios')
+                saved = experience_store.record_user_feedback(
+                    chat_manager.CHATS_DIR, chat_id, record_id,
+                    decision=data.get('decision', 'review'),
+                    rating=data.get('rating'),
+                    note=data.get('note', ''),
+                )
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'ok', 'experience': saved}, ensure_ascii=False).encode('utf-8'))
+            except Exception as e:
+                self.send_error(400, str(e))
         elif path == '/api/strategies':
             self.handle_strategy_registry()
         elif path == '/api/refine_section':
