@@ -97,7 +97,7 @@ def select_references(
     limit: int = 5,
 ) -> list[Dict[str, Any]]:
     """Select reusable experience using evidence, consistency and profile similarity."""
-    rows = list(records)
+    rows = [r for r in records if str(r.get("reuse_status", "")) == "accepted"]
     if task_family:
         rows = [r for r in rows if (r.get("metadata") or {}).get("task_family") == task_family]
     target = {str(k): max(0, min(100, int(v))) for k, v in (target_profile or {}).items()}
