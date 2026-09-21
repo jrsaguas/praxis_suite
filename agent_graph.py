@@ -85,15 +85,18 @@ class AgentGraphPlanner:
                 depends_on=tuple(f"task:{d}" for d in deps),
                 quality_gates=spec.quality_gates,
             ))
-        if reference_bias:
-            depth_payload = dict(depth_requirements or {})
+        depth_payload = dict(depth_requirements or {})
+        if experience_context or target_profile:
             depth_payload["experience_context"] = {
                 **experience_context,
+                **({"target_profile": target_profile} if target_profile else {}),
+            }
+        if reference_bias:
+            depth_payload["experience_context"] = {
+                **dict(depth_payload.get("experience_context") or {}),
                 "strategy_bias": reference_bias,
                 "selection_policy": experience_context.get("selection_policy", "evidence_weighted_multi_reference"),
             }
-        else:
-            depth_payload = depth_requirements or {}
         return ExecutionPlan(tuple(tasks), tuple(a.agent_id for a in tasks), depth_payload)
 
 
