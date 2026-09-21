@@ -46,6 +46,12 @@ class MathematicalDepthProfile:
             raise ValueError(f"Perfil de profundidad desconocido: {name}")
         return cls(name, *presets[name], tuple(custom_rules or ()))
 
+    def requirements(self) -> list[str]:
+        return build_depth_context(self)["requirements"]
+
+    def thresholds(self) -> dict[str, int]:
+        return build_depth_context(self)["thresholds"]
+
     def to_dict(self):
         data = asdict(self)
         data["custom_rules"] = list(self.custom_rules)
