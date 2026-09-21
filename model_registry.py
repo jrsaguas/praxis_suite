@@ -87,6 +87,18 @@ class ModelRouter:
         self.registry.get(model_id)
         return ModelAssignment(agent_id, model_id, "override" if override else "configured")
 
-    def resolve_plan(self, agent_ids, overrides=None):
+    def resolve_with_experience(self, agent_id: str, experience_context: Optional[Mapping[str, Any]] = None, override: Optional[str] = None) -> ModelAssignment:
+        if override:
+            return self.resolve(agent_id, override)
+        refs = (experience_context or {}).get("references") or []
+        # Experience may recommend a model explicitly, but only an allowed registered model is accepted.
+        for ref in refs:
+            candidate = ((ref.get("metadata") or {}).get("recommended_model") or
+                         (ref.get("metadata") or {}).get("model_id"))
+            if candidate and candidate in {m.id for m in self.registry.list()}:
+                return ModelAssignment(agent_id, candidate, "experience_reference")
+        return self.resolve(agent_id)
+
+    def resolve_plan(self, agent_ids, overrides=None, experience_context=None):
         overrides = overrides or {}
-        return {agent_id: self.resolve(agent_id, overrides.get(agent_id)) for agent_id in agent_ids}
+        return {agent_id: self.resolve_with_experience(agent_id, experience_context, overrides.get(agent_id)) for agent_id in agent_ids}
