@@ -33,6 +33,26 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertNotIn("task:canvas_engineer", trace.blocked)
         self.assertIn("canvas_engineer", trace.completed)
 
+    def test_experience_sink_receives_evaluator_output_only_after_success(self):
+        plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
+        seen = []
+        def sink(task, artifacts, output):
+            seen.append((task.agent_id, dict(output), "final_audit" in artifacts))
+        trace = AgentRuntime(
+            lambda task, context: (
+                {"final_audit": {"status": "pass", "checks": {}}}
+                if task.agent_id == "final_auditor"
+                else {"evaluation": {"consistent": True}, "experience_record": {"candidate_type": "strategy_outcome"}}
+                if task.agent_id == "experience_evaluator"
+                else {task.agent_id: True}
+            ),
+            experience_sink=sink,
+        ).run(plan)
+        self.assertEqual(trace.status, "completed")
+        self.assertEqual(len(seen), 1)
+        self.assertEqual(seen[0][0], "experience_evaluator")
+        self.assertTrue(seen[0][2])
+
     def test_trace_serializes_to_json_safe_dict(self):
         plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
         trace = AgentRuntime(lambda task, context: {task.agent_id: True}).run(plan)
