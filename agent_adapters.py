@@ -57,22 +57,26 @@ def execute_model_agent(task, context: Mapping[str, Any]) -> Mapping[str, Any]:
 
 def execute_experience_evaluator(task, context):
     from final_auditor import audit_product
-    from evaluator_orchestrator import Evaluation, LearningRecord
     audit = context.get("final_audit") or audit_product(context).to_dict()
     status = str(audit.get("status", "needs_review"))
-    score = 1.0 if status == "pass" else 0.0
+    findings = list(audit.get("findings", []))
+    score = max(0.0, min(1.0, 1.0 - 0.15 * len(findings)))
+    critical = any(str(x.get("severity", "")).lower() == "critical" for x in findings if isinstance(x, dict))
+    consistent = status == "pass" and not critical
     return {
         "evaluation": {
-            "consistent": status == "pass",
+            "consistent": consistent,
             "score": score,
-            "recommendation": "ACCEPT" if status == "pass" else "REVIEW",
+            "recommendation": "ACCEPT" if consistent else "REVIEW",
             "audit_status": status,
-            "findings": audit.get("findings", []),
+            "findings": findings,
+            "promotion_eligible": consistent,
         },
         "experience_record": {
             "source": "final_auditor",
-            "promotion_eligible": status == "pass",
-            "requires_human_or_gate_review": status != "pass",
+            "promotion_eligible": consistent,
+            "requires_human_or_gate_review": not consistent,
+            "candidate_type": "strategy_outcome",
         },
     }
 
