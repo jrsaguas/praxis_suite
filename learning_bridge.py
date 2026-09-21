@@ -161,3 +161,39 @@ def persist_runtime_experience(
         version_id=version_id,
         metadata=merged,
     )
+
+
+
+def make_runtime_experience_sink(
+    chats_dir: str,
+    chat_id: str,
+    *,
+    investigation_id: Optional[str] = None,
+    version_id: Optional[str] = None,
+    task_fingerprint: str = "",
+    evaluation_profile: Optional[Dict[str, int]] = None,
+    strategy_context: Optional[Dict[str, Any]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+):
+    """Build the runtime callback that records evaluator outcomes as candidates."""
+    def sink(task, artifacts, output):
+        evaluation = dict(output.get("evaluation") or {})
+        experience_record = dict(output.get("experience_record") or {})
+        return persist_runtime_experience(
+            chats_dir,
+            chat_id,
+            task_fingerprint=task_fingerprint or str(getattr(task, "task_id", "")),
+            evaluation=evaluation,
+            experience_record=experience_record,
+            investigation_id=investigation_id,
+            version_id=version_id,
+            evaluation_profile=evaluation_profile,
+            strategy_context=strategy_context,
+            metadata={
+                **dict(metadata or {}),
+                "runtime_task_id": getattr(task, "task_id", ""),
+                "runtime_agent_id": getattr(task, "agent_id", ""),
+                "final_audit_present": bool(artifacts.get("final_audit")),
+            },
+        )
+    return sink
