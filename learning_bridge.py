@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 from evaluator_orchestrator import LearningRecord, record_to_dict
-from experience_store import append_record
+from experience_store import append_record, select_references
 
 
 def persist_learning_record(
@@ -104,3 +104,20 @@ def persist_strategy_outcome(
         version_id=version_id,
         metadata=merged,
     )
+
+
+def build_experience_context(
+    chats_dir: str,
+    chat_id: str,
+    *,
+    task_family: Optional[str] = None,
+    limit: int = 5,
+) -> Dict[str, Any]:
+    """Build a weighted reference context without mutating the experience store."""
+    from experience_store import list_records
+    records = list_records(chats_dir, chat_id, limit=500)
+    return {
+        "task_family": task_family,
+        "references": select_references(records, task_family=task_family, limit=limit),
+        "selection_policy": "evidence_weighted_multi_reference",
+    }
