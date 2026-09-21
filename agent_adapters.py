@@ -60,8 +60,18 @@ def execute_experience_evaluator(task, context):
     audit = context.get("final_audit") or audit_product(context).to_dict()
     status = str(audit.get("status", "needs_review"))
     findings = list(audit.get("findings", []))
-    score = max(0.0, min(1.0, 1.0 - 0.15 * len(findings)))
+    checks = audit.get("checks") or {}
     critical = any(str(x.get("severity", "")).lower() == "critical" for x in findings if isinstance(x, dict))
+    high = sum(1 for x in findings if isinstance(x, dict) and str(x.get("severity", "")).lower() == "high")
+    verified = sum(bool(checks.get(k)) for k in ("evidence_or_validation_present", "artifact_manifest_present", "runtime_trace_present"))
+    structural = sum(bool(checks.get(k)) for k in ("markdown_present", "requirements_present", "procedures_present", "requirements_coverage"))
+    score = (
+        0.40 * (1.0 if status == "pass" else 0.0)
+        + 0.25 * (verified / 3.0)
+        + 0.25 * (structural / 4.0)
+        + 0.10 * (1.0 if not critical and high == 0 else 0.0)
+    )
+    score = max(0.0, min(1.0, score))
     consistent = status == "pass" and not critical
     return {
         "evaluation": {
