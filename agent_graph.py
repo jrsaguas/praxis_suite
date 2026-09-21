@@ -75,7 +75,7 @@ class AgentGraphPlanner:
             tasks.append(AgentTask(
                 task_id=f"task:{agent_id}",
                 agent_id=agent_id,
-                model_id=(router.resolve(agent_id, overrides.get(agent_id)).model_id if router else None),
+                model_id=(router.resolve_with_experience(agent_id, experience_context, overrides.get(agent_id)).model_id if router else None),
                 inputs=spec.inputs,
                 outputs=spec.outputs,
                 depends_on=tuple(f"task:{d}" for d in deps),
