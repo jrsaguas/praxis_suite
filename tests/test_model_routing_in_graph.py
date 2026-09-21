@@ -16,3 +16,13 @@ class ModelRoutingGraphTests(unittest.TestCase):
         experience = next(t for t in plan.tasks if t.agent_id == "experience_evaluator")
         self.assertTrue(audit.depends_on)
         self.assertIn("task:final_auditor", experience.depends_on)
+
+
+    def test_current_evaluation_profile_is_carried_into_experience_context(self):
+        profile = {"depth": 100, "mathematics": 90, "visualization": 70}
+        plan = AgentGraphPlanner().plan(
+            required_artifacts=["canvas"],
+            depth_requirements={"evaluation_profile": profile},
+        )
+        self.assertEqual(plan.depth_requirements["evaluation_profile"], profile)
+        self.assertEqual(plan.depth_requirements["experience_context"]["target_profile"], profile)
