@@ -479,6 +479,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                 depth_requirements=plan_requirements,
             )
             strategy = data.get('strategy_context') or {}
+            strategy.setdefault('evaluation_profile', evaluation_profile)
             context = operational_context.build_operational_context(
                 strategy_context=strategy,
                 task=task,
