@@ -164,6 +164,10 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_artifact_command()
         elif path == '/api/experience/analyze':
             self.handle_experience_analysis()
+        elif path == '/api/audit/final':
+            self.handle_final_audit()
+        elif path == '/api/models/config':
+            self.handle_models_config()
         elif path == '/api/strategies/recovery-candidate':
             try:
                 data = json.loads(self._read_body().decode('utf-8'))
@@ -1070,6 +1074,11 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                     strategy_context=data.get('strategy_context') or {},
                 )
                 result['version'] = version
+                result['artifact_manifest'] = investigation_store.refresh_artifact_manifest(
+                    chat_manager.CHATS_DIR, chat_id, folder,
+                    version_id=version.get('version_id'),
+                    changed_files=result.get('changed_files') or [],
+                )
             status = 200 if result.get('status') == 'ok' else 400
             self.send_response(status)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
@@ -1077,6 +1086,48 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
         except Exception as e:
             self.send_error(500, str(e))
+
+    def handle_final_audit(self):
+        try:
+            data = json.loads(self._read_body().decode('utf-8'))
+            product = dict(data.get('product') or {})
+            chat_id, folder = data.get('chat_id'), data.get('folder')
+            if chat_id and folder:
+                detail = chat_manager.get_response_detail(chat_id, folder)
+                if detail:
+                    product.setdefault('markdown', detail.get('markdown', ''))
+                    product.setdefault('html', detail.get('html', ''))
+                    product.setdefault('traces', detail.get('traces', {}))
+                manifest = investigation_store.refresh_artifact_manifest(chat_manager.CHATS_DIR, chat_id, folder)
+                product['artifact_manifest'] = manifest
+                product.setdefault('prompt', detail.get('prompt', '') if detail else '')
+            from final_auditor import audit_product
+            report = audit_product(product).to_dict()
+            if chat_id and folder:
+                meta = investigation_store._load(chat_manager.CHATS_DIR, chat_id)
+                response = investigation_store.get_response(meta, folder)
+                if response is not None:
+                    response['final_audit'] = report
+                    investigation_store._save(chat_manager.CHATS_DIR, chat_id, meta)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status':'ok','audit':report}, ensure_ascii=False).encode('utf-8'))
+        except Exception as e:
+            self.send_error(400, str(e))
+
+    def handle_models_config(self):
+        try:
+            from model_registry import ModelRegistry, ModelRouter
+            router = ModelRouter()
+            result = {'status':'ok','models':ModelRegistry().public_config(),'assignments':router.resolve_plan([a for a in router.assignments])}
+            result['assignments'] = {k:v.to_dict() for k,v in result['assignments'].items()}
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+        except Exception as e:
+            self.send_error(400, str(e))
 
     def handle_learning_record(self):
         try:
