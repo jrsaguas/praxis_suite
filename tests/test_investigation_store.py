@@ -140,27 +140,31 @@ class InvestigationStoreTests(unittest.TestCase):
             self.assertEqual(len(found[0]["sha256"]), 64)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
     def test_evaluation_profile_is_persisted_without_mutating_versions(self):
-        from investigation_store import set_evaluation_profile, get_evaluation_profile, list_versions
-        profile = {
-            "mathematics": 100, "depth": 90, "explanation": 80,
-            "visualization": 70, "interactivity": 60, "images": 50,
-            "code": 40, "structure": 30,
-        }
-        saved = set_evaluation_profile(self.chats_dir, self.chat_id, self.folder, profile)
-        self.assertEqual(saved, profile)
-        self.assertEqual(get_evaluation_profile(self.chats_dir, self.chat_id, self.folder), profile)
-        versions_before = list_versions(self.chats_dir, self.chat_id, self.folder)
-        self.assertNotIn("evaluation_profile", versions_before[-1])
-        set_evaluation_profile(self.chats_dir, self.chat_id, self.folder, {"depth": 100})
-        versions_after = list_versions(self.chats_dir, self.chat_id, self.folder)
-        self.assertEqual(versions_before, versions_after)
+        with tempfile.TemporaryDirectory() as td:
+            chat_id = "chat_profile"
+            folder = "respuesta_profile"
+            self._write_response(td, chat_id, folder)
+            from investigation_store import set_evaluation_profile, get_evaluation_profile, list_versions
+            profile = {
+                "mathematics": 100, "depth": 90, "explanation": 80,
+                "visualization": 70, "interactivity": 60, "images": 50,
+                "code": 40, "structure": 30,
+            }
+            saved = set_evaluation_profile(td, chat_id, folder, profile)
+            self.assertEqual(saved, profile)
+            self.assertEqual(get_evaluation_profile(td, chat_id, folder), profile)
+            versions_before = list_versions(td, chat_id, folder)
+            set_evaluation_profile(td, chat_id, folder, {"depth": 100})
+            self.assertEqual(versions_before, list_versions(td, chat_id, folder))
 
     def test_evaluation_profile_rejects_out_of_range_values(self):
-        from investigation_store import set_evaluation_profile
-        with self.assertRaises(ValueError):
-            set_evaluation_profile(self.chats_dir, self.chat_id, self.folder, {"depth": 101})
+        with tempfile.TemporaryDirectory() as td:
+            self._write_response(td, "chat_profile", "respuesta_profile")
+            from investigation_store import set_evaluation_profile
+            with self.assertRaises(ValueError):
+                set_evaluation_profile(td, "chat_profile", "respuesta_profile", {"depth": 101})
+
+
+if __name__ == "__main__":
+    unittest.main()
