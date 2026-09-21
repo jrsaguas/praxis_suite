@@ -156,6 +156,8 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_rag_arxiv()
         elif path == '/api/rag/chat_docs':
             self.handle_rag_chat_docs()
+        elif path == '/api/investigations/profile':
+            self.handle_set_investigation_profile()
         elif path == '/api/investigations/version':
             self.handle_register_investigation_version()
         elif path == '/api/agent-graph/plan':
