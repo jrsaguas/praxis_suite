@@ -123,7 +123,7 @@ class AgentRuntime:
                 before_keys = tuple(sorted(artifacts.keys()))
                 result = self._run_task(task, artifacts)
                 sequence += 1
-                event = ExecutionEvent(sequence, task.task_id, task.agent_id, "task", result.status, before_keys, tuple(sorted(result.outputs.keys())), result.error or "completed", task.model_id)
+                event = ExecutionEvent(sequence, task.task_id, task.agent_id, "task", result.status, task.model_id, before_keys, tuple(sorted(result.outputs.keys())), result.error or "completed")
                 events.append(event)
                 if self.event_sink is not None:
                     self.event_sink(event)
