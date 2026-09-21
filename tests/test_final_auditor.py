@@ -5,7 +5,7 @@ class FinalAuditorTests(unittest.TestCase):
     def test_complete_product_has_structural_pass(self):
         report = audit_product({
             "prompt": "Demuestra y verifica la integral.",
-            "markdown": "# Procedimiento\\n\\nSe demuestra la ecuación \\nabla f.\\n\\n### Validación CAS\\ncertificación",
+            "markdown": r"# Procedimiento\n\nSe demuestra la ecuación \\nabla f.\n\n### Validación CAS\ncertificación",
             "artifact_manifest": {"artifacts": [{"type": "md", "path": "x.md"}]},
             "runtime_trace": {"events": [{"sequence": 1}]},
         })
