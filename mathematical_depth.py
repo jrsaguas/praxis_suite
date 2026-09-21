@@ -23,7 +23,7 @@ class MathematicalDepthProfile:
     visualization: int
     experimentation: int
     generalization: int
-    applications: int
+    applications: int = 0
     custom_rules: Tuple[str, ...] = ()
 
     def __post_init__(self):
