@@ -144,6 +144,7 @@ class AgentRuntime:
                     for descendant in pending.values():
                         if task.task_id in descendant.depends_on and descendant.task_id not in blocked:
                             blocked.append(descendant.task_id)
+                    progress = True
 
             if not progress:
                 blocked.extend(sorted(pending))
