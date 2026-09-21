@@ -38,10 +38,6 @@ class ExperienceStoreTests(unittest.TestCase):
             self.assertEqual(len(list_records(tmp, "chat-1", limit=2)), 2)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
     def test_select_references_respects_target_profile(self):
         from experience_store import select_references
         records = [
@@ -52,3 +48,7 @@ if __name__ == "__main__":
         ]
         refs = select_references(records, target_profile={"depth": 100, "mathematics": 90}, limit=2)
         self.assertEqual(refs[0]["strategy_id"], "depth")
+
+
+if __name__ == "__main__":
+    unittest.main()
