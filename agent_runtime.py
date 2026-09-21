@@ -131,6 +131,7 @@ class AgentRuntime:
                 pending.pop(task.task_id, None)
                 if result.status == "completed":
                     artifacts.update(result.outputs)
+                    artifacts.setdefault("agent_results", {})[task.agent_id] = dict(result.outputs)
                     completed.append(task.task_id)
                     progress = True
                 else:
