@@ -122,3 +122,37 @@ def build_experience_context(
         "references": select_references(records, task_family=task_family, target_profile=evaluation_profile, limit=limit),
         "selection_policy": "evidence_weighted_multi_reference",
     }
+
+def persist_runtime_experience(
+    chats_dir: str,
+    chat_id: str,
+    *,
+    task_fingerprint: str,
+    evaluation: Dict[str, Any],
+    experience_record: Dict[str, Any],
+    investigation_id: Optional[str] = None,
+    version_id: Optional[str] = None,
+    evaluation_profile: Optional[Dict[str, int]] = None,
+    strategy_context: Optional[Dict[str, Any]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Persist an evaluator outcome as a candidate; never auto-promotes it."""
+    merged = dict(metadata or {})
+    merged["evaluation_profile"] = {
+        str(k): int(v) for k, v in (evaluation_profile or {}).items()
+    }
+    merged["runtime_experience_source"] = "experience_evaluator"
+    merged["candidate_type"] = experience_record.get("candidate_type", "strategy_outcome")
+    if strategy_context:
+        merged["strategy_context_version"] = strategy_context.get("strategy_context_version")
+        merged["task_family"] = strategy_context.get("task_family")
+    return append_record(
+        chats_dir,
+        chat_id,
+        task_fingerprint=task_fingerprint,
+        evaluation=dict(evaluation or {}),
+        strategy_id=str((strategy_context or {}).get("strategy_id") or "runtime-outcome"),
+        investigation_id=investigation_id,
+        version_id=version_id,
+        metadata=merged,
+    )
