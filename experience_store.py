@@ -90,19 +90,29 @@ def select_references(
     records: Iterable[Dict[str, Any]],
     *,
     task_family: Optional[str] = None,
+    target_profile: Optional[Dict[str, int]] = None,
     limit: int = 5,
 ) -> list[Dict[str, Any]]:
-    """Select reusable experience by evidence and profile similarity, not one winner."""
+    """Select reusable experience using evidence, consistency and profile similarity."""
     rows = list(records)
     if task_family:
         rows = [r for r in rows if (r.get("metadata") or {}).get("task_family") == task_family]
+    target = {str(k): max(0, min(100, int(v))) for k, v in (target_profile or {}).items()}
     ranked = []
     for record in rows:
         evaluation = record.get("evaluation") or {}
         metadata = record.get("metadata") or {}
         score = float(evaluation.get("score", 0.0))
         consistency = 1.0 if evaluation.get("consistent") else 0.0
-        ranked.append((0.7 * score + 0.3 * consistency, record))
+        profile = metadata.get("evaluation_profile") or {}
+        dimensions = set(target) | set(profile)
+        if dimensions:
+            distance = sum(abs(float(target.get(k, 0)) - float(profile.get(k, 0))) for k in dimensions)
+            similarity = max(0.0, 1.0 - distance / (100.0 * len(dimensions)))
+        else:
+            similarity = 0.5
+        rank = 0.55 * score + 0.25 * consistency + 0.20 * similarity
+        ranked.append((rank, record))
     ranked.sort(key=lambda x: (x[0], x[1].get("created_at", "")), reverse=True)
     return [
         {
