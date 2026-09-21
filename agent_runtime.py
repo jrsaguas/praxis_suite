@@ -95,9 +95,11 @@ class AgentRuntime:
         *,
         max_retries: int = 1,
         event_sink: Optional[Callable[[ExecutionEvent], None]] = None,
+        experience_sink: Optional[Callable[[AgentTask, Mapping[str, Any], Mapping[str, Any]], None]] = None,
     ):
         self.executor = executor
         self.event_sink = event_sink
+        self.experience_sink = experience_sink
         self.quality_gate = quality_gate or (lambda task, result: {"passed": True})
         self.max_retries = max(0, int(max_retries))
 
@@ -135,6 +137,8 @@ class AgentRuntime:
                     artifacts.setdefault("agent_results", {})[task.agent_id] = dict(result.outputs)
                     if task.agent_id == "final_auditor":
                         artifacts["final_audit"] = dict(result.outputs.get("final_audit") or result.outputs.get("audit") or {})
+                    if task.agent_id == "experience_evaluator" and self.experience_sink is not None:
+                        self.experience_sink(task, artifacts, result.outputs)
 
                     completed.append(task.agent_id)
                     completed_task_ids.add(task.task_id)
