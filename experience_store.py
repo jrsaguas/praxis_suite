@@ -106,6 +106,7 @@ def select_references(
     ranked.sort(key=lambda x: (x[0], x[1].get("created_at", "")), reverse=True)
     return [
         {
+            "selection_rank": index + 1,
             "investigation_id": r.get("investigation_id"),
             "version_id": r.get("version_id"),
             "strategy_id": r.get("strategy_id"),
