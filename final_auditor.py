@@ -54,7 +54,7 @@ def audit_product(product: Mapping[str, Any]) -> AuditReport:
     manifest = product.get("artifact_manifest") or {}
     requirements = product.get("requirements") or product.get("specifications") or {}
     checks["requirements_coverage"] = bool(requirements) or bool(prompt.strip())
-    checks["final_product_context_present"] = bool(product.get("agent_results") or product.get("documents") or product.get("html"))
+    checks["final_product_context_present"] = bool(product.get("agent_results") or product.get("documents") or product.get("html") or product.get("runtime_trace"))
     artifacts = manifest.get("artifacts") or []
     checks["artifact_manifest_present"] = bool(manifest)
     checks["derived_artifacts_listed"] = bool(artifacts)
@@ -75,6 +75,7 @@ def audit_product(product: Mapping[str, Any]) -> AuditReport:
     if not checks["artifact_manifest_present"]:
         findings.append(AuditFinding("artefactos", "medium", "Falta el manifiesto de artefactos derivados.", recommendation="Actualizar el manifiesto antes de presentar el resultado."))
     if not checks["runtime_trace_present"]:
+
         findings.append(AuditFinding("trazabilidad", "medium", "No se recibió una traza operacional observable.", recommendation="Registrar eventos del runtime sin exponer razonamiento interno del modelo."))
 
     status = "pass" if not findings else "needs_review"
