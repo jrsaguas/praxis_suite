@@ -9,7 +9,7 @@ class PreferenceProfilesTests(unittest.TestCase):
             "mathematics": 100, "visualization": 20
         })
         e = EvaluationProfile(mathematics=90, visualization=80)
-        self.assertAlmostEqual(p.score(e), 88.08, places=2)
+        self.assertAlmostEqual(p.score(e), 88.33, places=2)
 
     def test_preference_fit_exposes_relevant_regressions(self):
         p = PreferenceProfile.from_percentages({
