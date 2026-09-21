@@ -439,10 +439,24 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             depth_context = mathematical_depth.build_depth_context(profile)
             required_artifacts = data.get('required_artifacts') or []
             requested_agents = data.get('requested_agents') or []
+            evaluation_profile = data.get('evaluation_profile') or {}
+            experience_context = {}
+            if data.get('chat_id'):
+                experience_context = learning_bridge.build_experience_context(
+                    chat_manager.CHATS_DIR,
+                    data['chat_id'],
+                    task_family=data.get('task_family'),
+                    evaluation_profile=evaluation_profile,
+                )
+            plan_requirements = dict(depth_context['requirements'])
+            if evaluation_profile:
+                plan_requirements['evaluation_profile'] = evaluation_profile
+            if experience_context.get('references'):
+                plan_requirements['experience_context'] = experience_context
             plan = agent_graph.AgentGraphPlanner().plan(
                 requested_agents=requested_agents,
                 required_artifacts=required_artifacts,
-                depth_requirements=depth_context['requirements'],
+                depth_requirements=plan_requirements,
             )
             strategy = data.get('strategy_context') or {}
             context = operational_context.build_operational_context(
@@ -453,6 +467,8 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             context['depth_context'] = depth_context
             context['agent_plan'] = {
                 'selected_agents': plan.selected_agents,
+                'experience_context': plan.depth_requirements.get('experience_context', {}),
+                'evaluation_profile': plan.depth_requirements.get('evaluation_profile', {}),
                 'tasks': [
                     {
                         'task_id': t.task_id,
