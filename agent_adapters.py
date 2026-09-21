@@ -55,6 +55,27 @@ def execute_model_agent(task, context: Mapping[str, Any]) -> Mapping[str, Any]:
         "agent_id": task.agent_id,
     }
 
+def execute_experience_evaluator(task, context):
+    from final_auditor import audit_product
+    from evaluator_orchestrator import Evaluation, LearningRecord
+    audit = context.get("final_audit") or audit_product(context).to_dict()
+    status = str(audit.get("status", "needs_review"))
+    score = 1.0 if status == "pass" else 0.0
+    return {
+        "evaluation": {
+            "consistent": status == "pass",
+            "score": score,
+            "recommendation": "ACCEPT" if status == "pass" else "REVIEW",
+            "audit_status": status,
+            "findings": audit.get("findings", []),
+        },
+        "experience_record": {
+            "source": "final_auditor",
+            "promotion_eligible": status == "pass",
+            "requires_human_or_gate_review": status != "pass",
+        },
+    }
+
 MODEL_AGENTS = {
     "intent_router", "architect", "foundation_analyst", "mathematical_resolver",
     "proof_specialist", "representation_designer", "python_visualizer",
@@ -66,6 +87,7 @@ ADAPTERS = {
     "canvas_engineer": execute_canvas,
     "document_engineer": execute_document,
     **{agent_id: execute_model_agent for agent_id in MODEL_AGENTS},
+    "experience_evaluator": execute_experience_evaluator,
 }
 
 
