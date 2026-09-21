@@ -41,6 +41,7 @@ def append_record(
     version_id: Optional[str] = None,
     proposal: Optional[Dict[str, Any]] = None,
     metadata: Optional[Dict[str, Any]] = None,
+    user_feedback: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     path = _path(chats_dir, chat_id)
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -55,6 +56,8 @@ def append_record(
         "evaluation": evaluation,
         "proposal": proposal,
         "metadata": metadata or {},
+        "user_feedback": dict(user_feedback or {}),
+        "reuse_status": "candidate",
     }
     data["records"].append(record)
     tmp = path + ".tmp"
@@ -104,6 +107,11 @@ def select_references(
         metadata = record.get("metadata") or {}
         score = float(evaluation.get("score", 0.0))
         consistency = 1.0 if evaluation.get("consistent") else 0.0
+        feedback = record.get("user_feedback") or {}
+        if feedback.get("decision") == "reject":
+            continue
+        user_rating = feedback.get("rating")
+        user_signal = (max(0.0, min(1.0, float(user_rating) / 100.0)) if user_rating is not None else None)
         profile = metadata.get("evaluation_profile") or {}
         dimensions = set(target) | set(profile)
         if dimensions:
@@ -111,8 +119,12 @@ def select_references(
             similarity = max(0.0, 1.0 - distance / (100.0 * len(dimensions)))
         else:
             similarity = 0.5
-        rank = 0.55 * score + 0.25 * consistency + 0.20 * similarity
-        ranked.append((rank, record))
+        rank = 0.50 * score + 0.20 * consistency + 0.20 * similarity
+        if user_signal is not None:
+            rank = 0.70 * rank + 0.30 * user_signal
+        if feedback.get("decision") == "accept":
+            rank += 0.05
+        ranked.append((min(1.0, rank), record))
     ranked.sort(key=lambda x: (x[0], x[1].get("created_at", "")), reverse=True)
     return [
         {
@@ -123,6 +135,45 @@ def select_references(
             "relevance": round(max(0.0, min(1.0, rank)), 4),
             "evaluation": r.get("evaluation") or {},
             "metadata": r.get("metadata") or {},
+            "user_feedback": r.get("user_feedback") or {},
+            "reuse_status": r.get("reuse_status", "candidate"),
         }
         for rank, r in ranked[:max(1, int(limit))]
     ]
+
+
+def record_user_feedback(
+    chats_dir: str,
+    chat_id: str,
+    record_id: str,
+    *,
+    decision: str,
+    rating: Optional[int] = None,
+    note: str = "",
+) -> Dict[str, Any]:
+    """Attach explicit user feedback without changing the original outcome."""
+    decision = str(decision).strip().lower()
+    if decision not in {"accept", "reject", "review"}:
+        raise ValueError("decision must be accept, reject or review")
+    if rating is not None:
+        rating = int(rating)
+        if not 0 <= rating <= 100:
+            raise ValueError("rating must be between 0 and 100")
+    path = _path(chats_dir, chat_id)
+    data = _load(path)
+    for record in data["records"]:
+        if record.get("record_id") != str(record_id):
+            continue
+        record["user_feedback"] = {
+            "decision": decision,
+            "rating": rating,
+            "note": str(note),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        record["reuse_status"] = "accepted" if decision == "accept" else "rejected" if decision == "reject" else "candidate"
+        tmp = path + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(data, fh, ensure_ascii=False, indent=2)
+        os.replace(tmp, path)
+        return record
+    raise KeyError(f"Experience record not found: {record_id}")
