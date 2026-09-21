@@ -426,7 +426,8 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                 record_id = data.get('record_id')
                 if not chat_id or not record_id:
                     raise ValueError('chat_id y record_id son obligatorios')
-                saved = experience_store.record_user_feedback(
+                from experience_store import record_user_feedback
+                saved = record_user_feedback(
                     chat_manager.CHATS_DIR, chat_id, record_id,
                     decision=data.get('decision', 'review'),
                     rating=data.get('rating'),
