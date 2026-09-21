@@ -133,6 +133,9 @@ class AgentRuntime:
                 if result.status == "completed":
                     artifacts.update(result.outputs)
                     artifacts.setdefault("agent_results", {})[task.agent_id] = dict(result.outputs)
+                    if task.agent_id == "final_auditor":
+                        artifacts["final_audit"] = dict(result.outputs.get("final_audit") or result.outputs.get("audit") or {})
+
                     completed.append(task.agent_id)
                     completed_task_ids.add(task.task_id)
                     progress = True
