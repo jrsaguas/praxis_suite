@@ -112,12 +112,13 @@ def build_experience_context(
     *,
     task_family: Optional[str] = None,
     limit: int = 5,
+    evaluation_profile: Optional[Dict[str, int]] = None,
 ) -> Dict[str, Any]:
     """Build a weighted reference context without mutating the experience store."""
     from experience_store import list_records
     records = list_records(chats_dir, chat_id, limit=500)
     return {
         "task_family": task_family,
-        "references": select_references(records, task_family=task_family, limit=limit),
+        "references": select_references(records, task_family=task_family, target_profile=evaluation_profile, limit=limit),
         "selection_policy": "evidence_weighted_multi_reference",
     }
