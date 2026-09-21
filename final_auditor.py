@@ -52,6 +52,9 @@ def audit_product(product: Mapping[str, Any]) -> AuditReport:
         re.search(r"(fuente|referencia|validaci|certific)", md, re.I)
     )
     manifest = product.get("artifact_manifest") or {}
+    requirements = product.get("requirements") or product.get("specifications") or {}
+    checks["requirements_coverage"] = bool(requirements) or bool(prompt.strip())
+    checks["final_product_context_present"] = bool(product.get("agent_results") or product.get("documents") or product.get("html"))
     artifacts = manifest.get("artifacts") or []
     checks["artifact_manifest_present"] = bool(manifest)
     checks["derived_artifacts_listed"] = bool(artifacts)
@@ -65,6 +68,10 @@ def audit_product(product: Mapping[str, Any]) -> AuditReport:
         findings.append(AuditFinding("procedimiento", "high", "No se detectó una sección explícita de procedimiento/desarrollo.", recommendation="Comprobar que el procedimiento completo esté explicado y sea reproducible."))
     if not checks["evidence_or_validation_present"]:
         findings.append(AuditFinding("verificación", "high", "No se detectó evidencia de validación o revisión.", recommendation="Ejecutar CAS, revisión epistemológica o verificación externa pertinente."))
+    if not checks["requirements_coverage"]:
+        findings.append(AuditFinding("especificaciones", "high", "No se pudo reconstruir la cobertura de requisitos.", recommendation="Conservar requisitos explícitos y mapearlos contra las salidas finales."))
+    if not checks["final_product_context_present"]:
+        findings.append(AuditFinding("producto_final", "medium", "La auditoría recibió contexto reducido del producto.", recommendation="Entregar al auditor los resultados observables de los agentes y derivados finales."))
     if not checks["artifact_manifest_present"]:
         findings.append(AuditFinding("artefactos", "medium", "Falta el manifiesto de artefactos derivados.", recommendation="Actualizar el manifiesto antes de presentar el resultado."))
     if not checks["runtime_trace_present"]:
