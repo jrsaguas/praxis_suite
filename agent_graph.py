@@ -14,6 +14,7 @@ from agent_architecture import AGENTS, AgentSpec
 class AgentTask:
     task_id: str
     agent_id: str
+    model_id: Optional[str] = None
     inputs: Tuple[str, ...]
     outputs: Tuple[str, ...]
     depends_on: Tuple[str, ...]
@@ -42,6 +43,7 @@ class AgentGraphPlanner:
         requested_agents: Optional[Iterable[str]] = None,
         required_artifacts: Iterable[str] = (),
         depth_requirements: Optional[Mapping[str, object]] = None,
+        model_overrides: Optional[Mapping[str, str]] = None,
     ) -> ExecutionPlan:
         requested = set(requested_agents or ())
         artifacts = set(required_artifacts)
@@ -49,12 +51,19 @@ class AgentGraphPlanner:
         selected.update(self._agents_required_by_depth(depth_requirements or {}))
         selected = self._closure(selected, set())
         tasks = []
+        overrides = dict(model_overrides or {})
+        try:
+            from model_registry import ModelRouter
+            router = ModelRouter()
+        except Exception:
+            router = None
         for agent_id in self._topological(selected):
             spec = self._agents[agent_id]
             deps = tuple(d for d in spec.depends_on if d in selected)
             tasks.append(AgentTask(
                 task_id=f"task:{agent_id}",
                 agent_id=agent_id,
+                model_id=(router.resolve(agent_id, overrides.get(agent_id)).model_id if router else None),
                 inputs=spec.inputs,
                 outputs=spec.outputs,
                 depends_on=tuple(f"task:{d}" for d in deps),
