@@ -51,6 +51,8 @@ class AgentGraphPlanner:
         selected.update(self._agents_required_by_depth(depth_requirements or {}))
         if "final_auditor" not in selected and (selected or requested or artifacts):
             selected.add("final_auditor")
+        if "experience_evaluator" not in selected and (selected or requested or artifacts):
+            selected.add("experience_evaluator")
         selected = self._closure(selected, set())
         tasks = []
         overrides = dict(model_overrides or {})
