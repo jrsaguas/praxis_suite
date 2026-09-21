@@ -68,10 +68,13 @@ def _sha256_file(path: str) -> str:
     return digest.hexdigest()
 
 
-def build_artifact_manifest(chats_dir: str, chat_id: str, folder: str, *, version_id: Optional[str] = None) -> Dict[str, Any]:
+def build_artifact_manifest(chats_dir: str, chat_id: str, folder: str, *, version_id: Optional[str] = None, previous_manifest: Optional[Dict[str, Any]] = None, changed_files: Optional[list[str]] = None) -> Dict[str, Any]:
     """Inspect the existing response folder and describe actual artifacts on disk."""
     response_path = safe_child_path(safe_child_path(chats_dir, validate_component(chat_id, "chat_id")), validate_component(folder, "folder"))
     artifacts: list[Dict[str, Any]] = []
+    previous = {str(a.get("path")): a for a in (previous_manifest or {}).get("artifacts", [])}
+    changed = {str(p).replace(os.sep, "/") for p in (changed_files or [])}
+    source_md_sha256 = None
     for artifact_type, parts in _ARTIFACT_ROOTS.items():
         root = response_path
         for part in parts:
@@ -93,17 +96,35 @@ def build_artifact_manifest(chats_dir: str, chat_id: str, folder: str, *, versio
                     "updated_at": datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
                     "status": "current",
                     "version_id": version_id,
+                    "source_md_sha256": source_md_sha256,
+                    "derived_from": version_id,
                 })
-    return {"generated_at": datetime.now(timezone.utc).isoformat(), "version_id": version_id, "artifacts": artifacts}
+    md_items = [a for a in artifacts if a.get("type") == "md"]
+    if md_items:
+        source_md_sha256 = md_items[0].get("sha256")
+    for item in artifacts:
+        item["source_md_sha256"] = source_md_sha256
+        rel = str(item["path"])
+        old = previous.get(rel)
+        if item.get("type") == "md":
+            item["status"] = "current"
+        elif old and old.get("sha256") == item.get("sha256") and old.get("source_md_sha256") == source_md_sha256:
+            item["status"] = old.get("status", "current")
+        elif changed and rel not in changed and item.get("type") in {"html", "docx", "doc", "simulador", "imagenes", "codigo"}:
+            item["status"] = "stale" if old and old.get("source_md_sha256") != source_md_sha256 else "current"
+        else:
+            item["status"] = "current"
+    return {"generated_at": datetime.now(timezone.utc).isoformat(), "version_id": version_id, "source_md_sha256": source_md_sha256, "artifacts": artifacts}
 
 
-def refresh_artifact_manifest(chats_dir: str, chat_id: str, folder: str, *, version_id: Optional[str] = None) -> Dict[str, Any]:
+def refresh_artifact_manifest(chats_dir: str, chat_id: str, folder: str, *, version_id: Optional[str] = None, changed_files: Optional[list[str]] = None) -> Dict[str, Any]:
     """Persist a fresh manifest in the existing response metadata."""
     meta = _load(chats_dir, chat_id)
     response = get_response(meta, folder)
     if response is None:
         raise KeyError(f"Response folder not found: {folder}")
-    manifest = build_artifact_manifest(chats_dir, chat_id, folder, version_id=version_id or response.get("version_id"))
+    previous = response.get("artifact_manifest") or {}
+    manifest = build_artifact_manifest(chats_dir, chat_id, folder, version_id=version_id or response.get("version_id"), previous_manifest=previous, changed_files=changed_files)
     response["artifact_manifest"] = manifest
     response["artifact_manifest_version_id"] = manifest["version_id"]
     _save(chats_dir, chat_id, meta)
