@@ -14,12 +14,12 @@ from agent_architecture import AGENTS, AgentSpec
 class AgentTask:
     task_id: str
     agent_id: str
-    model_id: Optional[str] = None
     inputs: Tuple[str, ...]
     outputs: Tuple[str, ...]
     depends_on: Tuple[str, ...]
     quality_gates: Tuple[str, ...]
     status: str = "pending"
+    model_id: Optional[str] = None
 
 
 @dataclass(frozen=True)
