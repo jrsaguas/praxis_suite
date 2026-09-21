@@ -486,6 +486,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                 investigation_id=data.get('investigation_id'),
             )
             context['depth_context'] = depth_context
+            context['experience_context'] = experience_context
             context['agent_plan'] = {
                 'selected_agents': plan.selected_agents,
                 'experience_context': plan.depth_requirements.get('experience_context', {}),
