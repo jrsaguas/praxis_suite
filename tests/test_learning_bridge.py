@@ -51,5 +51,25 @@ class LearningBridgeTests(unittest.TestCase):
             self.assertEqual(saved["metadata"]["evaluation_profile"]["depth"], 90)
 
 
+    def test_runtime_sink_builds_candidate_from_evaluator_output(self):
+        from learning_bridge import make_runtime_experience_sink
+        with tempfile.TemporaryDirectory() as tmp:
+            sink = make_runtime_experience_sink(
+                tmp, "chat-1", investigation_id="i1", version_id="v1",
+                evaluation_profile={"depth": 80},
+            )
+            class Task:
+                task_id = "task:experience"
+                agent_id = "experience_evaluator"
+            saved = sink(
+                Task(),
+                {"final_audit": {"status": "pass"}},
+                {"evaluation": {"consistent": True, "score": 0.9},
+                 "experience_record": {"candidate_type": "strategy_outcome"}},
+            )
+            self.assertEqual(saved["reuse_status"], "candidate")
+            self.assertEqual(saved["metadata"]["runtime_agent_id"], "experience_evaluator")
+
+
 if __name__ == "__main__":
     unittest.main()
