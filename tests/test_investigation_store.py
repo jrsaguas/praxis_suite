@@ -3,7 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import investigation_store\nfrom investigation_store import list_versions, register_version, record_execution, promote_execution_to_version
+import investigation_store
+from investigation_store import list_versions, register_version, record_execution, promote_execution_to_version
 
 
 class InvestigationStoreTests(unittest.TestCase):
