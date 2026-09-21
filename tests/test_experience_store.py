@@ -65,9 +65,9 @@ class ExperienceStoreTests(unittest.TestCase):
         from experience_store import select_references
         records = [
             {"strategy_id": "depth", "evaluation": {"score": 0.9, "consistent": True},
-             "metadata": {"evaluation_profile": {"depth": 100, "mathematics": 90}}},
+             "metadata": {"evaluation_profile": {"depth": 100, "mathematics": 90}}, "reuse_status": "accepted"},
             {"strategy_id": "visual", "evaluation": {"score": 0.88, "consistent": True},
-             "metadata": {"evaluation_profile": {"visualization": 100, "interactivity": 90}}},
+             "metadata": {"evaluation_profile": {"visualization": 100, "interactivity": 90}}, "reuse_status": "accepted"},
         ]
         refs = select_references(records, target_profile={"depth": 100, "mathematics": 90}, limit=2)
         self.assertEqual(refs[0]["strategy_id"], "depth")
