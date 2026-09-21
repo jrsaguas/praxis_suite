@@ -31,7 +31,7 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(trace.status, "completed")
         self.assertEqual(attempts["task:representation_designer"], 2)
         self.assertIn("task:canvas_engineer", trace.blocked)
-        self.assertNotIn("task:canvas_engineer", trace.completed)
+        self.assertNotIn("canvas_engineer", trace.completed)
 
     def test_trace_serializes_to_json_safe_dict(self):
         plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
