@@ -132,6 +132,47 @@ def refresh_artifact_manifest(chats_dir: str, chat_id: str, folder: str, *, vers
     _save(chats_dir, chat_id, meta)
     return manifest
 
+def set_evaluation_profile(
+    chats_dir: str,
+    chat_id: str,
+    folder: str,
+    profile: Dict[str, int],
+) -> Dict[str, Any]:
+    """Persist the current target profile on the existing investigation response."""
+    allowed = {
+        "mathematics", "depth", "explanation", "visualization",
+        "interactivity", "images", "code", "structure",
+    }
+    normalized = {}
+    for key, value in dict(profile or {}).items():
+        if key not in allowed:
+            raise ValueError(f"Unknown evaluation dimension: {key}")
+        value = int(value)
+        if not 0 <= value <= 100:
+            raise ValueError(f"{key} must be between 0 and 100")
+        normalized[key] = value
+    meta = _load(chats_dir, chat_id)
+    response = get_response(meta, folder)
+    if response is None:
+        raise KeyError(f"Response folder not found: {folder}")
+    response["evaluation_profile"] = normalized
+    response["evaluation_profile_source"] = "user_current_target"
+    _save(chats_dir, chat_id, meta)
+    return normalized
+
+
+def get_evaluation_profile(
+    chats_dir: str,
+    chat_id: str,
+    folder: str,
+) -> Dict[str, int]:
+    meta = _load(chats_dir, chat_id)
+    response = get_response(meta, folder)
+    if response is None:
+        raise KeyError(f"Response folder not found: {folder}")
+    return dict(response.get("evaluation_profile") or {})
+
+
 def register_version(
     chats_dir: str,
     chat_id: str,
