@@ -34,5 +34,22 @@ class LearningBridgeTests(unittest.TestCase):
             )
 
 
+    def test_runtime_experience_is_persisted_as_candidate(self):
+        from learning_bridge import persist_runtime_experience
+        with tempfile.TemporaryDirectory() as tmp:
+            saved = persist_runtime_experience(
+                tmp, "chat-1",
+                task_fingerprint="fp",
+                evaluation={"consistent": True, "score": 0.8},
+                experience_record={"candidate_type": "strategy_outcome"},
+                investigation_id="chat-1/r1",
+                version_id="v1",
+                evaluation_profile={"depth": 90},
+            )
+            self.assertEqual(saved["reuse_status"], "candidate")
+            self.assertEqual(saved["metadata"]["runtime_experience_source"], "experience_evaluator")
+            self.assertEqual(saved["metadata"]["evaluation_profile"]["depth"], 90)
+
+
 if __name__ == "__main__":
     unittest.main()
