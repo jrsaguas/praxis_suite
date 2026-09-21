@@ -6,8 +6,8 @@ class FinalAuditorTests(unittest.TestCase):
         report = audit_product({
             "prompt": "Demuestra y verifica la integral.",
             "markdown": "# Procedimiento\\n\\nSe demuestra la ecuación \\nabla f.\\n\\n### Validación CAS\\ncertificación",
-            "artifact_manifest": {"artifacts": [{"type":"md","path":"x.md"}]},
-            "runtime_trace": {"events":[{"sequence":1}]},
+            "artifact_manifest": {"artifacts": [{"type": "md", "path": "x.md"}]},
+            "runtime_trace": {"events": [{"sequence": 1}]},
         })
         self.assertEqual(report.status, "pass")
         self.assertTrue(report.checks["procedures_present"])
@@ -19,3 +19,6 @@ class FinalAuditorTests(unittest.TestCase):
         categories = {f.category for f in report.findings}
         self.assertIn("completitud", categories)
         self.assertIn("verificación", categories)
+
+if __name__ == "__main__":
+    unittest.main()
