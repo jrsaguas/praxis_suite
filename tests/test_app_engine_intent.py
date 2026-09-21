@@ -13,8 +13,8 @@ class IntentRoutingContractTests(unittest.TestCase):
 
     def test_specific_stage_resume_is_before_generic_resume(self):
         src = self.source
-        specific = src.index("CMD_RESUME_STAGE")
-        generic = src.index("CMD_RESUME")
+        specific = src.index("type: 'CMD_RESUME_STAGE'")
+        generic = src.index("type: 'CMD_RESUME'")
         self.assertLess(specific, generic)
 
     def test_stage_command_cannot_fall_through_to_pipeline(self):
