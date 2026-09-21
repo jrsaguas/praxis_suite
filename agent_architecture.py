@@ -34,7 +34,8 @@ AGENTS = (
     AgentSpec("integrator", "integrar teoría, solución, pruebas y representaciones sin perder trazabilidad", ("plan","foundations","solution","proofs","python_artifacts","canvas_artifacts","research"), ("integrated_report",), ("code_reviewer","research_specialist"), ("completeness","traceability")),
     AgentSpec("epistemic_reviewer", "auditar afirmaciones, evidencia y certificación", ("integrated_report",), ("epistemic_review",), ("integrator",), ("evidence_gate","cas_gate")),
     AgentSpec("document_engineer", "emitir Markdown canónico y derivados HTML/DOCX/DOC", ("integrated_report","epistemic_review"), ("markdown","html","documents"), ("epistemic_reviewer",), ("markdown_canonical","math_rendering")),
-    AgentSpec("experience_evaluator", "evaluar resultado y registrar experiencia para aprendizaje controlado", ("integrated_report","epistemic_review","strategy_context"), ("evaluation","experience_record"), ("document_engineer",), ("evaluation_profile","strategy_outcome")),
+    AgentSpec("final_auditor", "auditar el producto final completo contra requisitos, evidencia, procedimientos y artefactos derivados", ("user_prompt","integrated_report","markdown","html","documents","artifact_manifest","runtime_trace","epistemic_review","cas_certificate","strategy_context"), ("final_audit",), ("document_engineer","epistemic_reviewer"), ("requirements_coverage","factual_consistency","procedure_completeness","artifact_consistency","verification")),
+    AgentSpec("experience_evaluator", "evaluar resultado y registrar experiencia para aprendizaje controlado", ("integrated_report","epistemic_review","final_audit","strategy_context"), ("evaluation","experience_record"), ("final_auditor",), ("evaluation_profile","strategy_outcome")),
 )
 
 
