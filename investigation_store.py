@@ -49,14 +49,16 @@ def get_response(meta: Dict[str, Any], folder: str) -> Optional[Dict[str, Any]]:
 
 
 _ARTIFACT_ROOTS = {
-    "md": ("entregables", "documentos"),
-    "html": ("entregables", "documentos"),
-    "docx": ("entregables", "documentos"),
-    "doc": ("entregables", "documentos"),
-    "simulador": ("entregables", "visualizador_interactivo"),
+    "documentos": ("entregables", "documentos"),
+    "visualizador_interactivo": ("entregables", "visualizador_interactivo"),
     "imagenes": ("entregables", "imagenes"),
-    "codigo": ("entregables", "codigo_graficos"),
+    "codigo_graficos": ("entregables", "codigo_graficos"),
     "proceso_agentes": ("proceso_agentes",),
+}
+_ARTIFACT_TYPE_BY_EXTENSION = {
+    ".md": "md", ".html": "html", ".docx": "docx", ".doc": "doc",
+    ".png": "imagenes", ".jpg": "imagenes", ".jpeg": "imagenes", ".svg": "imagenes",
+    ".py": "codigo", ".js": "codigo", ".css": "codigo",
 }
 
 
@@ -75,7 +77,7 @@ def build_artifact_manifest(chats_dir: str, chat_id: str, folder: str, *, versio
     previous = {str(a.get("path")): a for a in (previous_manifest or {}).get("artifacts", [])}
     changed = {str(p).replace(os.sep, "/") for p in (changed_files or [])}
     source_md_sha256 = None
-    for artifact_type, parts in _ARTIFACT_ROOTS.items():
+    for root_type, parts in _ARTIFACT_ROOTS.items():
         root = response_path
         for part in parts:
             root = os.path.join(root, part)
@@ -88,7 +90,7 @@ def build_artifact_manifest(chats_dir: str, chat_id: str, folder: str, *, versio
                 stat = os.stat(path)
                 artifacts.append({
                     "artifact_id": f"artifact-{hashlib.sha256(rel.encode('utf-8')).hexdigest()[:16]}",
-                    "type": artifact_type,
+                    "type": _ARTIFACT_TYPE_BY_EXTENSION.get(os.path.splitext(filename)[1].lower(), root_type),
                     "path": rel,
                     "filename": filename,
                     "size": stat.st_size,
