@@ -15,8 +15,8 @@ from agent_adapters import adapter_for
 class TaskResult:
     task_id: str
     agent_id: str
-    model_id: Optional[str] = None
     status: str
+    model_id: Optional[str] = None
     outputs: Mapping[str, Any] = field(default_factory=dict)
     quality: Mapping[str, Any] = field(default_factory=dict)
     error: Optional[str] = None
@@ -30,6 +30,7 @@ class ExecutionEvent:
     agent_id: str
     phase: str
     status: str
+    model_id: Optional[str] = None
     input_keys: Tuple[str, ...] = ()
     output_keys: Tuple[str, ...] = ()
     message: str = ""
@@ -67,6 +68,7 @@ class ExecutionTrace:
                 {
                     "task_id": result.task_id,
                     "agent_id": result.agent_id,
+                    "model_id": result.model_id,
                     "status": result.status,
                     "outputs": dict(result.outputs),
                     "quality": dict(result.quality),
@@ -121,7 +123,7 @@ class AgentRuntime:
                 before_keys = tuple(sorted(artifacts.keys()))
                 result = self._run_task(task, artifacts)
                 sequence += 1
-                event = ExecutionEvent(sequence, task.task_id, task.agent_id, "task", result.status, before_keys, tuple(sorted(result.outputs.keys())), result.error or "completed")
+                event = ExecutionEvent(sequence, task.task_id, task.agent_id, "task", result.status, before_keys, tuple(sorted(result.outputs.keys())), result.error or "completed", task.model_id)
                 events.append(event)
                 if self.event_sink is not None:
                     self.event_sink(event)
@@ -150,7 +152,7 @@ class AgentRuntime:
                 if not gate.get("passed", False):
                     last_error = str(gate.get("reason", "quality gate failed"))
                     continue
-                return TaskResult(task.task_id, task.agent_id, "completed", output, gate, attempts=attempt)
+                return TaskResult(task.task_id, task.agent_id, "completed", task.model_id, output, gate, attempts=attempt)
             except Exception as exc:
                 last_error = str(exc)
-        return TaskResult(task.task_id, task.agent_id, "failed", error=last_error, attempts=self.max_retries + 1)
+        return TaskResult(task.task_id, task.agent_id, "failed", model_id=task.model_id, error=last_error, attempts=self.max_retries + 1)
