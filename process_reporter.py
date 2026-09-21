@@ -327,6 +327,9 @@ li {{ margin-bottom: 4px; }}
 </html>
 """
     html_path = os.path.join(folder_path, "informe_proceso.html")
+    if runtime_events:
+        html_content = html_content.replace("</div>\n</body>", '<div class="card"><h2>Bitácora Operacional Observable</h2><div class="role">Eventos registrados por el runtime</div><pre class="code">' + json.dumps(runtime_events, ensure_ascii=False, indent=2).replace("&","&amp;").replace("<","&lt;").replace(">","&gt;") + '</pre></div>\n</div>\n</body>')
+
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(html_content)
 
