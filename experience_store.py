@@ -43,6 +43,7 @@ def append_record(
     metadata: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     path = _path(chats_dir, chat_id)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     data = _load(path)
     record = {
         "record_id": f"exp-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')}",
