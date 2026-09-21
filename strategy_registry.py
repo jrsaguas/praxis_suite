@@ -138,6 +138,7 @@ class StrategyRegistry:
 
     def _save(self, chat_id: str, data: Dict[str, Any]) -> None:
         path = self._path(chat_id)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         tmp = path + ".tmp"
         with open(tmp, "w", encoding="utf-8") as fh:
             json.dump(data, fh, ensure_ascii=False, indent=2)
