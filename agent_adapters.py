@@ -8,6 +8,7 @@ import os
 from typing import Any, Mapping
 import canvas_synthesizer
 import convert
+from model_gateway import build_agent_prompt, invoke_model
 
 
 def execute_canvas(task, context: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -39,9 +40,32 @@ def export_docx(markdown_path: str, output_path: str) -> Mapping[str, Any]:
     return {"docx_path": output_path, "conversion": "pandoc_or_fallback"}
 
 
+def execute_model_agent(task, context: Mapping[str, Any]) -> Mapping[str, Any]:
+    from model_registry import ModelRegistry
+    registry = ModelRegistry()
+    if not task.model_id:
+        raise ValueError(f"No hay modelo asignado para {task.agent_id}")
+    spec = registry.get(task.model_id)
+    prompt = build_agent_prompt(task, context)
+    result = invoke_model(spec, prompt, context)
+    return {
+        "agent_response": result["content"],
+        "model_provider": result["provider"],
+        "model_used": result["model"],
+        "agent_id": task.agent_id,
+    }
+
+MODEL_AGENTS = {
+    "intent_router", "architect", "foundation_analyst", "mathematical_resolver",
+    "proof_specialist", "representation_designer", "python_visualizer",
+    "code_reviewer", "research_specialist", "integrator", "epistemic_reviewer",
+    "final_auditor", "experience_evaluator",
+}
+
 ADAPTERS = {
     "canvas_engineer": execute_canvas,
     "document_engineer": execute_document,
+    **{agent_id: execute_model_agent for agent_id in MODEL_AGENTS},
 }
 
 
