@@ -22,8 +22,11 @@ def compare_strategy_to_baseline(
     baseline_id: str = "baseline-v1",
     task_family: str | None = None,
     min_samples: int = 3,
+    accepted_only: bool = True,
 ) -> Dict[str, Any]:
     rows = list(outcomes)
+    if accepted_only:
+        rows = [x for x in rows if str(x.get('reuse_status', 'candidate')) == 'accepted']
 
     def same_family(x):
         return not task_family or (x.get("metadata") or {}).get("task_family") == task_family
@@ -46,6 +49,7 @@ def compare_strategy_to_baseline(
         "baseline_score": round(baseline_score, 4),
         "improvement": round(improvement, 4),
         "enough_evidence": len(candidate) >= min_samples and len(baseline) >= min_samples,
+        "accepted_only": accepted_only,
     }
 
 
