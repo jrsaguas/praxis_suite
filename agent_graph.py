@@ -47,6 +47,14 @@ class AgentGraphPlanner:
     ) -> ExecutionPlan:
         requested = set(requested_agents or ())
         artifacts = set(required_artifacts)
+        experience_context = {}
+        if isinstance(depth_requirements, Mapping):
+            experience_context = dict(depth_requirements.get("experience_context") or {})
+        reference_bias = {
+            str(ref.get("strategy_id")): float(ref.get("relevance", 0.0))
+            for ref in (experience_context.get("references") or [])
+            if ref.get("strategy_id")
+        }
         selected = self._closure(requested, artifacts)
         selected.update(self._agents_required_by_depth(depth_requirements or {}))
         if "final_auditor" not in selected and (selected or requested or artifacts):
@@ -73,7 +81,16 @@ class AgentGraphPlanner:
                 depends_on=tuple(f"task:{d}" for d in deps),
                 quality_gates=spec.quality_gates,
             ))
-        return ExecutionPlan(tuple(tasks), tuple(a.agent_id for a in tasks), depth_requirements or {})
+        if reference_bias:
+            depth_payload = dict(depth_requirements or {})
+            depth_payload["experience_context"] = {
+                **experience_context,
+                "strategy_bias": reference_bias,
+                "selection_policy": experience_context.get("selection_policy", "evidence_weighted_multi_reference"),
+            }
+        else:
+            depth_payload = depth_requirements or {}
+        return ExecutionPlan(tuple(tasks), tuple(a.agent_id for a in tasks), depth_payload)
 
 
     @staticmethod
