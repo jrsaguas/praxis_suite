@@ -37,7 +37,15 @@ class AgentRuntimeTests(unittest.TestCase):
         plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
         seen = []
         def sink(task, artifacts, output):
-            seen.append((task.agent_id, dict(output), "final_audit" in artifacts))
+            from learning_bridge import persist_runtime_experience
+            saved = persist_runtime_experience(
+                "/tmp", "runtime-test",
+                task_fingerprint="runtime-fp",
+                evaluation=output.get("evaluation") or {},
+                experience_record=output.get("experience_record") or {},
+                evaluation_profile={"depth": 90},
+            )
+            seen.append((task.agent_id, dict(output), "final_audit" in artifacts, saved["reuse_status"]))
         trace = AgentRuntime(
             lambda task, context: (
                 {"final_audit": {"status": "pass", "checks": {}}}
