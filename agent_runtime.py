@@ -106,6 +106,7 @@ class AgentRuntime:
         if "model_assignments" not in artifacts:
             artifacts["model_assignments"] = {t.agent_id: t.model_id for t in plan.tasks if t.model_id}
         completed = []
+        completed_task_ids = set()
         results = []
         events = []
         blocked = []
@@ -113,7 +114,7 @@ class AgentRuntime:
         pending = {task.task_id: task for task in plan.tasks}
 
         while pending:
-            ready = [task for task in pending.values() if all(dep in completed for dep in task.depends_on)]
+            ready = [task for task in pending.values() if all(dep in completed_task_ids for dep in task.depends_on)]
             if not ready:
                 blocked.extend(sorted(pending))
                 break
@@ -132,7 +133,8 @@ class AgentRuntime:
                 if result.status == "completed":
                     artifacts.update(result.outputs)
                     artifacts.setdefault("agent_results", {})[task.agent_id] = dict(result.outputs)
-                    completed.append(task.task_id)
+                    completed.append(task.agent_id)
+                    completed_task_ids.add(task.task_id)
                     progress = True
                 else:
                     blocked.append(task.task_id)
