@@ -37,6 +37,7 @@ def _load(path: str) -> Dict[str, Any]:
 def save_explicit(chats_dir: str, chat_id: str, percentages: Mapping[str, int], *, source: str = "user") -> Dict[str, Any]:
     profile = PreferenceProfile.from_percentages(percentages)
     path = _path(chats_dir, chat_id)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     data = _load(path)
     entry = {
         "at": datetime.now(timezone.utc).isoformat(),
