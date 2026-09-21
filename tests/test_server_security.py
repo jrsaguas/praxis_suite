@@ -31,5 +31,10 @@ class PathSafetyTests(unittest.TestCase):
         self.assertEqual(safe_filename("../../secret.txt"), "secret.txt")
 
 
+    def test_agent_graph_execute_route_exists(self):
+        source = open(os.path.join(os.path.dirname(__file__), "..", "server.py"), encoding="utf-8").read()
+        self.assertIn("/api/agent-graph/execute", source)
+        self.assertIn("make_runtime_experience_sink", source)
+
 if __name__ == "__main__":
     unittest.main()
