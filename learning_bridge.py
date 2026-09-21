@@ -143,9 +143,14 @@ def persist_runtime_experience(
     }
     merged["runtime_experience_source"] = "experience_evaluator"
     merged["candidate_type"] = experience_record.get("candidate_type", "strategy_outcome")
+    merged["promotion_eligible"] = bool(experience_record.get("promotion_eligible", False))
+    merged["requires_human_or_gate_review"] = bool(
+        experience_record.get("requires_human_or_gate_review", True)
+    )
     if strategy_context:
         merged["strategy_context_version"] = strategy_context.get("strategy_context_version")
         merged["task_family"] = strategy_context.get("task_family")
+        merged["strategy_id"] = strategy_context.get("strategy_id")
     return append_record(
         chats_dir,
         chat_id,
