@@ -75,6 +75,8 @@ class AgentGraphPlanner:
     @staticmethod
     def _agents_required_by_depth(requirements: Mapping[str, object]) -> set[str]:
         required = set()
+        if isinstance(requirements, (list, tuple, set)):
+            requirements = {str(x): 100 for x in requirements}
         if int(requirements.get("proof_expectation", 0)) >= 60:
             required.add("proof_specialist")
         if int(requirements.get("research_expectation", 0)) >= 60:
