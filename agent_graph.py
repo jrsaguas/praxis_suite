@@ -48,8 +48,12 @@ class AgentGraphPlanner:
         requested = set(requested_agents or ())
         artifacts = set(required_artifacts)
         experience_context = {}
+        target_profile = {}
         if isinstance(depth_requirements, Mapping):
             experience_context = dict(depth_requirements.get("experience_context") or {})
+            target_profile = dict(depth_requirements.get("evaluation_profile") or {})
+            if target_profile and "target_profile" not in experience_context:
+                experience_context["target_profile"] = target_profile
         reference_bias = {
             str(ref.get("strategy_id")): float(ref.get("relevance", 0.0))
             for ref in (experience_context.get("references") or [])
