@@ -116,6 +116,7 @@ def save_response_to_chat(chat_id, data):
     svgs = data.get('svgs', [])
     traces = data.get('traces', {})
     strategy_context = data.get('strategy_context') or {}
+    evaluation_profile = data.get('evaluation_profile') or {}
 
     # Si no se envía chat_id válido, crear o usar el más reciente
     if not chat_id or not os.path.exists(os.path.join(CHATS_DIR, chat_id)):
@@ -270,6 +271,8 @@ def save_response_to_chat(chat_id, data):
         "version_source": version.source,
         "artifact_types": version.artifact_types,
         "evaluation": None,
+        "evaluation_profile": evaluation_profile,
+        "evaluation_profile_source": "user_current_target" if evaluation_profile else "default",
         "strategy_context": strategy_context,
     }
     meta["updated_at"] = resp_entry["timestamp"]
