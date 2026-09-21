@@ -85,3 +85,33 @@ def summarize_strategies(records: Iterable[Dict[str, Any]]) -> Dict[str, Dict[st
         bucket["mean_score"] = round(bucket["score_sum"] / count, 4) if count else 0.0
         bucket["accept_rate"] = round(bucket["accepted"] / count, 4) if count else 0.0
     return summary
+
+def select_references(
+    records: Iterable[Dict[str, Any]],
+    *,
+    task_family: Optional[str] = None,
+    limit: int = 5,
+) -> list[Dict[str, Any]]:
+    """Select reusable experience by evidence and profile similarity, not one winner."""
+    rows = list(records)
+    if task_family:
+        rows = [r for r in rows if (r.get("metadata") or {}).get("task_family") == task_family]
+    ranked = []
+    for record in rows:
+        evaluation = record.get("evaluation") or {}
+        metadata = record.get("metadata") or {}
+        score = float(evaluation.get("score", 0.0))
+        consistency = 1.0 if evaluation.get("consistent") else 0.0
+        ranked.append((0.7 * score + 0.3 * consistency, record))
+    ranked.sort(key=lambda x: (x[0], x[1].get("created_at", "")), reverse=True)
+    return [
+        {
+            "investigation_id": r.get("investigation_id"),
+            "version_id": r.get("version_id"),
+            "strategy_id": r.get("strategy_id"),
+            "relevance": round(max(0.0, min(1.0, rank)), 4),
+            "evaluation": r.get("evaluation") or {},
+            "metadata": r.get("metadata") or {},
+        }
+        for rank, r in ranked[:max(1, int(limit))]
+    ]
