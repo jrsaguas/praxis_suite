@@ -7,6 +7,17 @@ from investigation_store import list_versions, register_version, record_executio
 
 
 class InvestigationStoreTests(unittest.TestCase):
+    def _write_response(self, td, chat_id, folder):
+        from pathlib import Path
+        root = Path(td) / chat_id
+        root.mkdir(parents=True, exist_ok=True)
+        response = root / folder
+        response.mkdir(parents=True, exist_ok=True)
+        (root / "conversacion_metadata.json").write_text(
+            json.dumps({"id": chat_id, "responses": [{"folder": folder, "version_id": "v-root"}]}),
+            encoding="utf-8",
+        )
+        return str(response)
     def test_register_version_reuses_existing_response_folder(self):
         with tempfile.TemporaryDirectory() as tmp:
             chats = Path(tmp) / "chats"
