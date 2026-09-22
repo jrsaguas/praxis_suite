@@ -78,6 +78,25 @@ class AgentRuntimeTests(unittest.TestCase):
         self.assertEqual(trace.status, "completed")
         self.assertTrue(trace.artifacts.get("experience_persistence_errors"))
 
+    def test_experience_sink_failure_does_not_fail_run(self):
+        plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
+        def sink(task, artifacts, output):
+            raise RuntimeError("experience store unavailable")
+        runtime = AgentRuntime(
+            lambda task, context: (
+                {"final_audit": {"status": "pass"}}
+                if task.agent_id == "final_auditor"
+                else {"evaluation": {"consistent": True}, "experience_record": {"candidate_type": "strategy_outcome"}}
+                if task.agent_id == "experience_evaluator"
+                else {task.agent_id: True}
+            ),
+            experience_sink=sink,
+        )
+        trace = runtime.run(plan)
+        self.assertEqual(trace.status, "completed")
+        self.assertTrue(any(e.get("error") == "experience store unavailable"
+                            for e in trace.artifacts.get("experience_persistence_errors", [])))
+
     def test_trace_serializes_to_json_safe_dict(self):
         plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
         trace = AgentRuntime(lambda task, context: {task.agent_id: True}).run(plan)
