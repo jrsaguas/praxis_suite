@@ -138,7 +138,16 @@ class AgentRuntime:
                     if task.agent_id == "final_auditor":
                         artifacts["final_audit"] = dict(result.outputs.get("final_audit") or result.outputs.get("audit") or {})
                     if task.agent_id == "experience_evaluator" and self.experience_sink is not None:
-                        self.experience_sink(task, artifacts, result.outputs)
+                        try:
+                            self.experience_sink(task, artifacts, result.outputs)
+                        except Exception as exc:
+                            # Persisting experience is observational side-effect; it must
+                            # never invalidate an otherwise successful investigation.
+                            artifacts.setdefault("experience_persistence_errors", []).append({
+                                "task_id": task.task_id,
+                                "agent_id": task.agent_id,
+                                "error": str(exc),
+                            })
 
                     completed.append(task.agent_id)
                     completed_task_ids.add(task.task_id)
