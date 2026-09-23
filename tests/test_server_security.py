@@ -3,6 +3,7 @@ from pathlib import Path
 import tempfile
 import json
 import os
+from unittest import mock
 
 import server
 from security_utils import safe_child_path, safe_filename
@@ -38,6 +39,48 @@ class PathSafetyTests(unittest.TestCase):
         self.assertIn("self.handle_agent_graph_execute()", source)
         self.assertIn("agent_runtime.AgentRuntime(", source)
         self.assertIn("learning_bridge.make_runtime_experience_sink(", source)
+
+    def test_agent_graph_execute_handler_runs_runtime(self):
+        payload = {
+            "task": "verificar una identidad algebraica",
+            "chat_id": "chat-1",
+            "evaluation_profile": {"mathematics": 90, "depth": 85},
+            "task_family": "algebra",
+            "required_artifacts": [],
+            "max_retries": 0,
+        }
+
+        class Handler:
+            headers = {"Content-Length": str(len(json.dumps(payload).encode("utf-8")))}
+            rfile = None
+            response = None
+            body = None
+
+            def _read_body(self):
+                return json.dumps(payload).encode("utf-8")
+
+            def send_response(self, code):
+                self.response = code
+
+            def send_header(self, *args):
+                pass
+
+            def end_headers(self):
+                pass
+
+            def wfile_write(self, data):
+                self.body = data
+
+        handler = Handler()
+        with mock.patch.object(server.investigation_store, "get_evaluation_profile", return_value={}), \
+             mock.patch.object(server.learning_bridge, "build_experience_context", return_value={"references": []}), \
+             mock.patch.object(server.agent_graph.AgentGraphPlanner, "plan", return_value=mock.Mock(tasks=())), \
+             mock.patch.object(server.learning_bridge, "make_runtime_experience_sink", return_value=lambda *args: None), \
+             mock.patch.object(server.agent_runtime.AgentRuntime, "run", return_value=mock.Mock(status="completed", to_dict=lambda: {"status": "completed"})):
+            handler.wfile = mock.Mock()
+            server.PraxisRequestHandler.handle_agent_graph_execute(handler)
+            self.assertEqual(handler.response, 200)
+            handler.wfile.write.assert_called_once()
 
 if __name__ == "__main__":
     unittest.main()
