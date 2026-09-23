@@ -2,6 +2,7 @@ import unittest
 from pathlib import Path
 import tempfile
 import json
+import os
 
 import server
 from security_utils import safe_child_path, safe_filename
@@ -31,10 +32,12 @@ class PathSafetyTests(unittest.TestCase):
         self.assertEqual(safe_filename("../../secret.txt"), "secret.txt")
 
 
-    def test_agent_graph_execute_route_exists(self):
+    def test_agent_graph_execute_route_is_wired(self):
         source = open(os.path.join(os.path.dirname(__file__), "..", "server.py"), encoding="utf-8").read()
-        self.assertIn("/api/agent-graph/execute", source)
-        self.assertIn("make_runtime_experience_sink", source)
+        self.assertIn("elif path == '/api/agent-graph/execute':", source)
+        self.assertIn("self.handle_agent_graph_execute()", source)
+        self.assertIn("agent_runtime.AgentRuntime(", source)
+        self.assertIn("learning_bridge.make_runtime_experience_sink(", source)
 
 if __name__ == "__main__":
     unittest.main()
