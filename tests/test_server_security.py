@@ -134,11 +134,18 @@ class PathSafetyTests(unittest.TestCase):
             handler.response = None
             handler.wfile = mock.Mock()
 
+            calls = [0]
+
             def fake_executor(*args, **kwargs):
+                calls[0] += 1
                 md = doc_dir / "investigacion.md"
                 html = doc_dir / "investigacion.html"
-                md.write_text("# Versión actualizada", encoding="utf-8")
-                html.write_text("<h1>Versión anterior</h1>", encoding="utf-8")
+                md.write_text(
+                    f"# Versión actualizada {calls[0]}",
+                    encoding="utf-8",
+                )
+                if calls[0] == 1:
+                    html.write_text("<h1>Versión 1</h1>", encoding="utf-8")
                 return {
                     "status": "ok",
                     "operation": "rebuild_documents",
@@ -184,6 +191,20 @@ class PathSafetyTests(unittest.TestCase):
             response_meta = saved["responses"][0]
             self.assertEqual(response_meta["version_id"], result["version"]["version_id"])
             self.assertEqual(len(response_meta["execution_history"]), 1)
+
+            handler.wfile.reset_mock()
+            server.PraxisRequestHandler.handle_artifact_command(handler)
+            self.assertEqual(handler.response, 200)
+            second_result = json.loads(handler.wfile.write.call_args.args[0])
+            self.assertNotEqual(
+                second_result["version"]["version_id"],
+                result["version"]["version_id"],
+            )
+            second_html = next(
+                a for a in second_result["artifact_manifest"]["artifacts"]
+                if a["path"] == "entregables/documentos/investigacion.html"
+            )
+            self.assertEqual(second_html["status"], "stale")
 
 if __name__ == "__main__":
     unittest.main()
