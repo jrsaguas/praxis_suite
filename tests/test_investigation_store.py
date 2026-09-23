@@ -140,6 +140,47 @@ class InvestigationStoreTests(unittest.TestCase):
             self.assertEqual(len(found[0]["sha256"]), 64)
 
 
+    def test_manifest_marks_derived_artifacts_stale_after_source_markdown_changes(self):
+        with tempfile.TemporaryDirectory() as td:
+            chat_id = "chat_freshness"
+            folder = "respuesta_freshness"
+            response_path = self._write_response(td, chat_id, folder)
+            doc_dir = Path(response_path) / "entregables" / "documentos"
+            doc_dir.mkdir(parents=True, exist_ok=True)
+            md = doc_dir / "investigacion.md"
+            html = doc_dir / "investigacion.html"
+            md.write_text("# Versión 1", encoding="utf-8")
+            html.write_text("<h1>Versión 1</h1>", encoding="utf-8")
+
+            first = investigation_store.refresh_artifact_manifest(
+                td, chat_id, folder, version_id="v1",
+            )
+            first_html = next(
+                a for a in first["artifacts"]
+                if a["path"] == "entregables/documentos/investigacion.html"
+            )
+            self.assertEqual(first_html["status"], "current")
+
+            md.write_text("# Versión 2", encoding="utf-8")
+            second = investigation_store.refresh_artifact_manifest(
+                td, chat_id, folder, version_id="v2",
+                changed_files=["entregables/documentos/investigacion.md"],
+            )
+            second_md = next(
+                a for a in second["artifacts"]
+                if a["path"] == "entregables/documentos/investigacion.md"
+            )
+            second_html = next(
+                a for a in second["artifacts"]
+                if a["path"] == "entregables/documentos/investigacion.html"
+            )
+            self.assertEqual(second_md["status"], "current")
+            self.assertEqual(second_html["status"], "stale")
+            self.assertNotEqual(
+                second["source_md_sha256"], first["source_md_sha256"]
+            )
+
+
     def test_evaluation_profile_is_persisted_without_mutating_versions(self):
         with tempfile.TemporaryDirectory() as td:
             chat_id = "chat_profile"
