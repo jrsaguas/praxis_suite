@@ -112,8 +112,14 @@ def build_artifact_manifest(chats_dir: str, chat_id: str, folder: str, *, versio
             item["status"] = "current"
         elif old and old.get("sha256") == item.get("sha256") and old.get("source_md_sha256") == source_md_sha256:
             item["status"] = old.get("status", "current")
-        elif changed and rel not in changed and item.get("type") in {"html", "docx", "doc", "simulador", "imagenes", "codigo"}:
-            item["status"] = "stale" if old and old.get("source_md_sha256") != source_md_sha256 else "current"
+        elif item.get("type") in {"html", "docx", "doc", "simulador", "imagenes", "codigo"}:
+            # Derived artifacts become stale whenever their recorded source
+            # Markdown digest no longer matches the current canonical source.
+            item["status"] = (
+                "stale"
+                if old and old.get("source_md_sha256") != source_md_sha256
+                else "current"
+            )
         else:
             item["status"] = "current"
     return {"generated_at": datetime.now(timezone.utc).isoformat(), "version_id": version_id, "source_md_sha256": source_md_sha256, "artifacts": artifacts}
