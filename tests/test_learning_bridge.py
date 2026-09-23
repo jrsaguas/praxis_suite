@@ -4,7 +4,7 @@ import unittest
 from evaluator_orchestrator import (
     AgentResult, Evaluation, LearningRecord
 )
-from learning_bridge import persist_learning_record
+from learning_bridge import persist_learning_record, build_experience_context
 
 
 class LearningBridgeTests(unittest.TestCase):
@@ -33,6 +33,19 @@ class LearningBridgeTests(unittest.TestCase):
                 saved["metadata"]["evaluation_profile"]["mathematics"], 96
             )
 
+
+    def test_build_experience_context_uses_only_accepted_records(self):
+        from experience_store import append_record, record_user_feedback
+        with tempfile.TemporaryDirectory() as tmp:
+            append_record(tmp, "chat-1", task_fingerprint="candidate",
+                evaluation={"consistent": True, "score": .99}, strategy_id="candidate",
+                metadata={"evaluation_profile": {"depth": 100}})
+            accepted = append_record(tmp, "chat-1", task_fingerprint="accepted",
+                evaluation={"consistent": True, "score": .80}, strategy_id="accepted",
+                metadata={"evaluation_profile": {"depth": 90}})
+            record_user_feedback(tmp, "chat-1", accepted["record_id"], decision="accept", rating=90)
+            context = build_experience_context(tmp, "chat-1", evaluation_profile={"depth": 90})
+            self.assertEqual([r["strategy_id"] for r in context["references"]], ["accepted"])
 
     def test_runtime_experience_is_persisted_as_candidate(self):
         from learning_bridge import persist_runtime_experience
