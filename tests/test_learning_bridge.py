@@ -47,6 +47,26 @@ class LearningBridgeTests(unittest.TestCase):
             context = build_experience_context(tmp, "chat-1", evaluation_profile={"depth": 90})
             self.assertEqual([r["strategy_id"] for r in context["references"]], ["accepted"])
 
+    def test_rejected_feedback_is_excluded_from_future_context(self):
+        from experience_store import append_record, record_user_feedback
+
+        with tempfile.TemporaryDirectory() as tmp:
+            rejected = append_record(
+                tmp, "chat-1",
+                task_fingerprint="rejected",
+                evaluation={"consistent": True, "score": 0.99},
+                strategy_id="rejected",
+                metadata={"evaluation_profile": {"depth": 90}},
+            )
+            record_user_feedback(
+                tmp, "chat-1", rejected["record_id"],
+                decision="reject", rating=0,
+            )
+            context = build_experience_context(
+                tmp, "chat-1", evaluation_profile={"depth": 90}
+            )
+            self.assertEqual(context["references"], [])
+
     def test_runtime_experience_is_persisted_as_candidate(self):
         from learning_bridge import persist_runtime_experience
         with tempfile.TemporaryDirectory() as tmp:
