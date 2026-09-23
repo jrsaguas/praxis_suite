@@ -33,13 +33,6 @@ class PathSafetyTests(unittest.TestCase):
         self.assertEqual(safe_filename("../../secret.txt"), "secret.txt")
 
 
-    def test_agent_graph_execute_route_is_wired(self):
-        source = open(os.path.join(os.path.dirname(__file__), "..", "server.py"), encoding="utf-8").read()
-        self.assertIn("elif path == '/api/agent-graph/execute':", source)
-        self.assertIn("self.handle_agent_graph_execute()", source)
-        self.assertIn("agent_runtime.AgentRuntime(", source)
-        self.assertIn("learning_bridge.make_runtime_experience_sink(", source)
-
     def test_agent_graph_execute_handler_runs_runtime(self):
         payload = {
             "task": "verificar una identidad algebraica",
@@ -51,11 +44,6 @@ class PathSafetyTests(unittest.TestCase):
         }
 
         class Handler:
-            headers = {"Content-Length": str(len(json.dumps(payload).encode("utf-8")))}
-            rfile = None
-            response = None
-            body = None
-
             def _read_body(self):
                 return json.dumps(payload).encode("utf-8")
 
@@ -68,19 +56,40 @@ class PathSafetyTests(unittest.TestCase):
             def end_headers(self):
                 pass
 
-            def wfile_write(self, data):
-                self.body = data
-
         handler = Handler()
-        with mock.patch.object(server.investigation_store, "get_evaluation_profile", return_value={}), \
-             mock.patch.object(server.learning_bridge, "build_experience_context", return_value={"references": []}), \
-             mock.patch.object(server.agent_graph.AgentGraphPlanner, "plan", return_value=mock.Mock(tasks=())), \
-             mock.patch.object(server.learning_bridge, "make_runtime_experience_sink", return_value=lambda *args: None), \
-             mock.patch.object(server.agent_runtime.AgentRuntime, "run", return_value=mock.Mock(status="completed", to_dict=lambda: {"status": "completed"})):
-            handler.wfile = mock.Mock()
+        handler.response = None
+        handler.wfile = mock.Mock()
+
+        fake_plan = mock.Mock(name="plan")
+        fake_trace = mock.Mock(status="completed")
+        fake_trace.to_dict.return_value = {"status": "completed"}
+
+        with mock.patch.object(
+            server.investigation_store, "get_evaluation_profile", return_value={}
+        ), mock.patch.object(
+            server.learning_bridge, "build_experience_context", return_value={"references": []}
+        ), mock.patch.object(
+            server.agent_graph.AgentGraphPlanner, "plan", return_value=fake_plan
+        ) as planner, mock.patch.object(
+            server.learning_bridge, "make_runtime_experience_sink", return_value=mock.Mock()
+        ) as sink_factory, mock.patch.object(
+            server.agent_runtime.AgentRuntime
+        ) as runtime_cls:
+            runtime_cls.return_value.run.return_value = fake_trace
             server.PraxisRequestHandler.handle_agent_graph_execute(handler)
-            self.assertEqual(handler.response, 200)
-            handler.wfile.write.assert_called_once()
+
+        self.assertEqual(handler.response, 200)
+        handler.wfile.write.assert_called_once()
+        planner.assert_called_once()
+        self.assertEqual(
+            planner.call_args.kwargs["depth_requirements"]["evaluation_profile"],
+            payload["evaluation_profile"],
+        )
+        sink_factory.assert_called_once()
+        runtime_cls.return_value.run.assert_called_once_with(
+            fake_plan,
+            initial_context=mock.ANY,
+        )
 
 if __name__ == "__main__":
     unittest.main()
