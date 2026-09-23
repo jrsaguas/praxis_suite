@@ -163,6 +163,8 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_register_investigation_version()
         elif path == '/api/agent-graph/plan':
             self.handle_agent_graph_plan()
+        elif path == '/api/agent-graph/execute':
+            self.handle_agent_graph_execute()
         elif path == '/api/investigations/artifact-command':
             self.handle_artifact_command()
         elif path == '/api/experience/analyze':
@@ -510,6 +512,97 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                 'strategy_context': strategy,
             }
             trace = runtime.run(plan, initial_context=initial_context)
+            self.send_response(200 if trace.status == 'completed' else 409)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps(trace.to_dict(), ensure_ascii=False).encode('utf-8'))
+        except Exception as e:
+            self.send_error(400, str(e))
+
+    def handle_agent_graph_execute(self):
+        """Execute a planned specialist graph and persist evaluator experience as a candidate."""
+        try:
+            data = json.loads(self._read_body().decode('utf-8'))
+            task = str(data.get('task', '')).strip()
+            chat_id = str(data.get('chat_id', '')).strip()
+            if not task or not chat_id:
+                raise ValueError('task y chat_id son obligatorios')
+
+            folder = str(data.get('folder', '')).strip()
+            evaluation_profile = dict(data.get('evaluation_profile') or {})
+            if not evaluation_profile and folder:
+                evaluation_profile = investigation_store.get_evaluation_profile(
+                    chat_manager.CHATS_DIR, chat_id, folder
+                )
+
+            profile_data = data.get('depth_profile') or {}
+            if isinstance(profile_data, str):
+                profile_data = {'name': profile_data}
+            profile_name = str(profile_data.get('name') or data.get('level') or 'licenciatura')
+            custom_rules = profile_data.get('custom_rules') or ()
+            depth_profile = mathematical_depth.preset(profile_name, custom_rules=custom_rules)
+
+            depth_context = mathematical_depth.build_depth_context(depth_profile)
+            requirements = dict(depth_context['thresholds'])
+            requirements['evaluation_profile'] = evaluation_profile
+
+            experience_context = learning_bridge.build_experience_context(
+                chat_manager.CHATS_DIR,
+                chat_id,
+                task_family=data.get('task_family'),
+                evaluation_profile=evaluation_profile,
+            )
+            requirements['experience_context'] = experience_context
+
+            plan = agent_graph.AgentGraphPlanner().plan(
+                requested_agents=data.get('requested_agents') or [],
+                required_artifacts=data.get('required_artifacts') or [],
+                depth_requirements=requirements,
+                model_overrides=data.get('model_overrides') or {},
+            )
+
+            import hashlib
+            fingerprint_payload = {
+                'task': task,
+                'task_family': data.get('task_family'),
+                'evaluation_profile': evaluation_profile,
+                'depth_profile': depth_profile.to_dict(),
+                'required_artifacts': data.get('required_artifacts') or [],
+            }
+            task_fingerprint = hashlib.sha256(
+                json.dumps(fingerprint_payload, sort_keys=True, ensure_ascii=False).encode('utf-8')
+            ).hexdigest()
+
+            strategy_context = dict(data.get('strategy_context') or {})
+            strategy_context.setdefault('evaluation_profile', evaluation_profile)
+            strategy_context.setdefault('task_family', data.get('task_family'))
+
+            sink = learning_bridge.make_runtime_experience_sink(
+                chat_manager.CHATS_DIR,
+                chat_id,
+                investigation_id=data.get('investigation_id'),
+                version_id=data.get('version_id'),
+                task_fingerprint=task_fingerprint,
+                evaluation_profile=evaluation_profile,
+                strategy_context=strategy_context,
+                metadata={'task_family': data.get('task_family')},
+            )
+
+            runtime = agent_runtime.AgentRuntime(
+                agent_runtime.default_executor,
+                max_retries=int(data.get('max_retries', 1)),
+                experience_sink=sink,
+            )
+            initial_context = {
+                'task': task,
+                'depth_context': depth_context,
+                'experience_context': experience_context,
+                'evaluation_profile': evaluation_profile,
+                'strategy_context': strategy_context,
+                'task_fingerprint': task_fingerprint,
+            }
+            trace = runtime.run(plan, initial_context=initial_context)
+
             self.send_response(200 if trace.status == 'completed' else 409)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
