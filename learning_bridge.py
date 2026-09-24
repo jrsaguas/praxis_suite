@@ -129,7 +129,17 @@ def normalize_planning_context(planning_metadata: Optional[Dict[str, Any]]) -> D
     adaptive = dict(raw.get("adaptive_selection") or {})
     depth = dict(raw.get("mathematical_depth") or {})
     return {
-        "schema_version": 1,
+        "schema_version": 2,
+        "selected_strategies": [
+            {
+                "strategy_id": str(x.get("strategy_id")),
+                "selection_score": float(x.get("selection_score", 0.0)),
+                "signals": dict(x.get("signals") or {}),
+                "validated_pattern_evidence": dict(x.get("validated_pattern_evidence") or {}),
+            }
+            for x in raw.get("selected_strategies", [])
+            if x.get("strategy_id")
+        ],
         "adaptive_active": bool(adaptive.get("active", False)),
         "adaptive_reason": str(adaptive.get("reason", "")),
         "selected_reusable_agents": [str(x) for x in adaptive.get("selected_reusable_agents", []) if x],
@@ -140,6 +150,7 @@ def normalize_planning_context(planning_metadata: Optional[Dict[str, Any]]) -> D
             {
                 "pattern_id": str(x.get("pattern_id")),
                 "task_family": str(x.get("task_family", "")),
+                "strategy_id": str(x.get("strategy_id", "")),
                 "selection": dict(x.get("selection") or {}),
                 "source_record_ids": [str(r) for r in x.get("source_record_ids", [])],
             }
