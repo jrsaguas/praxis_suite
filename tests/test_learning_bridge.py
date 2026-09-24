@@ -4,7 +4,7 @@ import unittest
 from evaluator_orchestrator import (
     AgentResult, Evaluation, LearningRecord
 )
-from learning_bridge import persist_learning_record, build_experience_context
+from learning_bridge import persist_learning_record, build_experience_context, normalize_planning_context
 
 
 class LearningBridgeTests(unittest.TestCase):
@@ -123,6 +123,53 @@ class LearningBridgeTests(unittest.TestCase):
             self.assertEqual(saved["strategy_id"], "surface-v3")
 
 
+    def test_planning_context_preserves_adaptive_selection_and_depth(self):
+        planning = {
+            "adaptive_selection": {
+                "active": True,
+                "reason": "missing_capability",
+                "selected_reusable_agents": ["surface_specialist"],
+                "generated_candidates": ["adaptive_surface_a1b2c3"],
+            },
+            "mathematical_depth": {
+                "profile": {"proof": 92, "research": 88},
+                "proof_expectation": 92,
+            },
+            "execution_agents": ["foundation_analyst", "surface_specialist", "final_auditor"],
+        }
+        normalized = normalize_planning_context(planning)
+        self.assertEqual(normalized["selected_reusable_agents"], ["surface_specialist"])
+        self.assertEqual(normalized["generated_candidates"], ["adaptive_surface_a1b2c3"])
+        self.assertEqual(normalized["mathematical_depth"]["proof_expectation"], 92)
+        self.assertEqual(normalized["execution_agents"][-1], "final_auditor")
+
+    def test_runtime_sink_persists_planning_context_without_promoting_candidate(self):
+        from learning_bridge import make_runtime_experience_sink
+        with tempfile.TemporaryDirectory() as tmp:
+            sink = make_runtime_experience_sink(tmp, "chat-1")
+            class Task:
+                task_id = "task:experience"
+                agent_id = "experience_evaluator"
+            saved = sink(
+                Task(),
+                {"planning_metadata": {
+                    "adaptive_selection": {
+                        "active": True,
+                        "selected_reusable_agents": ["surface_specialist"],
+                        "generated_candidates": ["candidate-x"],
+                    },
+                    "mathematical_depth": {"profile": {"proof": 95}},
+                    "execution_agents": ["surface_specialist", "experience_evaluator"],
+                }},
+                {"evaluation": {"consistent": True, "score": 0.9},
+                 "experience_record": {"candidate_type": "strategy_outcome"}},
+            )
+            self.assertEqual(saved["reuse_status"], "candidate")
+            context = saved["metadata"]["planning_context"]
+            self.assertTrue(context["adaptive_active"])
+            self.assertEqual(context["selected_reusable_agents"], ["surface_specialist"])
+            self.assertEqual(context["generated_candidates"], ["candidate-x"])
+            self.assertEqual(context["mathematical_depth"]["profile"]["proof"], 95)
 
 if __name__ == "__main__":
     unittest.main()
