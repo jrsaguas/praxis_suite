@@ -136,12 +136,35 @@ class LearningBridgeTests(unittest.TestCase):
                 "proof_expectation": 92,
             },
             "execution_agents": ["foundation_analyst", "surface_specialist", "final_auditor"],
+            "selected_patterns": [
+                {
+                    "pattern_id": "pat-surface",
+                    "task_family": "geometry",
+                    "strategy_id": "surface-v2",
+                    "source_record_ids": ["exp-1"],
+                }
+            ],
+            "selected_strategies": [
+                {
+                    "strategy_id": "surface-v2",
+                    "selection_score": 0.94,
+                    "signals": {"validated_pattern_evidence_fit": 0.93},
+                    "validated_pattern_evidence": {
+                        "pattern_ids": ["pat-surface"],
+                        "source_record_ids": ["exp-1"],
+                    },
+                }
+            ],
         }
         normalized = normalize_planning_context(planning)
         self.assertEqual(normalized["selected_reusable_agents"], ["surface_specialist"])
         self.assertEqual(normalized["generated_candidates"], ["adaptive_surface_a1b2c3"])
         self.assertEqual(normalized["mathematical_depth"]["proof_expectation"], 92)
         self.assertEqual(normalized["execution_agents"][-1], "final_auditor")
+        self.assertEqual(normalized["schema_version"], 2)
+        self.assertEqual(normalized["selected_patterns"][0]["strategy_id"], "surface-v2")
+        self.assertEqual(normalized["selected_strategies"][0]["strategy_id"], "surface-v2")
+        self.assertEqual(normalized["selected_strategies"][0]["validated_pattern_evidence"]["pattern_ids"], ["pat-surface"])
 
     def test_runtime_sink_persists_planning_context_without_promoting_candidate(self):
         from learning_bridge import make_runtime_experience_sink
