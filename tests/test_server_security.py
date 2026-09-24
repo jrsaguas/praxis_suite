@@ -73,7 +73,7 @@ class PathSafetyTests(unittest.TestCase):
         ) as planner, mock.patch.object(
             server.learning_bridge, "make_runtime_experience_sink", return_value=mock.Mock()
         ) as sink_factory, mock.patch.object(
-            server.agent_runtime.AgentRuntime
+            server.agent_runtime, "AgentRuntime"
         ) as runtime_cls:
             runtime_cls.return_value.run.return_value = fake_trace
             server.PraxisRequestHandler.handle_agent_graph_execute(handler)
