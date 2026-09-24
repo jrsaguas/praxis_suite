@@ -82,7 +82,7 @@ class AgentFactory:
         agent: AgentBlueprint,
         *,
         evidence: Mapping[str, object] | None = None,
-        require_evidence: bool = False,
+        require_evidence: bool = True,
     ) -> AgentBlueprint:
         if agent.status != "candidate":
             raise ValueError("Solo un candidato puede validarse")
