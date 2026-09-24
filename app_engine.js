@@ -4421,7 +4421,7 @@ window.renderInvestigationVersionPanel = async function(chatId, folder, currentV
     return `
       <div role="button" tabindex="0"
         data-version-id="${esc(v.version_id || '')}"
-        onclick="if (!event.target.closest('button')) window.selectInvestigationVersion('${esc(chatId)}','${esc(folder)}','${esc(v.version_id || '')}')"
+        onclick="if (!event.target.closest('button')) window.previewInvestigationVersion('${esc(chatId)}','${esc(folder)}','${esc(v.version_id || '')}')"
         style="width:100%;text-align:left;border:1px solid ${active ? 'var(--brand)' : 'var(--line)'};background:${active ? 'var(--brand-tint)' : 'var(--card)'};border-radius:9px;padding:9px 11px;cursor:pointer;color:var(--ink);">
         <div style="display:flex;align-items:center;gap:7px;">
           <span style="font-weight:800;">${active ? '●' : '○'} V${idx + 1}</span>
@@ -4509,6 +4509,33 @@ window.previewInvestigationVersion = async function(chatId, folder, versionId) {
   }
 };
 
+window.previewInvestigationVersion = async function(chatId, folder, versionId) {
+  try {
+    const metaResp = await fetch('/api/investigations/' + encodeURIComponent(chatId) + '/' + encodeURIComponent(folder) + '/snapshot?version_id=' + encodeURIComponent(versionId));
+    if (!metaResp.ok) throw new Error('No se pudo recuperar el snapshot histórico.');
+    const meta = await metaResp.json();
+    const artifacts = (meta.snapshot && meta.snapshot.artifacts) || [];
+    const item = artifacts.find(a => a.type === 'html') || artifacts.find(a => a.type === 'md');
+    if (!item) throw new Error('La versión no contiene un artefacto MD/HTML previsualizable.');
+    const path = item.path.split('/').map(encodeURIComponent).join('/');
+    const artifactResp = await fetch('/api/investigations/' + encodeURIComponent(chatId) + '/' + encodeURIComponent(folder) + '/snapshot/' + path + '?version_id=' + encodeURIComponent(versionId));
+    if (!artifactResp.ok) throw new Error('No se pudo leer el artefacto histórico.');
+    const payload = await artifactResp.json();
+    const artifact = payload.artifact || {};
+    const host = document.getElementById('reportHost');
+    if (!host) return null;
+    const banner = '<div style="border:1px solid var(--brand);background:var(--brand-tint);border-radius:10px;padding:9px 12px;margin-bottom:12px;"><b>◷ Vista histórica — solo lectura</b> <span style="font-size:10px;color:var(--muted);">Versión ' + esc(String(versionId).slice(0,12)) + '. No modifica los archivos actuales.</span></div>';
+    const body = artifact.type === 'html' ? artifact.content : '<article class="doc report">' + renderMarkdownToPraxisHtml(artifact.content || '') + '</article>';
+    host.innerHTML = banner + body;
+    try { typeset(host); } catch(e) {}
+    window.selectedInvestigationVersion = versionId;
+    toast('✓ Vista histórica cargada sin modificar el estado actual.');
+    return artifact;
+  } catch (e) {
+    toast('No se pudo previsualizar la versión: ' + e.message);
+    return null;
+  }
+};
 window.restoreInvestigationVersion = async function(chatId, folder, versionId) {
   if (!confirm('Se restaurará el snapshot físico de esta versión y se creará una nueva versión derivada. ¿Continuar?')) return;
   try {
