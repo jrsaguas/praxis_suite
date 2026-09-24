@@ -27,6 +27,9 @@ class AgentCatalog:
             raise ValueError("Solo un agente validado puede registrarse en el catálogo")
         if agent.state == "retired":
             raise ValueError("Un agente retirado no puede registrarse en el catálogo")
+        validation = dict(agent.validation or {})
+        if validation.get("passed") is not True:
+            raise ValueError("El agente validado debe conservar evidencia de validación")
         self._agents[agent.id] = agent
 
     def get(self, agent_id: str) -> AgentBlueprint | None:
