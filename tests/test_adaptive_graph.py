@@ -69,6 +69,30 @@ class AdaptiveGraphBridgeTests(unittest.TestCase):
         self.assertEqual(trace.events[0].phase, "planning")
         self.assertEqual(trace.events[0].agent_id, "orchestrator")
 
+    def test_validated_patterns_are_only_planning_evidence(self):
+        bridge = AdaptiveGraphBridge({}, self._catalog())
+        result = bridge.plan(
+            AdaptiveRequest(task="surface", requirements=("symbolic_geometry",)),
+            selected_patterns=[
+                {
+                    "pattern_id": "pat-valid",
+                    "status": "validated",
+                    "task_family": "geometry",
+                    "selection": {"score": 0.91},
+                    "source_record_ids": ["exp-1"],
+                },
+                {
+                    "pattern_id": "pat-candidate",
+                    "status": "candidate",
+                    "task_family": "geometry",
+                },
+            ],
+        )
+        selected = result.execution_plan.planning_metadata["selected_patterns"]
+        self.assertEqual([p["pattern_id"] for p in selected], ["pat-valid"])
+        self.assertEqual(selected[0]["source_record_ids"], ["exp-1"])
+        self.assertNotIn("pat-valid", result.execution_plan.selected_agents)
+
     def test_dynamic_reusable_agent_is_deterministically_planned(self):
         bridge = AdaptiveGraphBridge({}, self._catalog())
         first = bridge.plan(AdaptiveRequest(
