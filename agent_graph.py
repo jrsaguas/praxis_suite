@@ -85,7 +85,12 @@ class AgentGraphPlanner:
                 depends_on=tuple(f"task:{d}" for d in deps),
                 quality_gates=spec.quality_gates,
             ))
-        depth_payload = dict(depth_requirements or {})
+        if isinstance(depth_requirements, Mapping):
+            depth_payload = dict(depth_requirements)
+        elif isinstance(depth_requirements, (list, tuple, set)):
+            depth_payload = {str(item): 100 for item in depth_requirements}
+        else:
+            depth_payload = {}
         if experience_context or target_profile:
             depth_payload["experience_context"] = {
                 **experience_context,
