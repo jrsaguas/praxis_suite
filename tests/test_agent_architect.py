@@ -3,7 +3,7 @@ import unittest
 from adaptive_agent import AdaptiveAgent, AdaptiveRequest
 from agent_architect import AgentArchitect
 from agent_catalog import AgentCatalog
-from agent_factory import AgentFactory
+from agent_factory import AgentBlueprint, AgentFactory
 
 
 class TestAgentArchitect(unittest.TestCase):
@@ -58,17 +58,32 @@ class TestAgentArchitect(unittest.TestCase):
 
     def test_catalog_rejects_validated_agent_without_validation_evidence(self):
         request = self._request()
-        factory = AgentFactory()
-        candidate = AgentArchitect(factory=factory).synthesize(request).candidate
-        validated = factory.validate(candidate)
+        candidate = AgentArchitect().synthesize(request).candidate
+        validated_without_evidence = AgentBlueprint(
+            id=candidate.id,
+            role=candidate.role,
+            model_id=candidate.model_id,
+            tools=candidate.tools,
+            context=candidate.context,
+            state=candidate.state,
+            memory=candidate.memory,
+            evaluation=candidate.evaluation,
+            actions=candidate.actions,
+            source=candidate.source,
+            status="validated",
+        )
         with self.assertRaises(ValueError):
-            AgentCatalog((validated,))
+            AgentCatalog((validated_without_evidence,))
 
     def test_validation_is_required_before_registration(self):
         request = self._request()
         factory = AgentFactory()
         candidate = AgentArchitect(factory=factory).synthesize(request).candidate
-        validated = factory.validate(candidate)
+        validated = factory.validate(
+            candidate,
+            evidence={"passed": True, "checks": ["role", "tools", "acceptance"]},
+            require_evidence=True,
+        )
         catalog = AgentCatalog((validated,))
         self.assertEqual(catalog.get(validated.id).status, "validated")
 
@@ -76,7 +91,11 @@ class TestAgentArchitect(unittest.TestCase):
         request = self._request()
         factory = AgentFactory()
         candidate = AgentArchitect(factory=factory).synthesize(request).candidate
-        reusable = factory.validate(candidate)
+        reusable = factory.validate(
+            candidate,
+            evidence={"passed": True, "checks": ["role", "tools", "acceptance"]},
+            require_evidence=True,
+        )
         catalog = AgentCatalog((reusable,))
         result = AgentArchitect(factory=factory, catalog=catalog).synthesize(request)
         self.assertFalse(result.generated)
@@ -86,7 +105,11 @@ class TestAgentArchitect(unittest.TestCase):
         request = self._request(explicit_activation=True)
         factory = AgentFactory()
         candidate = AgentArchitect(factory=factory).synthesize(request).candidate
-        reusable = factory.validate(candidate)
+        reusable = factory.validate(
+            candidate,
+            evidence={"passed": True, "checks": ["role", "tools", "acceptance"]},
+            require_evidence=True,
+        )
         catalog = AgentCatalog((reusable,))
         adaptive = AdaptiveAgent(catalog=catalog)
         decision = adaptive.decide(request)
@@ -147,7 +170,11 @@ class TestAgentArchitect(unittest.TestCase):
         self.assertEqual(candidate.status, "candidate")
         with self.assertRaises(ValueError):
             factory.activate(candidate)
-        validated = factory.validate(candidate)
+        validated = factory.validate(
+            candidate,
+            evidence={"passed": True, "checks": ["role", "tools", "acceptance"]},
+            require_evidence=True,
+        )
         activated = factory.activate(validated)
         self.assertEqual(activated.state, "active")
 
