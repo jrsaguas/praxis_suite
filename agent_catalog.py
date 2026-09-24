@@ -30,7 +30,7 @@ class AgentCatalog:
         validation = dict(agent.validation or {})
         if validation.get("passed") is not True:
             raise ValueError("El agente validado debe conservar evidencia de validación")
-        self._agents[agent.id] = agent
+        existing = self._agents.get(agent.id)\n        if existing is not None and existing.to_dict() != agent.to_dict():\n            raise ValueError("Ya existe un agente con el mismo id y distinta definición")\n        self._agents[agent.id] = agent
 
     def get(self, agent_id: str) -> AgentBlueprint | None:
         return self._agents.get(str(agent_id))
