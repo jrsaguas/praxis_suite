@@ -57,6 +57,7 @@ class AdaptiveGraphBridge:
         required_artifacts: Iterable[str] = (),
         depth_requirements: Mapping[str, object] | None = None,
         model_overrides: Mapping[str, str] | None = None,
+        selected_patterns: Iterable[Mapping[str, object]] = (),
     ) -> AdaptiveGraphPlan:
         decision = self.adaptive.decide(request)
         reusable_specs = tuple(
@@ -76,6 +77,7 @@ class AdaptiveGraphBridge:
         )
         architecture = self.architect.synthesize(request, decision=decision)
         generated_candidates = (architecture.candidate.id,) if architecture.candidate else ()
+        patterns = tuple(selected_patterns)
         planning_metadata = {
             "adaptive_selection": {
                 **decision.to_dict(),
@@ -85,6 +87,16 @@ class AdaptiveGraphBridge:
             },
             "mathematical_depth": dict(depth_requirements or {}),
             "execution_agents": list(plan.selected_agents),
+            "selected_patterns": [
+                {
+                    "pattern_id": str(pattern.get("pattern_id")),
+                    "task_family": str(pattern.get("task_family", "")),
+                    "selection": dict(pattern.get("selection") or {}),
+                    "source_record_ids": [str(x) for x in pattern.get("source_record_ids", [])],
+                }
+                for pattern in patterns
+                if pattern.get("status") == "validated" and pattern.get("pattern_id")
+            ],
         }
         plan = replace(plan, planning_metadata=planning_metadata)
         return AdaptiveGraphPlan(decision, plan, generated_candidates)
