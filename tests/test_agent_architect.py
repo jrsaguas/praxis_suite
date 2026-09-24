@@ -56,6 +56,14 @@ class TestAgentArchitect(unittest.TestCase):
         self.assertTrue(validated.validation["passed"])
         self.assertEqual(validated.validation["evidence"]["checks"][0], "role")
 
+    def test_catalog_rejects_validated_agent_without_validation_evidence(self):
+        request = self._request()
+        factory = AgentFactory()
+        candidate = AgentArchitect(factory=factory).synthesize(request).candidate
+        validated = factory.validate(candidate)
+        with self.assertRaises(ValueError):
+            AgentCatalog((validated,))
+
     def test_validation_is_required_before_registration(self):
         request = self._request()
         factory = AgentFactory()
