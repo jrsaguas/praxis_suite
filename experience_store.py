@@ -138,7 +138,7 @@ def select_references(
             "user_feedback": r.get("user_feedback") or {},
             "reuse_status": r.get("reuse_status", "candidate"),
         }
-        for rank, r in ranked[:max(1, int(limit))]
+        for index, (rank, r) in enumerate(ranked[:max(1, int(limit)]))
     ]
 
 
