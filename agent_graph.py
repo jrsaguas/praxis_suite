@@ -27,6 +27,7 @@ class ExecutionPlan:
     tasks: Tuple[AgentTask, ...]
     selected_agents: Tuple[str, ...]
     depth_requirements: Mapping[str, object] = field(default_factory=dict)
+    planning_metadata: Mapping[str, object] = field(default_factory=dict)
 
     def ready(self, completed: Iterable[str]) -> Tuple[AgentTask, ...]:
         done = set(completed)
