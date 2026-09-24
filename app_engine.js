@@ -4019,6 +4019,12 @@ window.restoreHistoricalResponse = async function(chatId, folder) {
 
     // 4. Restaurar informe en el workspace junto con el informe de proceso
     const host = $('#reportHost');
+    let versionPanelHtml = '';
+    try {
+      versionPanelHtml = await window.renderInvestigationVersionPanel(chatId, folder, data.version_id);
+    } catch (versionError) {
+      console.warn('No se pudo cargar la evolución de versiones:', versionError);
+    }
     if (host) {
       let mainHtml = data.html;
       if (!mainHtml || mainHtml.length < 50) {
@@ -4041,7 +4047,7 @@ window.restoreHistoricalResponse = async function(chatId, folder) {
         </div>
       `;
 
-      host.innerHTML = processCard + mainHtml;
+      host.innerHTML = versionPanelHtml + processCard + mainHtml;
       try { typeset(host); } catch(e) {}
     }
 
@@ -4388,4 +4394,103 @@ window.submitPdfMimic = async function() {
     }
   };
   reader.readAsDataURL(file);
+};
+
+/* ============================================================
+   EVOLUCIÓN DE INVESTIGACIONES · NAVEGACIÓN DE VERSIONES
+   ============================================================ */
+window.selectedInvestigationVersion = null;
+
+window.renderInvestigationVersionPanel = async function(chatId, folder, currentVersionId = null) {
+  const resp = await fetch(
+    `/api/investigations/${encodeURIComponent(chatId)}/${encodeURIComponent(folder)}/versions`
+  );
+  if (!resp.ok) throw new Error('No se pudo recuperar el historial de versiones.');
+  const data = await resp.json();
+  const versions = data.versions || [];
+  if (!versions.length) return '';
+
+  const current = currentVersionId || versions[versions.length - 1]?.version_id;
+  window.selectedInvestigationVersion = current;
+
+  const cards = versions.map((v, idx) => {
+    const active = v.version_id === current;
+    const source = v.source || 'pipeline';
+    const date = v.created_at ? new Date(v.created_at).toLocaleString() : 'sin fecha';
+    return `
+      <button type="button"
+        data-version-id="${esc(v.version_id || '')}"
+        onclick="window.selectInvestigationVersion('${esc(chatId)}','${esc(folder)}','${esc(v.version_id || '')}')"
+        style="width:100%;text-align:left;border:1px solid ${active ? 'var(--brand)' : 'var(--line)'};background:${active ? 'var(--brand-tint)' : 'var(--card)'};border-radius:9px;padding:9px 11px;cursor:pointer;color:var(--ink);">
+        <div style="display:flex;align-items:center;gap:7px;">
+          <span style="font-weight:800;">${active ? '●' : '○'} V${idx + 1}</span>
+          <span style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(v.title || 'Sin título')}</span>
+          <span style="margin-left:auto;font-size:9px;color:var(--muted);">${esc(source)}</span>
+        </div>
+        <div style="font-size:9.5px;color:var(--muted);margin-top:4px;">${esc(date)} · ${esc((v.version_id || '').slice(0, 12))}</div>
+        ${v.prompt ? `<div style="font-size:10.5px;color:var(--ink-2);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(v.prompt)}</div>` : ''}
+      </button>`;
+  }).join('');
+
+  return `
+    <section id="investigationVersionPanel" style="border:1px solid var(--line);border-radius:12px;background:var(--card);margin:0 0 16px;overflow:hidden;box-shadow:var(--sh1);">
+      <div style="padding:11px 14px;background:var(--paper-2);display:flex;align-items:center;gap:8px;">
+        <span style="font-size:17px;">⟲</span>
+        <b style="font-size:13px;color:var(--brand);">Evolución de la investigación</b>
+        <span style="font-size:10px;color:var(--muted);">${versions.length} versión${versions.length === 1 ? '' : 'es'}</span>
+        <span style="margin-left:auto;font-size:9.5px;color:var(--muted);">Selecciona una versión para usarla como contexto</span>
+      </div>
+      <div style="display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line-2);">
+        <button class="btn sm ghost" onclick="window.navigateInvestigationVersion('${esc(chatId)}','${esc(folder)}','previous')">← Anterior</button>
+        <button class="btn sm ghost" onclick="window.navigateInvestigationVersion('${esc(chatId)}','${esc(folder)}','next')">Siguiente →</button>
+        <span id="investigationVersionSelection" style="font-size:10px;color:var(--muted);align-self:center;margin-left:auto;">Contexto: ${esc((current || '').slice(0, 16))}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;padding:10px;max-height:250px;overflow:auto;">${cards}</div>
+      <div style="padding:8px 11px;background:var(--paper-2);border-top:1px solid var(--line-2);font-size:10px;color:var(--muted);">
+        La navegación actual conserva las versiones anteriores. El contenido histórico de los artefactos requiere snapshots; no se sustituye silenciosamente por el estado actual del disco.
+      </div>
+    </section>`;
+};
+
+window.selectInvestigationVersion = async function(chatId, folder, versionId) {
+  try {
+    const resp = await fetch(
+      `/api/investigations/${encodeURIComponent(chatId)}/${encodeURIComponent(folder)}/versions/${encodeURIComponent(versionId)}`
+    );
+    if (!resp.ok) throw new Error('Versión no encontrada.');
+    const data = await resp.json();
+    window.selectedInvestigationVersion = data.current.version_id;
+    const label = document.getElementById('investigationVersionSelection');
+    if (label) label.textContent = 'Contexto: ' + String(data.current.version_id).slice(0, 16);
+    document.querySelectorAll('#investigationVersionPanel [data-version-id]').forEach(btn => {
+      const active = btn.dataset.versionId === String(versionId);
+      btn.style.borderColor = active ? 'var(--brand)' : 'var(--line)';
+      btn.style.background = active ? 'var(--brand-tint)' : 'var(--card)';
+    });
+    toast('✓ Versión seleccionada como contexto: ' + String(versionId).slice(0, 12));
+    return data;
+  } catch (e) {
+    toast('No se pudo seleccionar la versión: ' + e.message);
+    return null;
+  }
+};
+
+window.navigateInvestigationVersion = async function(chatId, folder, direction) {
+  const current = window.selectedInvestigationVersion;
+  if (!current) return;
+  try {
+    const resp = await fetch(
+      `/api/investigations/${encodeURIComponent(chatId)}/${encodeURIComponent(folder)}/versions/${encodeURIComponent(current)}`
+    );
+    if (!resp.ok) throw new Error('No se pudo navegar la versión.');
+    const data = await resp.json();
+    const target = direction === 'previous' ? data.previous : data.next;
+    if (!target) {
+      toast(direction === 'previous' ? 'Ya estás en la primera versión.' : 'Ya estás en la versión más reciente.');
+      return;
+    }
+    await window.selectInvestigationVersion(chatId, folder, target.version_id);
+  } catch (e) {
+    toast('Error al navegar versiones: ' + e.message);
+  }
 };
