@@ -480,6 +480,37 @@ class PathSafetyTests(unittest.TestCase):
                     if a["path"] == "entregables/documentos/investigacion.html"
                 )
                 self.assertEqual(second_html["status"], "stale")
+    def test_snapshot_preview_http_rejects_traversal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            chat_id = "chat-preview-security"
+            folder = "respuesta_001"
+            response = Path(tmp) / chat_id / folder
+            doc_dir = response / "entregables" / "documentos"
+            doc_dir.mkdir(parents=True)
+            (Path(tmp) / chat_id / "conversacion_metadata.json").write_text(
+                json.dumps({"id": chat_id, "responses": [{"folder": folder, "version_id": "v-root"}]}),
+                encoding="utf-8",
+            )
+            md = doc_dir / "investigacion.md"
+            md.write_text("# Histórico", encoding="utf-8")
+            version = server.investigation_store.register_version(
+                tmp, chat_id, folder, prompt="p", title="V1", source="test", artifact_types=["md"]
+            )
+            from urllib.parse import quote
+            path = f"/api/investigations/{quote(chat_id)}/{quote(folder)}/snapshot/../conversacion_metadata.json?version_id={quote(version['version_id'])}"
+            class Handler:
+                def __init__(self):
+                    self.path = path
+                    self.response = None
+                    self.wfile = mock.Mock()
+                def send_response(self, code): self.response = code
+                def send_header(self, *args): pass
+                def end_headers(self): pass
+            handler = Handler()
+            with mock.patch.object(server.chat_manager, "CHATS_DIR", tmp):
+                server.PraxisRequestHandler.do_GET(handler)
+            self.assertEqual(handler.response, 400)
+
 
 if __name__ == "__main__":
     unittest.main()
