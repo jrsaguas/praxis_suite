@@ -4430,7 +4430,7 @@ window.renderInvestigationVersionPanel = async function(chatId, folder, currentV
         </div>
         <div style="font-size:9.5px;color:var(--muted);margin-top:4px;">${esc(date)} · ${esc((v.version_id || '').slice(0, 12))}</div>
         ${v.prompt ? `<div style="font-size:10.5px;color:var(--ink-2);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(v.prompt)}</div>` : ''}
-        ${v.snapshot_available ? `<div style="margin-top:7px;"><button type="button" class="btn sm ghost" onclick="event.stopPropagation();window.restoreInvestigationVersion('${esc(chatId)}','${esc(folder)}','${esc(v.version_id || '')}')">Restaurar esta versión como nueva</button></div>` : '<div style="font-size:9px;color:var(--muted);margin-top:6px;">Snapshot no disponible</div>'}
+        ${v.snapshot_available ? `<div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="btn sm ghost" onclick="event.stopPropagation();window.previewInvestigationVersion('${esc(chatId)}','${esc(folder)}','${esc(v.version_id || '')}')">Ver snapshot</button><button type="button" class="btn sm ghost" onclick="event.stopPropagation();window.restoreInvestigationVersion('${esc(chatId)}','${esc(folder)}','${esc(v.version_id || '')}')">Restaurar esta versión como nueva</button></div>` : '<div style="font-size:9px;color:var(--muted);margin-top:6px;">Snapshot no disponible</div>'}
       </div>`;
   }).join('');
 
@@ -4473,6 +4473,38 @@ window.selectInvestigationVersion = async function(chatId, folder, versionId) {
     return data;
   } catch (e) {
     toast('No se pudo seleccionar la versión: ' + e.message);
+    return null;
+  }
+};
+
+window.previewInvestigationVersion = async function(chatId, folder, versionId) {
+  try {
+    const base = '/api/investigations/' + encodeURIComponent(chatId) + '/' + encodeURIComponent(folder);
+    const metaResp = await fetch(base + '/snapshot?version_id=' + encodeURIComponent(versionId));
+    if (!metaResp.ok) throw new Error('No se pudo recuperar el snapshot histórico.');
+    const meta = await metaResp.json();
+    const artifacts = meta.snapshot?.artifacts || [];
+    const target = artifacts.find(a => String(a.type) === 'html') || artifacts.find(a => String(a.type) === 'md');
+    if (!target?.path) throw new Error('El snapshot no contiene MD/HTML previsualizable.');
+
+    const encodedPath = target.path.split('/').map(encodeURIComponent).join('/');
+    const resp = await fetch(base + '/snapshot/' + encodedPath + '?version_id=' + encodeURIComponent(versionId));
+    if (!resp.ok) throw new Error('No se pudo leer el artefacto histórico.');
+    const data = await resp.json();
+    const artifact = data.artifact || {};
+    const host = document.getElementById('reportHost');
+    if (!host) throw new Error('No se encontró el área de informe.');
+
+    const banner = '<div style="padding:9px 12px;margin:0 0 12px;border:1px solid var(--brand);border-radius:10px;background:var(--brand-tint);font-size:11px;color:var(--ink);"><b>Vista histórica</b> · versión ' + esc(versionId).slice(0, 12) + ' · solo lectura. Los archivos actuales no fueron modificados.</div>';
+    const body = artifact.type === 'html'
+      ? artifact.content
+      : '<article class="doc report">' + renderMarkdownToPraxisHtml(artifact.content || '') + '</article>';
+    host.innerHTML = banner + body;
+    try { typeset(host); } catch (e) {}
+    toast('✓ Snapshot histórico cargado en modo solo lectura.');
+    return artifact;
+  } catch (e) {
+    toast('No se pudo previsualizar la versión: ' + e.message);
     return null;
   }
 };
