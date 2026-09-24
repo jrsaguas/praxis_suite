@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import hashlib
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
@@ -138,6 +139,146 @@ def refresh_artifact_manifest(chats_dir: str, chat_id: str, folder: str, *, vers
     _save(chats_dir, chat_id, meta)
     return manifest
 
+
+def _version_snapshot_root(chats_dir: str, chat_id: str, folder: str, version_id: str) -> str:
+    response_path = safe_child_path(
+        safe_child_path(chats_dir, validate_component(chat_id, "chat_id")),
+        validate_component(folder, "folder"),
+    )
+    validate_component(version_id, "version_id")
+    return safe_child_path(response_path, ".version_snapshots/" + str(version_id))
+
+
+def snapshot_version_artifacts(
+    chats_dir: str,
+    chat_id: str,
+    folder: str,
+    version_id: str,
+) -> Dict[str, Any]:
+    """Create an immutable physical snapshot of managed artifacts for a version."""
+    response_path = safe_child_path(
+        safe_child_path(chats_dir, validate_component(chat_id, "chat_id")),
+        validate_component(folder, "folder"),
+    )
+    snapshot_root = _version_snapshot_root(chats_dir, chat_id, folder, version_id)
+    if os.path.exists(snapshot_root):
+        raise FileExistsError(f"Snapshot already exists for version: {version_id}")
+
+    os.makedirs(snapshot_root, exist_ok=False)
+    entries = []
+    try:
+        for root_type, parts in _ARTIFACT_ROOTS.items():
+            source_root = response_path
+            for part in parts:
+                source_root = os.path.join(source_root, part)
+            if not os.path.isdir(source_root):
+                continue
+            for dirpath, _, filenames in os.walk(source_root):
+                for filename in filenames:
+                    source = os.path.join(dirpath, filename)
+                    rel = os.path.relpath(source, response_path).replace(os.sep, "/")
+                    target = safe_child_path(snapshot_root, rel)
+                    os.makedirs(os.path.dirname(target), exist_ok=True)
+                    shutil.copy2(source, target)
+                    entries.append({
+                        "path": rel,
+                        "sha256": _sha256_file(target),
+                        "size": os.path.getsize(target),
+                        "type": _ARTIFACT_TYPE_BY_EXTENSION.get(
+                            os.path.splitext(filename)[1].lower(), root_type
+                        ),
+                    })
+    except Exception:
+        shutil.rmtree(snapshot_root, ignore_errors=True)
+        raise
+
+    snapshot = {
+        "version_id": str(version_id),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "root": ".version_snapshots/" + str(version_id),
+        "artifacts": sorted(entries, key=lambda item: item["path"]),
+    }
+    meta = _load(chats_dir, chat_id)
+    response = get_response(meta, folder)
+    if response is None:
+        raise KeyError(f"Response folder not found: {folder}")
+    response.setdefault("version_snapshots", {})[str(version_id)] = snapshot
+    _save(chats_dir, chat_id, meta)
+    return snapshot
+
+
+def get_version_snapshot(
+    chats_dir: str,
+    chat_id: str,
+    folder: str,
+    version_id: str,
+) -> Optional[Dict[str, Any]]:
+    meta = _load(chats_dir, chat_id)
+    response = get_response(meta, folder)
+    if response is None:
+        raise KeyError(f"Response folder not found: {folder}")
+    snapshot = (response.get("version_snapshots") or {}).get(str(version_id))
+    if snapshot:
+        return dict(snapshot)
+    return None
+
+
+def restore_version_snapshot(
+    chats_dir: str,
+    chat_id: str,
+    folder: str,
+    version_id: str,
+) -> Dict[str, Any]:
+    """Restore a snapshot into the live managed artifact roots."""
+    snapshot = get_version_snapshot(chats_dir, chat_id, folder, version_id)
+    if snapshot is None:
+        raise FileNotFoundError(f"No physical snapshot exists for version: {version_id}")
+
+    response_path = safe_child_path(
+        safe_child_path(chats_dir, validate_component(chat_id, "chat_id")),
+        validate_component(folder, "folder"),
+    )
+    snapshot_root = _version_snapshot_root(chats_dir, chat_id, folder, version_id)
+    expected = {str(item["path"]) for item in snapshot.get("artifacts", [])}
+
+    # Remove managed files absent from the selected snapshot.
+    for root_type, parts in _ARTIFACT_ROOTS.items():
+        root = response_path
+        for part in parts:
+            root = os.path.join(root, part)
+        if not os.path.isdir(root):
+            continue
+        for dirpath, _, filenames in os.walk(root, topdown=False):
+            for filename in filenames:
+                source = os.path.join(dirpath, filename)
+                rel = os.path.relpath(source, response_path).replace(os.sep, "/")
+                if rel not in expected:
+                    os.remove(source)
+            for dirname in _:
+                pass
+
+    restored = []
+    for item in snapshot.get("artifacts", []):
+        rel = str(item["path"])
+        source = safe_child_path(snapshot_root, rel)
+        target = safe_child_path(response_path, rel)
+        if not os.path.isfile(source):
+            raise FileNotFoundError(f"Snapshot artifact missing: {rel}")
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        shutil.copy2(source, target)
+        digest = _sha256_file(target)
+        if digest != item.get("sha256"):
+            raise IOError(f"Snapshot integrity check failed: {rel}")
+        restored.append(rel)
+
+    return {
+        "version_id": str(version_id),
+        "restored_files": restored,
+        "count": len(restored),
+        "snapshot": snapshot,
+    }
+
+
 def set_evaluation_profile(
     chats_dir: str,
     chat_id: str,
@@ -223,6 +364,7 @@ def register_version(
     response.setdefault("commands", []).extend(commands or [])
     response.setdefault("references", []).extend(references or [])
     _save(chats_dir, chat_id, meta)
+    snapshot_version_artifacts(chats_dir, chat_id, folder, version.version_id)
     return version.to_dict()
 
 
