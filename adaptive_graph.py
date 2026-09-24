@@ -98,16 +98,6 @@ class AdaptiveGraphBridge:
                 for pattern in patterns
                 if pattern.get("status") == "validated" and pattern.get("pattern_id")
             ],
-            "selected_patterns": [
-                {
-                    "pattern_id": str(pattern.get("pattern_id")),
-                    "task_family": str(pattern.get("task_family", "")),
-                    "selection": dict(pattern.get("selection") or {}),
-                    "source_record_ids": [str(x) for x in pattern.get("source_record_ids", [])],
-                }
-                for pattern in patterns
-                if pattern.get("status") == "validated" and pattern.get("pattern_id")
-            ],
         }
         plan = replace(plan, planning_metadata=planning_metadata)
         return AdaptiveGraphPlan(decision, plan, generated_candidates)
