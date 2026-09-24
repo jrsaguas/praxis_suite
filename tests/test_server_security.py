@@ -284,6 +284,89 @@ class PathSafetyTests(unittest.TestCase):
             self.assertEqual(payload["artifact"]["content"], "# Histórico")
             self.assertEqual(md.read_text(encoding="utf-8"), "# Actual")
 
+    def test_artifact_command_can_branch_from_selected_historical_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            chat_id = "chat-branch"
+            folder = "respuesta_001"
+            response = Path(tmp) / chat_id / folder
+            doc_dir = response / "entregables" / "documentos"
+            doc_dir.mkdir(parents=True)
+            (Path(tmp) / chat_id / "conversacion_metadata.json").write_text(
+                json.dumps({
+                    "id": chat_id,
+                    "responses": [{
+                        "folder": folder,
+                        "version_id": "v-root",
+                        "investigation_id": f"{chat_id}/{folder}",
+                    }],
+                }),
+                encoding="utf-8",
+            )
+            md = doc_dir / "investigacion.md"
+            html = doc_dir / "investigacion.html"
+            md.write_text("# V1", encoding="utf-8")
+            html.write_text("<h1>V1</h1>", encoding="utf-8")
+            v1 = server.investigation_store.register_version(
+                tmp, chat_id, folder, prompt="v1", title="Investigación", source="test",
+                artifact_types=["md", "html"],
+            )
+            md.write_text("# V2", encoding="utf-8")
+            html.write_text("<h1>V2</h1>", encoding="utf-8")
+            v2 = server.investigation_store.register_version(
+                tmp, chat_id, folder, prompt="v2", title="Investigación", source="test",
+                parent_version_id=v1["version_id"], artifact_types=["md", "html"],
+            )
+            self.assertNotEqual(v1["version_id"], v2["version_id"])
+
+            payload = {
+                "chat_id": chat_id,
+                "folder": folder,
+                "instruction": "corrige el Canvas histórico",
+                "title": "Rama desde V1",
+                "parent_version_id": v1["version_id"],
+            }
+
+            class Handler:
+                def _read_body(self):
+                    return json.dumps(payload).encode("utf-8")
+                def send_response(self, code):
+                    self.response = code
+                def send_header(self, *args):
+                    pass
+                def end_headers(self):
+                    pass
+
+            handler = Handler()
+            handler.response = None
+            handler.wfile = mock.Mock()
+
+            def fake_executor(*args, **kwargs):
+                md.write_text("# Rama V1", encoding="utf-8")
+                html.write_text("<h1>Rama V1</h1>", encoding="utf-8")
+                return {
+                    "status": "ok",
+                    "operation": "rebuild_documents",
+                    "message": "ok",
+                    "changed_files": [str(md), str(html)],
+                    "artifact_types": ["md", "html"],
+                    "plan": {},
+                }
+
+            with mock.patch.object(server.chat_manager, "CHATS_DIR", tmp), \\
+                 mock.patch.object(
+                     server.artifact_command_executor,
+                     "execute_artifact_command",
+                     side_effect=fake_executor,
+                 ):
+                server.PraxisRequestHandler.handle_artifact_command(handler)
+
+            self.assertEqual(handler.response, 200)
+            result = json.loads(handler.wfile.write.call_args.args[0])
+            self.assertEqual(result["version"]["parent_version_id"], v1["version_id"])
+            self.assertNotEqual(result["version"]["version_id"], v1["version_id"])
+            self.assertNotEqual(result["version"]["version_id"], v2["version_id"])
+            self.assertTrue(result["version"].get("snapshot_available"))
+
     def test_artifact_command_promotes_version_and_refreshes_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
             chat_id = "chat-chain"
