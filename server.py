@@ -654,6 +654,37 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             except Exception as e:
                 self.send_error(500, str(e))
 
+        elif path.startswith('/api/investigations/') and '/snapshot/' in path:
+            parts = path[len('/api/investigations/'):].split('/snapshot/', 1)
+            bits = parts[0].strip('/').split('/', 1)
+            relative_path = unquote(parts[1]).strip('/')
+            if len(bits) != 2 or not relative_path:
+                self.send_error(400, 'Ruta de snapshot inválida')
+                return
+            chat_id, folder = unquote(bits[0]), unquote(bits[1])
+            query = parse_qs(parsed.query)
+            version_id = (query.get('version_id') or [''])[0]
+            if not version_id:
+                self.send_error(400, 'version_id es obligatorio')
+                return
+            try:
+                artifact = investigation_store.read_version_snapshot_artifact(
+                    chat_manager.CHATS_DIR, chat_id, folder,
+                    unquote(version_id), relative_path,
+                )
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps(
+                    {'status': 'ok', 'artifact': artifact},
+                    ensure_ascii=False,
+                ).encode('utf-8'))
+            except FileNotFoundError as e:
+                self.send_error(404, str(e))
+            except ValueError as e:
+                self.send_error(400, str(e))
+            except Exception as e:
+                self.send_error(500, str(e))
         elif path.startswith('/api/investigations/') and '/versions/' in path:
             parts = path[len('/api/investigations/'):].split('/versions/', 1)
             bits = parts[0].strip('/').split('/', 1)
