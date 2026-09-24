@@ -73,6 +73,28 @@ class TestAgentArchitect(unittest.TestCase):
         self.assertFalse(result.generated)
         self.assertEqual(result.reusable_agents, (reusable.id,))
 
+    def test_validated_pattern_is_evidence_but_does_not_validate_candidate(self):
+        request = self._request()
+        result = AgentArchitect().synthesize(
+            request,
+            validated_patterns=(
+                {
+                    "pattern_id": "pat-surface-1",
+                    "status": "validated",
+                    "task_family": "geometry",
+                },
+                {
+                    "pattern_id": "pat-ignored",
+                    "status": "candidate",
+                    "task_family": "geometry",
+                },
+            ),
+        )
+        self.assertEqual(result.pattern_ids, ("pat-surface-1",))
+        self.assertIn("validated_pattern:pat-surface-1", result.candidate.context)
+        self.assertEqual(result.candidate.status, "candidate")
+        self.assertEqual(result.candidate.state, "sleeping")
+
     def test_architect_candidate_is_not_execution_eligible_until_validated(self):
         request = self._request()
         factory = AgentFactory()
