@@ -411,6 +411,13 @@ def register_version(
     response.setdefault("references", []).extend(references or [])
     _save(chats_dir, chat_id, meta)
     snapshot_version_artifacts(chats_dir, chat_id, folder, version.version_id)
+    # Return the persisted history entry so callers receive snapshot metadata
+    # (snapshot_available/count) together with the logical version fields.
+    meta = _load(chats_dir, chat_id)
+    response = get_response(meta, folder)
+    for item in response.get("version_history", []):
+        if item.get("version_id") == version.version_id:
+            return dict(item)
     return version.to_dict()
 
 
