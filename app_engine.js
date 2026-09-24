@@ -4430,6 +4430,7 @@ window.renderInvestigationVersionPanel = async function(chatId, folder, currentV
         </div>
         <div style="font-size:9.5px;color:var(--muted);margin-top:4px;">${esc(date)} · ${esc((v.version_id || '').slice(0, 12))}</div>
         ${v.prompt ? `<div style="font-size:10.5px;color:var(--ink-2);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(v.prompt)}</div>` : ''}
+        ${v.snapshot_available ? `<div style="margin-top:7px;"><button type="button" class="btn sm ghost" onclick="event.stopPropagation();window.restoreInvestigationVersion('${esc(chatId)}','${esc(folder)}','${esc(v.version_id || '')}')">Restaurar esta versión como nueva</button></div>` : '<div style="font-size:9px;color:var(--muted);margin-top:6px;">Snapshot no disponible</div>'}
       </button>`;
   }).join('');
 
@@ -4472,6 +4473,35 @@ window.selectInvestigationVersion = async function(chatId, folder, versionId) {
     return data;
   } catch (e) {
     toast('No se pudo seleccionar la versión: ' + e.message);
+    return null;
+  }
+};
+
+window.restoreInvestigationVersion = async function(chatId, folder, versionId) {
+  if (!confirm('Se restaurará el snapshot físico de esta versión y se creará una nueva versión derivada. ¿Continuar?')) return;
+  try {
+    const resp = await fetch('/api/investigations/snapshot/restore', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        chat_id: chatId,
+        folder: folder,
+        version_id: versionId
+      })
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    const data = await resp.json();
+    window.selectedInvestigationVersion = data.version.version_id;
+    toast('✓ Versión restaurada como ' + String(data.version.version_id).slice(0, 12));
+    if (typeof window.restoreHistoricalResponse === 'function') {
+      await window.restoreHistoricalResponse(chatId, folder);
+    } else {
+      const panel = document.getElementById('investigationVersionPanel');
+      if (panel) panel.outerHTML = await window.renderInvestigationVersionPanel(chatId, folder, data.version.version_id);
+    }
+    return data;
+  } catch (e) {
+    toast('No se pudo restaurar la versión: ' + e.message);
     return null;
   }
 };
