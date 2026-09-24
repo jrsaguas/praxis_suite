@@ -136,6 +136,16 @@ def normalize_planning_context(planning_metadata: Optional[Dict[str, Any]]) -> D
         "generated_candidates": [str(x) for x in adaptive.get("generated_candidates", []) if x],
         "execution_agents": [str(x) for x in raw.get("execution_agents", []) if x],
         "mathematical_depth": depth,
+        "selected_patterns": [
+            {
+                "pattern_id": str(x.get("pattern_id")),
+                "task_family": str(x.get("task_family", "")),
+                "selection": dict(x.get("selection") or {}),
+                "source_record_ids": [str(r) for r in x.get("source_record_ids", [])],
+            }
+            for x in raw.get("selected_patterns", [])
+            if x.get("pattern_id")
+        ],
     }
 
 
