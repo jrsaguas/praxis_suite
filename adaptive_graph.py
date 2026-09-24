@@ -9,6 +9,7 @@ from agent_architecture import AgentSpec
 from agent_factory import AgentBlueprint
 from agent_graph import AgentGraphPlanner, ExecutionPlan
 from agent_catalog import AgentCatalog
+from agent_architect import AgentArchitect
 
 
 @dataclass(frozen=True)
@@ -41,10 +42,12 @@ class AdaptiveGraphBridge:
         static_capabilities: Mapping[str, Iterable[str]] | None = None,
         catalog: AgentCatalog | None = None,
         planner: AgentGraphPlanner | None = None,
+        architect: AgentArchitect | None = None,
     ):
         self.adaptive = AdaptiveAgent(static_capabilities, catalog)
         self.catalog = catalog
         self.planner = planner or AgentGraphPlanner()
+        self.architect = architect or AgentArchitect(catalog=catalog)
 
     def plan(
         self,
@@ -71,9 +74,11 @@ class AdaptiveGraphBridge:
             model_overrides=model_overrides,
             additional_agents=reusable_specs,
         )
-        planning_metadata = {"adaptive_selection": {**decision.to_dict(), "selected_reusable_agents": [spec.id for spec in reusable_specs]}}
+        architecture = self.architect.synthesize(request, decision=decision)
+        generated_candidates = (architecture.candidate.id,) if architecture.candidate else ()
+        planning_metadata = {"adaptive_selection": {**decision.to_dict(), "selected_reusable_agents": [spec.id for spec in reusable_specs], "generated_candidates": list(generated_candidates), "architecture_reason": architecture.reason}}
         plan = replace(plan, planning_metadata=planning_metadata)
-        return AdaptiveGraphPlan(decision, plan)
+        return AdaptiveGraphPlan(decision, plan, generated_candidates)
 
     def _matches(self, request: AdaptiveRequest):
         if not self.catalog or not request.requirements and not request.tools and not request.role:
