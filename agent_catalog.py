@@ -21,6 +21,8 @@ class AgentCatalog:
         self._agents = {a.id: a for a in agents}
     def register(self, agent: AgentBlueprint) -> None:
         self._agents[agent.id] = agent
+    def get(self, agent_id: str) -> AgentBlueprint | None:
+        return self._agents.get(str(agent_id))
     def search(self, *, requirements=(), tools=(), role="", minimum_compatibility=0.70):
         req, needed = {str(x) for x in requirements}, {str(x) for x in tools}
         role_tokens = set(str(role).lower().split())
