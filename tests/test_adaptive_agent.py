@@ -2,10 +2,32 @@ import unittest
 
 from adaptive_agent import AdaptiveAgent, AdaptiveRequest
 from agent_factory import AgentFactory
-from flow_composer import FlowComposer\nfrom agent_catalog import AgentCatalog
+from flow_composer import FlowComposer
+from agent_catalog import AgentCatalog
 
 
-class AdaptiveAgentTests(unittest.TestCase):\n    def test_reusable_validated_agent_is_preferred_before_generation(self):\n        factory = AgentFactory()\n        reusable = factory.validate(factory.create(\n            agent_id="surface_specialist", role="surface geometry", model_id="ollama-qwen",\n            tools=("sympy",), actions=("symbolic_geometry",), context=("surface",)\n        ))\n        catalog = AgentCatalog((reusable,))\n        decision = AdaptiveAgent({}, catalog).decide(AdaptiveRequest(\n            task="surface", requirements=("symbolic_geometry",), tools=("sympy",), role="surface geometry"\n        ))\n        self.assertTrue(decision.active)\n        self.assertEqual(decision.reusable_agents, ("surface_specialist",))\n        self.assertFalse(decision.generated_agent_required)\n
+class AdaptiveAgentTests(unittest.TestCase):
+    def test_reusable_validated_agent_is_preferred_before_generation(self):
+        factory = AgentFactory()
+        reusable = factory.validate(factory.create(
+            agent_id="surface_specialist",
+            role="surface geometry",
+            model_id="ollama-qwen",
+            tools=("sympy",),
+            actions=("symbolic_geometry",),
+            context=("surface",),
+        ))
+        catalog = AgentCatalog((reusable,))
+        decision = AdaptiveAgent({}, catalog).decide(AdaptiveRequest(
+            task="surface",
+            requirements=("symbolic_geometry",),
+            tools=("sympy",),
+            role="surface geometry",
+        ))
+        self.assertTrue(decision.active)
+        self.assertEqual(decision.reusable_agents, ("surface_specialist",))
+        self.assertFalse(decision.generated_agent_required)
+
     def test_adaptive_agent_is_inactive_when_static_capabilities_cover_request(self):
         agent = AdaptiveAgent({"resolver": {"proof", "python"}})
         decision = agent.decide(AdaptiveRequest(
