@@ -203,6 +203,10 @@ def snapshot_version_artifacts(
     if response is None:
         raise KeyError(f"Response folder not found: {folder}")
     response.setdefault("version_snapshots", {})[str(version_id)] = snapshot
+    for item in response.get("version_history", []):
+        if item.get("version_id") == str(version_id):
+            item["snapshot_available"] = True
+            item["snapshot_artifact_count"] = len(entries)
     _save(chats_dir, chat_id, meta)
     return snapshot
 
