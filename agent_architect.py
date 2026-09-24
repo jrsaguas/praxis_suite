@@ -105,7 +105,8 @@ class AgentArchitect:
         strategy_ids = tuple(
             str(item.get("strategy", {}).get("strategy_id"))
             for item in validated_strategies
-            if item.get("strategy", {}).get("strategy_id")
+            if item.get("strategy", {}).get("status") == "promoted"
+            and item.get("strategy", {}).get("strategy_id")
         )
 
         if matches:
