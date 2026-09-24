@@ -1,38 +1,44 @@
-# Cierre del bloque P0/P1/P1.5 — 2026-09-24
+# CIERRE DEL BLOQUE P0/P1/P1.5 — VERIFICACIÓN FINAL
 
 ## Estado
 
-El bloque funcional de endurecimiento, ejecución observable, evaluación/experiencia y versionado de investigaciones queda **cerrado para pasar a P2**.
+**PARCIAL — NO CERRADO TODAVÍA.**
+
+La implementación funcional del bloque está presente en `audit/hardening-2026-09`, pero después de añadir cobertura de seguridad del preview histórico y controles finales de UI, el HEAD cambió. Por trazabilidad no se conserva la declaración anterior de cierre hasta disponer de CI verificable sobre el estado actual.
 
 Rama: `audit/hardening-2026-09`  
 PR: #1 contra `main`  
-Último commit verificado: `baf33161d9ea66183d7e19b2e46cdd316622c0e7`  
-CI: ejecución 35951100534 — **success**.
+HEAD actual: `282277899b31ba320fcefd2ab0c7fc6151fa1760`
 
-## Criterios de cierre
+## Evidencia previa
 
-- **Runtime:** tareas, dependencias, contexto, selección de modelo y trazas observables.
-- **Ejecución:** comandos de artefactos, registro de ejecución, promoción únicamente de ejecuciones exitosas y bloqueo de falsos positivos.
-- **Evaluación/experiencia:** auditor final, evaluación estructurada, experiencias aceptadas como referencias y exclusión de candidatos/rechazados.
-- **Versionado:** historial, navegación, ramificación mediante `parent_version_id`, snapshots físicos, restauración como nueva versión y manifest actualizado.
-- **Vista histórica:** lectura verificada por SHA-256 de snapshots MD/HTML sin modificar el estado actual; la UI ya puede previsualizar snapshots en modo solo lectura.
-- **Integridad:** pruebas unitarias y de integración cubren restauración, preview histórico, branching contextual y consistencia del manifest.
-- **CI:** la última ejecución del flujo completo terminó correctamente.
+CI `35951100534` — **success**  
+Commit verificado: `baf33161d9ea66183d7e19b2e46cdd316622c0e7`
 
-## Qué queda deliberadamente fuera de este cierre
+Ese CI verificó la batería existente antes de los últimos cambios de hardening. No se utiliza como evidencia de que el HEAD actual esté certificado.
 
-Esto no significa que Praxis Suite esté terminado como producto completo. Quedan para **P2** las capacidades superiores que fueron acordadas:
+## Últimos cambios pendientes de certificación
 
-1. Adaptive Agent.
-2. Agent Factory.
-3. Tools Panel para adaptación manual de agentes.
-4. Perfil matemático multidimensional completo en UI.
-5. Composición dinámica de agentes y flujos.
-6. Aprendizaje de patrones/preferencias con promoción controlada.
-7. Evolución posterior de UI de historial y ramas.
+- Test unitario de rechazo de traversal en `read_version_snapshot_artifact`.
+- Test HTTP de rechazo de traversal en preview histórico.
+- Controles explícitos en la vista histórica:
+  - volver al estado actual;
+  - restaurar como nueva versión;
+  - usar la versión como contexto.
 
-No se modifica `main` en este cierre.
+## Criterios funcionales ya implementados
 
-## Decisión de transición
+- Runtime: tareas, dependencias, contexto, modelo, requisitos y trace observable.
+- Execution: promoción de versión solo después de ejecución exitosa.
+- Evaluation: auditoría final y evaluación estructurada.
+- Experience: candidate/accepted/rejected y selección ponderada.
+- Versioning: historial, navegación, parent_version_id.
+- Snapshot: físico, hash SHA-256, restore como nueva versión.
+- Historical Preview: MD/HTML read-only.
+- Branching: edición contextual desde parent_version_id.
+- Manifest: current/stale y relación con Markdown fuente.
+- Integration: endpoint HTTP y pruebas de runtime/artefactos.
 
-A partir de este punto no se deben seguir agregando requisitos al bloque P0/P1/P1.5 salvo que aparezca un fallo real en regresión. El siguiente trabajo debe comenzar en **P2: Adaptive Agent + Agent Factory**, manteniendo esta base como contrato de estabilidad.
+## Decisión
+
+No se agrega P2 todavía. El único bloqueo del cierre formal es la certificación CI del estado actual.
