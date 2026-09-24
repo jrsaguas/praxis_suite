@@ -61,6 +61,25 @@ class AgentArchitect:
         digest = hashlib.sha256(material.encode("utf-8")).hexdigest()[:10]
         return f"adaptive-{AgentArchitect._slug(request.role or request.task)}-{digest}"[:64]
 
+    @staticmethod
+    def _infer_specialist_role(
+        request: AdaptiveRequest,
+        tools: Tuple[str, ...],
+        requirements: Tuple[str, ...],
+    ) -> str:
+        """Infer a stable specialist role from explicit task/tool signals."""
+        if any(t in {"canvas", "javascript", "html", "js"} for t in tools):
+            return "canvas-html specialist"
+        if any(t in {"python", "matplotlib", "plotly"} for t in tools):
+            return "python-visualization specialist"
+        if any("proof" in x or "formal" in x for x in requirements):
+            return "mathematical-proof specialist"
+        if any("research" in x or "source" in x for x in requirements):
+            return "research specialist"
+        if any("code" in x or "implementation" in x for x in requirements):
+            return "code specialist"
+        return request.role.strip() or "adaptive specialist"
+
     def synthesize(
         self,
         request: AdaptiveRequest,
@@ -94,13 +113,13 @@ class AgentArchitect:
                 pattern_ids=pattern_ids,
             )
 
-        role = request.role.strip() or "adaptive specialist"
         requirements = tuple(dict.fromkeys(request.requirements))
         tools = tuple(dict.fromkeys(request.tools))
         evaluation = tuple(dict.fromkeys(request.acceptance_criteria))
         actions = tuple(dict.fromkeys((*requirements, *request.acceptance_criteria)))
 
         pattern_context = tuple(f"validated_pattern:{pid}" for pid in pattern_ids)
+        role = self._infer_specialist_role(request, tools, requirements)
         candidate = self.factory.create(
             agent_id=self._stable_id(request),
             role=role,
