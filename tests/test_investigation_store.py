@@ -301,5 +301,25 @@ class InvestigationStoreTests(unittest.TestCase):
                 set_evaluation_profile(td, "chat_profile", "respuesta_profile", {"depth": 101})
 
 
+    def test_historical_snapshot_rejects_traversal_path(self):
+        with tempfile.TemporaryDirectory() as td:
+            chat_id = "chat_preview_security"
+            folder = "respuesta_preview"
+            response_path = Path(self._write_response(td, chat_id, folder))
+            doc_dir = response_path / "entregables" / "documentos"
+            doc_dir.mkdir(parents=True, exist_ok=True)
+            md = doc_dir / "investigacion.md"
+            md.write_text("# Seguro", encoding="utf-8")
+            version = investigation_store.register_version(
+                td, chat_id, folder, prompt="p", title="V1", source="test"
+            )
+            with self.assertRaises(ValueError):
+                investigation_store.read_version_snapshot_artifact(
+                    td, chat_id, folder, version["version_id"],
+                    "../conversacion_metadata.json",
+                )
+
+
+
 if __name__ == "__main__":
     unittest.main()
