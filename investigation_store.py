@@ -265,7 +265,7 @@ def restore_version_snapshot(
     for item in snapshot.get("artifacts", []):
         rel = str(item["path"])
         source = safe_child_path(snapshot_root, *rel.split("/"))
-        target = safe_child_path(response_path, rel)
+        target = safe_child_path(response_path, *rel.split("/"))
         if not os.path.isfile(source):
             raise FileNotFoundError(f"Snapshot artifact missing: {rel}")
         os.makedirs(os.path.dirname(target), exist_ok=True)
