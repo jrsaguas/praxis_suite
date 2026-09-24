@@ -333,6 +333,7 @@ def promote_execution_to_version(
     prompt: str,
     title: str,
     strategy_context: Optional[Dict[str, Any]] = None,
+    parent_version_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Create a succeeded investigation version only after real execution succeeded."""
     if str(event.get("status")) != "ok":
@@ -348,4 +349,5 @@ def promote_execution_to_version(
         artifact_types=list(event.get("artifact_types") or []),
         status="succeeded",
         strategy_context=strategy_context or {},
+        parent_version_id=parent_version_id,
     )
