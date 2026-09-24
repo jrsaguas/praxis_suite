@@ -1,7 +1,7 @@
 """Controlled bridge from adaptive selection to the existing agent graph."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Iterable, Mapping, Tuple
 
 from adaptive_agent import AdaptiveAgent, AdaptiveRequest, AdaptationDecision
@@ -71,6 +71,8 @@ class AdaptiveGraphBridge:
             model_overrides=model_overrides,
             additional_agents=reusable_specs,
         )
+        planning_metadata = {"adaptive_selection": {**decision.to_dict(), "selected_reusable_agents": [spec.id for spec in reusable_specs]}}
+        plan = replace(plan, planning_metadata=planning_metadata)
         return AdaptiveGraphPlan(decision, plan)
 
     def _matches(self, request: AdaptiveRequest):
