@@ -4495,7 +4495,8 @@ window.previewInvestigationVersion = async function(chatId, folder, versionId) {
     const host = document.getElementById('reportHost');
     if (!host) throw new Error('No se encontró el área de informe.');
 
-    const banner = '<div style="padding:9px 12px;margin:0 0 12px;border:1px solid var(--brand);border-radius:10px;background:var(--brand-tint);font-size:11px;color:var(--ink);"><b>Vista histórica</b> · versión ' + esc(versionId).slice(0, 12) + ' · solo lectura. Los archivos actuales no fueron modificados.</div>';
+    window.selectedInvestigationVersion = versionId;
+    const banner = '<div style="padding:9px 12px;margin:0 0 12px;border:1px solid var(--brand);border-radius:10px;background:var(--brand-tint);font-size:11px;color:var(--ink);"><div><b>Vista histórica</b> · versión ' + esc(versionId).slice(0, 12) + ' · solo lectura. Los archivos actuales no fueron modificados.</div><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;"><button type="button" class="btn sm ghost" onclick="window.returnToCurrentInvestigation(\'' + esc(chatId) + '\',\'' + esc(folder) + '\')">Volver al estado actual</button><button type="button" class="btn sm ghost" onclick="window.restoreInvestigationVersion(\'' + esc(chatId) + '\',\'' + esc(folder) + '\',\'' + esc(versionId) + '\')">Restaurar como nueva versión</button><button type="button" class="btn sm ghost" onclick="window.selectInvestigationVersion(\'' + esc(chatId) + '\',\'' + esc(folder) + '\',\'' + esc(versionId) + '\')">Usar como contexto</button></div></div>';
     const body = artifact.type === 'html'
       ? artifact.content
       : '<article class="doc report">' + renderMarkdownToPraxisHtml(artifact.content || '') + '</article>';
@@ -4536,6 +4537,15 @@ window.previewInvestigationVersion = async function(chatId, folder, versionId) {
     return null;
   }
 };
+window.returnToCurrentInvestigation = async function(chatId, folder) {
+  try {
+    await window.restoreHistoricalResponse(chatId, folder);
+    toast('✓ Estado actual restaurado en la vista.');
+  } catch (e) {
+    toast('No se pudo volver al estado actual: ' + e.message);
+  }
+};
+
 window.restoreInvestigationVersion = async function(chatId, folder, versionId) {
   if (!confirm('Se restaurará el snapshot físico de esta versión y se creará una nueva versión derivada. ¿Continuar?')) return;
   try {
