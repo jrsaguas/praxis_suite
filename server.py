@@ -553,7 +553,10 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             if not task:
                 raise ValueError('task es obligatorio')
             profile_data = data.get('depth_profile') or {'level': data.get('level', 'licenciatura')}
-            profile = mathematical_depth.MathematicalDepthProfile.preset(\n                str(profile_data.get('name') or profile_data.get('level') or 'licenciatura'),\n                custom_rules=profile_data.get('custom_rules') or (),\n            )
+            profile = mathematical_depth.MathematicalDepthProfile.preset(
+                str(profile_data.get('name') or profile_data.get('level') or 'licenciatura'),
+                custom_rules=profile_data.get('custom_rules') or (),
+            )
             depth_context = mathematical_depth.build_depth_context(profile)
             required_artifacts = data.get('required_artifacts') or []
             requested_agents = data.get('requested_agents') or []
