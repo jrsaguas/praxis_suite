@@ -654,6 +654,33 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             except Exception as e:
                 self.send_error(500, str(e))
 
+        elif path.startswith('/api/investigations/') and path.endswith('/snapshot'):
+            parts = path[len('/api/investigations/'): -len('/snapshot')].strip('/').split('/', 1)
+            if len(parts) != 2:
+                self.send_error(400, 'Ruta de snapshot inválida')
+                return
+            chat_id, folder = unquote(parts[0]), unquote(parts[1])
+            version_id = (parse_qs(parsed.query).get('version_id') or [''])[0]
+            if not version_id:
+                self.send_error(400, 'version_id es obligatorio')
+                return
+            try:
+                snapshot = investigation_store.get_version_snapshot(
+                    chat_manager.CHATS_DIR, chat_id, folder, unquote(version_id)
+                )
+                if snapshot is None:
+                    raise FileNotFoundError(f'No physical snapshot exists for version: {version_id}')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps(
+                    {'status': 'ok', 'snapshot': snapshot},
+                    ensure_ascii=False,
+                ).encode('utf-8'))
+            except FileNotFoundError as e:
+                self.send_error(404, str(e))
+            except Exception as e:
+                self.send_error(500, str(e))
         elif path.startswith('/api/investigations/') and '/snapshot/' in path:
             parts = path[len('/api/investigations/'):].split('/snapshot/', 1)
             bits = parts[0].strip('/').split('/', 1)
