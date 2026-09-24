@@ -86,10 +86,9 @@ class AdaptiveGraphBridge:
 
     def _blueprint_to_spec(self, agent_id: str) -> AgentSpec:
         assert self.catalog is not None
-        blueprint = next(
-            agent for agent in self.catalog.agents
-            if agent.id == agent_id
-        )
+        blueprint = self.catalog.get(agent_id)
+        if blueprint is None:
+            raise KeyError(f"reusable agent not found: {agent_id}")
         return AgentSpec(
             id=blueprint.id,
             mission=blueprint.role,
