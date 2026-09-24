@@ -85,6 +85,63 @@ class AgentFactoryTests(unittest.TestCase):
         self.assertEqual(active.status, "validated")
         self.assertEqual(active.state, "active")
 
+    def test_rejected_candidate_cannot_be_activated(self):
+        factory = AgentFactory()
+        candidate = factory.create(
+            agent_id="surface_specialist",
+            role="surface geometry",
+            model_id="ollama-qwen",
+        )
+        rejected = factory.reject(candidate)
+        self.assertEqual(rejected.status, "rejected")
+        with self.assertRaises(ValueError):
+            factory.activate(rejected)
+
+    def test_validated_agent_can_be_reused_without_activation(self):
+        factory = AgentFactory()
+        validated = factory.validate(factory.create(
+            agent_id="surface_specialist",
+            role="surface geometry",
+            model_id="ollama-qwen",
+            actions=("surface",),
+        ))
+        catalog = AgentCatalog()
+        catalog.register(validated)
+        self.assertEqual(
+            catalog.search(requirements=("surface",), role="surface geometry")[0].agent_id,
+            "surface_specialist",
+        )
+        self.assertEqual(catalog.get("surface_specialist").state, "sleeping")
+
+
+class AgentCatalogTests(unittest.TestCase):
+    def test_catalog_rejects_unvalidated_candidate(self):
+        candidate = AgentFactory().create(
+            agent_id="surface_specialist",
+            role="surface geometry",
+            model_id="ollama-qwen",
+        )
+        with self.assertRaises(ValueError):
+            AgentCatalog((candidate,))
+
+    def test_catalog_rejects_retired_agent(self):
+        validated = AgentFactory().validate(AgentFactory().create(
+            agent_id="surface_specialist",
+            role="surface geometry",
+            model_id="ollama-qwen",
+        ))
+        retired = type(validated)(**{
+            **validated.to_dict(),
+            "state": "retired",
+            "tools": tuple(validated.tools),
+            "context": tuple(validated.context),
+            "memory": tuple(validated.memory),
+            "evaluation": tuple(validated.evaluation),
+            "actions": tuple(validated.actions),
+        })
+        with self.assertRaises(ValueError):
+            AgentCatalog((retired,))
+
 
 class FlowComposerTests(unittest.TestCase):
     def test_inactive_adaptation_keeps_static_flow(self):
@@ -94,6 +151,22 @@ class FlowComposerTests(unittest.TestCase):
         flow = FlowComposer().compose(("intent_router", "resolver"), decision)
         self.assertEqual(flow.agents, ("intent_router", "resolver"))
         self.assertFalse(flow.adaptive_active)
+
+    def test_candidate_never_enters_composed_flow(self):
+        factory = AgentFactory()
+        candidate = factory.create(
+            agent_id="surface_specialist",
+            role="surface geometry",
+            model_id="ollama-qwen",
+        )
+        decision = AdaptiveAgent({}).decide(
+            AdaptiveRequest(task="x", explicit_activation=True)
+        )
+        flow = FlowComposer().compose(
+            ("intent_router", "resolver"), decision, (candidate,)
+        )
+        self.assertEqual(flow.agents, ("intent_router", "resolver"))
+        self.assertEqual(flow.generated_agents, ())
 
     def test_validated_generated_agent_is_inserted_without_replacing_existing_roles(self):
         factory = AgentFactory()
