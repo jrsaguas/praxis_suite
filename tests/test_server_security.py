@@ -352,12 +352,11 @@ class PathSafetyTests(unittest.TestCase):
                     "plan": {},
                 }
 
-            with mock.patch.object(server.chat_manager, "CHATS_DIR", tmp), \\
-                 mock.patch.object(
-                     server.artifact_command_executor,
-                     "execute_artifact_command",
-                     side_effect=fake_executor,
-                 ):
+            with mock.patch.object(server.chat_manager, "CHATS_DIR", tmp), mock.patch.object(
+                server.artifact_command_executor,
+                "execute_artifact_command",
+                side_effect=fake_executor,
+            ):
                 server.PraxisRequestHandler.handle_artifact_command(handler)
 
             self.assertEqual(handler.response, 200)
