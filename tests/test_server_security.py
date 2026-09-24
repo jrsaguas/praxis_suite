@@ -506,6 +506,7 @@ class PathSafetyTests(unittest.TestCase):
                 def send_response(self, code): self.response = code
                 def send_header(self, *args): pass
                 def end_headers(self): pass
+                def send_error(self, code, message): self.response = code
             handler = Handler()
             with mock.patch.object(server.chat_manager, "CHATS_DIR", tmp):
                 server.PraxisRequestHandler.do_GET(handler)
