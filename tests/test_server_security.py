@@ -163,48 +163,48 @@ class PathSafetyTests(unittest.TestCase):
                  ):
                 server.PraxisRequestHandler.handle_artifact_command(handler)
 
-            self.assertEqual(handler.response, 200)
-            result = json.loads(handler.wfile.write.call_args.args[0])
-            self.assertEqual(result["version"]["source"], "artifact_execution")
-            manifest = result["artifact_manifest"]
-            self.assertEqual(manifest["version_id"], result["version"]["version_id"])
-            md_item = next(
-                a for a in manifest["artifacts"]
-                if a["path"] == "entregables/documentos/investigacion.md"
-            )
-            html_item = next(
-                a for a in manifest["artifacts"]
-                if a["path"] == "entregables/documentos/investigacion.html"
-            )
-            self.assertEqual(md_item["status"], "current")
-            self.assertEqual(html_item["status"], "current")
-            self.assertEqual(
-                md_item["source_md_sha256"],
-                manifest["source_md_sha256"],
-            )
-
-            saved = json.loads(
-                (Path(tmp) / chat_id / "conversacion_metadata.json").read_text(
-                    encoding="utf-8"
+                self.assertEqual(handler.response, 200)
+                result = json.loads(handler.wfile.write.call_args.args[0])
+                self.assertEqual(result["version"]["source"], "artifact_execution")
+                manifest = result["artifact_manifest"]
+                self.assertEqual(manifest["version_id"], result["version"]["version_id"])
+                md_item = next(
+                    a for a in manifest["artifacts"]
+                    if a["path"] == "entregables/documentos/investigacion.md"
                 )
-            )
-            response_meta = saved["responses"][0]
-            self.assertEqual(response_meta["version_id"], result["version"]["version_id"])
-            self.assertEqual(len(response_meta["execution_history"]), 1)
+                html_item = next(
+                    a for a in manifest["artifacts"]
+                    if a["path"] == "entregables/documentos/investigacion.html"
+                )
+                self.assertEqual(md_item["status"], "current")
+                self.assertEqual(html_item["status"], "current")
+                self.assertEqual(
+                    md_item["source_md_sha256"],
+                    manifest["source_md_sha256"],
+                )
 
-            handler.wfile.reset_mock()
-            server.PraxisRequestHandler.handle_artifact_command(handler)
-            self.assertEqual(handler.response, 200)
-            second_result = json.loads(handler.wfile.write.call_args.args[0])
-            self.assertNotEqual(
-                second_result["version"]["version_id"],
-                result["version"]["version_id"],
-            )
-            second_html = next(
-                a for a in second_result["artifact_manifest"]["artifacts"]
-                if a["path"] == "entregables/documentos/investigacion.html"
-            )
-            self.assertEqual(second_html["status"], "stale")
+                saved = json.loads(
+                    (Path(tmp) / chat_id / "conversacion_metadata.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
+                response_meta = saved["responses"][0]
+                self.assertEqual(response_meta["version_id"], result["version"]["version_id"])
+                self.assertEqual(len(response_meta["execution_history"]), 1)
+
+                handler.wfile.reset_mock()
+                server.PraxisRequestHandler.handle_artifact_command(handler)
+                self.assertEqual(handler.response, 200)
+                second_result = json.loads(handler.wfile.write.call_args.args[0])
+                self.assertNotEqual(
+                    second_result["version"]["version_id"],
+                    result["version"]["version_id"],
+                )
+                second_html = next(
+                    a for a in second_result["artifact_manifest"]["artifacts"]
+                    if a["path"] == "entregables/documentos/investigacion.html"
+                )
+                self.assertEqual(second_html["status"], "stale")
 
 if __name__ == "__main__":
     unittest.main()
