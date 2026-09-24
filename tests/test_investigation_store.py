@@ -91,6 +91,34 @@ class InvestigationStoreTests(unittest.TestCase):
                     prompt="corrige Canvas", title="Canvas",
                 )
 
+    def test_successful_execution_can_branch_from_selected_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            chats = Path(tmp) / "chats"
+            chat = chats / "chat-branch"
+            chat.mkdir(parents=True)
+            meta = {
+                "id": "chat-branch",
+                "responses": [{
+                    "folder": "respuesta_001",
+                    "version_id": "v-root",
+                    "version_history": [
+                        {"version_id": "v-root", "title": "Original"},
+                        {"version_id": "v-alt", "title": "Alternativa"},
+                    ],
+                }],
+            }
+            (chat / "conversacion_metadata.json").write_text(
+                json.dumps(meta), encoding="utf-8"
+            )
+            version = promote_execution_to_version(
+                str(chats), "chat-branch", "respuesta_001",
+                event={"status": "ok", "instruction": "corrige desde alternativa", "artifact_types": ["html"]},
+                prompt="corrige desde alternativa",
+                title="Corrección",
+                parent_version_id="v-alt",
+            )
+            self.assertEqual(version["parent_version_id"], "v-alt")
+
     def test_successful_execution_promotes_version(self):
         with tempfile.TemporaryDirectory() as tmp:
             chats = Path(tmp) / "chats"
