@@ -141,6 +141,11 @@ def update_status(
     raise KeyError(f"Pattern not found: {pattern_id}")
 
 
+def list_patterns(chats_dir: str, chat_id: str, *, limit: int = 100) -> list[Dict[str, Any]]:
+    path = _path(chats_dir, chat_id)
+    return _load(path)["patterns"][-max(1, int(limit)):]
+
+
 def select_validated_patterns(
     records: Iterable[Dict[str, Any]],
     *,
