@@ -91,6 +91,45 @@ class InvestigationStoreTests(unittest.TestCase):
                     prompt="corrige Canvas", title="Canvas",
                 )
 
+    def test_version_snapshots_are_physical_and_restorable(self):
+        with tempfile.TemporaryDirectory() as td:
+            chat_id = "chat_snapshot"
+            folder = "respuesta_snapshot"
+            response_path = Path(self._write_response(td, chat_id, folder))
+            doc_dir = response_path / "entregables" / "documentos"
+            doc_dir.mkdir(parents=True, exist_ok=True)
+            md = doc_dir / "investigacion.md"
+            html = doc_dir / "investigacion.html"
+
+            md.write_text("# V1", encoding="utf-8")
+            html.write_text("<h1>V1</h1>", encoding="utf-8")
+            v1 = investigation_store.register_version(
+                td, chat_id, folder, prompt="p1", title="V1", source="pipeline"
+            )
+
+            md.write_text("# V2", encoding="utf-8")
+            html.write_text("<h1>V2</h1>", encoding="utf-8")
+            v2 = investigation_store.register_version(
+                td, chat_id, folder, prompt="p2", title="V2", source="artifact_execution"
+            )
+
+            snap1 = investigation_store.get_version_snapshot(
+                td, chat_id, folder, v1["version_id"]
+            )
+            snap2 = investigation_store.get_version_snapshot(
+                td, chat_id, folder, v2["version_id"]
+            )
+            self.assertTrue(snap1 and snap1["artifacts"])
+            self.assertTrue(snap2 and snap2["artifacts"])
+
+            restored = investigation_store.restore_version_snapshot(
+                td, chat_id, folder, v1["version_id"]
+            )
+            self.assertEqual(restored["count"], 2)
+            self.assertEqual(md.read_text(encoding="utf-8"), "# V1")
+            self.assertEqual(html.read_text(encoding="utf-8"), "<h1>V1</h1>")
+            self.assertNotEqual(v1["version_id"], v2["version_id"])
+
     def test_successful_execution_can_branch_from_selected_version(self):
         with tempfile.TemporaryDirectory() as tmp:
             chats = Path(tmp) / "chats"
