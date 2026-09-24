@@ -91,6 +91,82 @@ class PathSafetyTests(unittest.TestCase):
             initial_context=mock.ANY,
         )
 
+    def test_restore_snapshot_route_creates_new_version_and_current_manifest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            chat_id = "chat-restore"
+            folder = "respuesta_001"
+            response = Path(tmp) / chat_id / folder
+            doc_dir = response / "entregables" / "documentos"
+            doc_dir.mkdir(parents=True)
+            (Path(tmp) / chat_id / "conversacion_metadata.json").write_text(
+                json.dumps({
+                    "id": chat_id,
+                    "responses": [{
+                        "folder": folder,
+                        "version_id": "v-root",
+                        "investigation_id": f"{chat_id}/{folder}",
+                    }],
+                }),
+                encoding="utf-8",
+            )
+            md = doc_dir / "investigacion.md"
+            html = doc_dir / "investigacion.html"
+            md.write_text("# Versión 1", encoding="utf-8")
+            html.write_text("<h1>Versión 1</h1>", encoding="utf-8")
+            v1 = server.investigation_store.register_version(
+                tmp, chat_id, folder, prompt="v1", title="Investigación",
+                source="test", parent_version_id=None,
+                artifact_types=["md", "html"],
+            )
+            md.write_text("# Versión 2", encoding="utf-8")
+            html.write_text("<h1>Versión 2</h1>", encoding="utf-8")
+            v2 = server.investigation_store.register_version(
+                tmp, chat_id, folder, prompt="v2", title="Investigación",
+                source="test", parent_version_id=v1["version_id"],
+                artifact_types=["md", "html"],
+            )
+            self.assertNotEqual(v1["version_id"], v2["version_id"])
+
+            payload = json.dumps({
+                "chat_id": chat_id,
+                "folder": folder,
+                "version_id": v1["version_id"],
+                "title": "Restauración",
+            }).encode("utf-8")
+
+            class Handler:
+                def _read_body(self):
+                    return payload
+                def send_response(self, code):
+                    self.response = code
+                def send_header(self, *args):
+                    pass
+                def end_headers(self):
+                    pass
+
+            handler = Handler()
+            handler.response = None
+            handler.wfile = mock.Mock()
+
+            with mock.patch.object(server.chat_manager, "CHATS_DIR", tmp):
+                server.PraxisRequestHandler.handle_restore_investigation_snapshot(handler)
+
+            self.assertEqual(handler.response, 200)
+            result = json.loads(handler.wfile.write.call_args.args[0])
+            self.assertEqual(result["status"], "ok")
+            self.assertEqual(result["restored_from"], v1["version_id"])
+            self.assertNotEqual(result["version"]["version_id"], v1["version_id"])
+            self.assertEqual(result["version"]["parent_version_id"], v1["version_id"])
+            self.assertEqual(md.read_text(encoding="utf-8"), "# Versión 1")
+            self.assertEqual(html.read_text(encoding="utf-8"), "<h1>Versión 1</h1>")
+            manifest = result["artifact_manifest"]
+            self.assertEqual(manifest["version_id"], result["version"]["version_id"])
+            self.assertEqual(
+                next(a for a in manifest["artifacts"]
+                     if a["path"] == "entregables/documentos/investigacion.md")["status"],
+                "current",
+            )
+
     def test_artifact_command_promotes_version_and_refreshes_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
             chat_id = "chat-chain"
