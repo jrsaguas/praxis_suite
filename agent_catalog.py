@@ -18,11 +18,20 @@ class AgentMatch:
 
 class AgentCatalog:
     def __init__(self, agents: Iterable[AgentBlueprint] = ()):
-        self._agents = {a.id: a for a in agents}
+        self._agents = {}
+        for agent in agents:
+            self.register(agent)
+
     def register(self, agent: AgentBlueprint) -> None:
+        if agent.status != "validated":
+            raise ValueError("Solo un agente validado puede registrarse en el catálogo")
+        if agent.state == "retired":
+            raise ValueError("Un agente retirado no puede registrarse en el catálogo")
         self._agents[agent.id] = agent
+
     def get(self, agent_id: str) -> AgentBlueprint | None:
         return self._agents.get(str(agent_id))
+
     def search(self, *, requirements=(), tools=(), role="", minimum_compatibility=0.70):
         req, needed = {str(x) for x in requirements}, {str(x) for x in tools}
         role_tokens = set(str(role).lower().split())
