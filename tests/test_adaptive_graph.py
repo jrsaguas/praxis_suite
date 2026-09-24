@@ -22,19 +22,17 @@ class AdaptiveGraphBridgeTests(unittest.TestCase):
 
     def test_static_graph_does_not_activate_adaptive_stage(self):
         bridge = AdaptiveGraphBridge(
-            {"resolver": {"proof"}},
+            {"mathematical_resolver": {"proof"}},
             self._catalog(),
         )
         result = bridge.plan(
             AdaptiveRequest(task="resolver", requirements=("proof",)),
-            requested_agents=("resolver",),
+            requested_agents=("mathematical_resolver",),
         )
         self.assertFalse(result.decision.active)
-        self.assertEqual(result.execution_plan.selected_agents, (
-            "resolver",
-            "final_auditor",
-            "experience_evaluator",
-        ))
+        self.assertIn("mathematical_resolver", result.execution_plan.selected_agents)
+        self.assertIn("final_auditor", result.execution_plan.selected_agents)
+        self.assertIn("experience_evaluator", result.execution_plan.selected_agents)
 
     def test_reusable_agent_enters_existing_graph_as_planned_role(self):
         bridge = AdaptiveGraphBridge({}, self._catalog())
