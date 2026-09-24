@@ -283,6 +283,48 @@ def restore_version_snapshot(
     }
 
 
+def read_version_snapshot_artifact(
+    chats_dir: str,
+    chat_id: str,
+    folder: str,
+    version_id: str,
+    relative_path: str,
+    *,
+    max_bytes: int = 2_000_000,
+) -> Dict[str, Any]:
+    """Read a text artifact from a historical snapshot without mutating live files."""
+    snapshot = get_version_snapshot(chats_dir, chat_id, folder, version_id)
+    if snapshot is None:
+        raise FileNotFoundError(f"No physical snapshot exists for version: {version_id}")
+    rel = str(relative_path or "").replace("\\", "/").strip("/")
+    if not rel or rel.startswith("../") or "/../" in f"/{rel}/":
+        raise ValueError("Ruta de artefacto histórica inválida")
+    item = next((a for a in snapshot.get("artifacts", []) if a.get("path") == rel), None)
+    if item is None:
+        raise FileNotFoundError(f"Artifact not found in snapshot: {rel}")
+    if str(item.get("type", "")) not in {"md", "html"}:
+        raise ValueError("Solo se pueden previsualizar artefactos textuales MD/HTML")
+    root = _version_snapshot_root(chats_dir, chat_id, folder, version_id)
+    source = safe_child_path(root, *rel.split("/"))
+    if not os.path.isfile(source):
+        raise FileNotFoundError(f"Snapshot artifact missing: {rel}")
+    size = os.path.getsize(source)
+    if size > max_bytes:
+        raise ValueError("El artefacto histórico excede el límite de previsualización")
+    with open(source, "r", encoding="utf-8") as handle:
+        content = handle.read()
+    if _sha256_file(source) != item.get("sha256"):
+        raise IOError(f"Snapshot integrity check failed: {rel}")
+    return {
+        "version_id": str(version_id),
+        "path": rel,
+        "type": item.get("type"),
+        "size": size,
+        "sha256": item.get("sha256"),
+        "content": content,
+    }
+
+
 def set_evaluation_profile(
     chats_dir: str,
     chat_id: str,
