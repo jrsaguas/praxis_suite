@@ -16,7 +16,7 @@ class AdaptiveAgentTests(unittest.TestCase):
             tools=("sympy",),
             actions=("symbolic_geometry",),
             context=("surface",),
-        ))
+        ), evidence={"passed": True, "checks": ["legacy-test"]})
         catalog = AgentCatalog((reusable,))
         decision = AdaptiveAgent({}, catalog).decide(AdaptiveRequest(
             task="surface",
@@ -80,7 +80,7 @@ class AgentFactoryTests(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             factory.activate(agent)
-        validated = factory.validate(agent)
+        validated = factory.validate(agent, evidence={"passed": True, "checks": ["legacy-test"]})
         active = factory.activate(validated)
         self.assertEqual(active.status, "validated")
         self.assertEqual(active.state, "active")
@@ -104,7 +104,7 @@ class AgentFactoryTests(unittest.TestCase):
             role="surface geometry",
             model_id="ollama-qwen",
             actions=("surface",),
-        ))
+        ), evidence={"passed": True, "checks": ["legacy-test"]})
         catalog = AgentCatalog()
         catalog.register(validated)
         self.assertEqual(
@@ -129,7 +129,7 @@ class AgentCatalogTests(unittest.TestCase):
             agent_id="surface_specialist",
             role="surface geometry",
             model_id="ollama-qwen",
-        ))
+        ), evidence={"passed": True, "checks": ["legacy-test"]})
         retired = type(validated)(**{
             **validated.to_dict(),
             "state": "retired",
@@ -174,7 +174,7 @@ class FlowComposerTests(unittest.TestCase):
             agent_id="surface_specialist",
             role="surface geometry",
             model_id="ollama-qwen",
-        ))
+        ), evidence={"passed": True, "checks": ["legacy-test"]})
         decision = AdaptiveAgent({}).decide(
             AdaptiveRequest(task="x", explicit_activation=True)
         )
