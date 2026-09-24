@@ -167,6 +167,61 @@ class PathSafetyTests(unittest.TestCase):
                 "current",
             )
 
+    def test_snapshot_preview_route_returns_historical_text_without_mutation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            chat_id = "chat-preview-route"
+            folder = "respuesta_001"
+            response = Path(tmp) / chat_id / folder
+            doc_dir = response / "entregables" / "documentos"
+            doc_dir.mkdir(parents=True)
+            (Path(tmp) / chat_id / "conversacion_metadata.json").write_text(
+                json.dumps({
+                    "id": chat_id,
+                    "responses": [{
+                        "folder": folder,
+                        "version_id": "v-root",
+                        "investigation_id": f"{chat_id}/{folder}",
+                    }],
+                }),
+                encoding="utf-8",
+            )
+            md = doc_dir / "investigacion.md"
+            md.write_text("# Histórico", encoding="utf-8")
+            version = server.investigation_store.register_version(
+                tmp, chat_id, folder, prompt="p", title="V1", source="test",
+                artifact_types=["md"],
+            )
+            md.write_text("# Actual", encoding="utf-8")
+
+            from urllib.parse import quote
+            path = (
+                f"/api/investigations/{quote(chat_id)}/{quote(folder)}"
+                f"/snapshot/entregables/documentos/investigacion.md"
+                f"?version_id={quote(version['version_id'])}"
+            )
+
+            class Handler:
+                def __init__(self):
+                    self.path = path
+                    self.response = None
+                    self.wfile = mock.Mock()
+                def send_response(self, code):
+                    self.response = code
+                def send_header(self, *args):
+                    pass
+                def end_headers(self):
+                    pass
+
+            handler = Handler()
+            with mock.patch.object(server.chat_manager, "CHATS_DIR", tmp):
+                server.PraxisRequestHandler.do_GET(handler)
+
+            self.assertEqual(handler.response, 200)
+            payload = json.loads(handler.wfile.write.call_args.args[0])
+            self.assertEqual(payload["status"], "ok")
+            self.assertEqual(payload["artifact"]["content"], "# Histórico")
+            self.assertEqual(md.read_text(encoding="utf-8"), "# Actual")
+
     def test_artifact_command_promotes_version_and_refreshes_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
             chat_id = "chat-chain"
