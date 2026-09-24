@@ -44,7 +44,12 @@ class AgentGraphPlanner:
         required_artifacts: Iterable[str] = (),
         depth_requirements: Optional[Mapping[str, object]] = None,
         model_overrides: Optional[Mapping[str, str]] = None,
+        additional_agents: Iterable[AgentSpec] = (),
     ) -> ExecutionPlan:
+        additional = tuple(additional_agents)
+        registry = dict(self._agents)
+        for agent in additional:
+            registry[agent.id] = agent
         requested = set(requested_agents or ())
         artifacts = set(required_artifacts)
         experience_context = {}
@@ -59,13 +64,13 @@ class AgentGraphPlanner:
             for ref in (experience_context.get("references") or [])
             if ref.get("strategy_id")
         }
-        selected = self._closure(requested, artifacts)
+        selected = self._closure_with_registry(requested, artifacts, registry)
         selected.update(self._agents_required_by_depth(depth_requirements or {}))
         if "final_auditor" not in selected and (selected or requested or artifacts):
             selected.add("final_auditor")
         if "experience_evaluator" not in selected and (selected or requested or artifacts):
             selected.add("experience_evaluator")
-        selected = self._closure(selected, set())
+        selected = self._closure_with_registry(selected, set(), registry)
         tasks = []
         overrides = dict(model_overrides or {})
         try:
@@ -74,7 +79,7 @@ class AgentGraphPlanner:
         except Exception:
             router = None
         for agent_id in self._topological(selected):
-            spec = self._agents[agent_id]
+            spec = registry[agent_id]
             deps = tuple(d for d in spec.depends_on if d in selected)
             tasks.append(AgentTask(
                 task_id=f"task:{agent_id}",
@@ -156,3 +161,24 @@ class AgentGraphPlanner:
             for deps in pending.values():
                 deps.difference_update(ready)
         return result
+
+    def _closure_with_registry(self, requested: set[str], artifacts: set[str], registry: Mapping[str, AgentSpec]) -> set[str]:
+        owners = {
+            "python": "python_visualizer", "figure": "python_visualizer",
+            "canvas": "canvas_engineer", "proof": "proof_specialist",
+            "research": "research_specialist", "markdown": "document_engineer",
+            "html": "document_engineer", "docx": "document_engineer",
+        }
+        selected = set(requested)
+        selected.update(owners[a] for a in artifacts if a in owners)
+        changed = True
+        while changed:
+            changed = False
+            for agent_id in tuple(selected):
+                if agent_id not in registry:
+                    raise KeyError(agent_id)
+                for dep in registry[agent_id].depends_on:
+                    if dep not in selected:
+                        selected.add(dep)
+                        changed = True
+        return selected
