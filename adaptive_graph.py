@@ -75,9 +75,9 @@ class AdaptiveGraphBridge:
             model_overrides=model_overrides,
             additional_agents=reusable_specs,
         )
-        architecture = self.architect.synthesize(request, decision=decision)
-        generated_candidates = (architecture.candidate.id,) if architecture.candidate else ()
         patterns = tuple(selected_patterns)
+        architecture = self.architect.synthesize(request, decision=decision, validated_patterns=patterns)
+        generated_candidates = (architecture.candidate.id,) if architecture.candidate else ()
         patterns = tuple(selected_patterns)
         planning_metadata = {
             "adaptive_selection": {
