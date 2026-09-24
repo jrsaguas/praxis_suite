@@ -56,7 +56,9 @@ class AdaptiveGraphBridgeTests(unittest.TestCase):
         self.assertTrue(result.decision.active)
         self.assertTrue(result.decision.generated_agent_required)
         self.assertNotIn("unavailable_capability", result.execution_plan.selected_agents)
-        self.assertFalse(result.generated_candidates)
+        self.assertEqual(len(result.generated_candidates), 1)
+        self.assertNotIn(result.generated_candidates[0], result.execution_plan.selected_agents)
+        self.assertEqual(result.execution_plan.planning_metadata["adaptive_selection"]["generated_candidates"], list(result.generated_candidates))
 
     def test_adaptive_selection_is_recorded_in_runtime_trace(self):
         bridge = AdaptiveGraphBridge({}, self._catalog())
