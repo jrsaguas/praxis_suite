@@ -146,7 +146,7 @@ def _version_snapshot_root(chats_dir: str, chat_id: str, folder: str, version_id
         validate_component(folder, "folder"),
     )
     validate_component(version_id, "version_id")
-    return safe_child_path(response_path, ".version_snapshots/" + str(version_id))
+    return safe_child_path(response_path, "version_snapshots", str(version_id))
 
 
 def snapshot_version_artifacts(
@@ -195,7 +195,7 @@ def snapshot_version_artifacts(
     snapshot = {
         "version_id": str(version_id),
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "root": ".version_snapshots/" + str(version_id),
+        "root": "version_snapshots/" + str(version_id),
         "artifacts": sorted(entries, key=lambda item: item["path"]),
     }
     meta = _load(chats_dir, chat_id)
