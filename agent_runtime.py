@@ -113,6 +113,13 @@ class AgentRuntime:
         events = []
         blocked = []
         sequence = 0
+        planning_metadata = dict(getattr(plan, "planning_metadata", {}) or {})
+        if planning_metadata:
+            event = ExecutionEvent(0, "plan:selection", "orchestrator", "planning", "recorded", message="structured planning metadata recorded")
+            events.append(event)
+            if self.event_sink is not None:
+                self.event_sink(event)
+            artifacts["planning_metadata"] = planning_metadata
         pending = {task.task_id: task for task in plan.tasks}
 
         while pending:
