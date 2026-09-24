@@ -95,6 +95,28 @@ class TestAgentArchitect(unittest.TestCase):
         self.assertEqual(result.candidate.status, "candidate")
         self.assertEqual(result.candidate.state, "sleeping")
 
+    def test_validated_strategy_evidence_reaches_candidate_without_validation(self):
+        request = self._request()
+        result = AgentArchitect().synthesize(
+            request,
+            validated_patterns=(
+                {"pattern_id": "pat-surface-1", "status": "validated", "task_family": "geometry"},
+            ),
+            validated_strategies=(
+                {
+                    "strategy": {"strategy_id": "surface-v2", "status": "promoted"},
+                    "selection_score": .94,
+                    "validated_pattern_evidence": {"pattern_ids": ["pat-surface-1"]},
+                },
+                {
+                    "strategy": {"strategy_id": "ignored", "status": "candidate"},
+                },
+            ),
+        )
+        self.assertEqual(result.strategy_ids, ("surface-v2",))
+        self.assertIn("validated_strategy:surface-v2", result.candidate.context)
+        self.assertEqual(result.candidate.status, "candidate")
+
     def test_architect_candidate_is_not_execution_eligible_until_validated(self):
         request = self._request()
         factory = AgentFactory()
