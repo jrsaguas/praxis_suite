@@ -13,6 +13,7 @@ import re
 from typing import Mapping, Tuple
 
 from adaptive_agent import AdaptiveRequest, AdaptationDecision
+from agent_archetypes import infer_archetype
 from agent_catalog import AgentCatalog
 from agent_factory import AgentBlueprint, AgentFactory
 
@@ -70,17 +71,34 @@ class AgentArchitect:
         requirements: Tuple[str, ...],
     ) -> str:
         """Infer a stable specialist role from explicit task/tool signals."""
-        if any(t in {"canvas", "javascript", "html", "js"} for t in tools):
+        archetype = infer_archetype(
+            tools=tools,
+            requirements=requirements,
+            role=request.role,
+        )
+        if archetype.id == "canvas_html":
             return "canvas-html specialist"
-        if any(t in {"python", "matplotlib", "plotly"} for t in tools):
+        if archetype.id == "python_visualization":
             return "python-visualization specialist"
-        if any("proof" in x or "formal" in x for x in requirements):
+        if archetype.id == "mathematical_proof":
             return "mathematical-proof specialist"
-        if any("research" in x or "source" in x for x in requirements):
+        if archetype.id == "research":
             return "research specialist"
-        if any("code" in x or "implementation" in x for x in requirements):
+        if archetype.id == "code":
             return "code specialist"
-        return request.role.strip() or "adaptive specialist"
+        if archetype.id == "integrator":
+            return "integrator specialist"
+        if request.role.strip():
+            return request.role.strip()
+        return "adaptive specialist"
+
+    @staticmethod
+    def _archetype_context(
+        request: AdaptiveRequest,
+        tools: Tuple[str, ...],
+        requirements: Tuple[str, ...],
+    ) -> str:
+        return f"archetype:{infer_archetype(tools=tools, requirements=requirements, role=request.role).id}"
 
     def synthesize(
         self,
@@ -129,10 +147,9 @@ class AgentArchitect:
         evaluation = tuple(dict.fromkeys(request.acceptance_criteria))
         actions = tuple(dict.fromkeys((*requirements, *request.acceptance_criteria)))
 
-        strategy_context = tuple(
-            f"validated_strategy:{sid}" for sid in strategy_ids
-        )
+        strategy_context = tuple(f"validated_strategy:{sid}" for sid in strategy_ids)
         pattern_context = tuple(f"validated_pattern:{pid}" for pid in pattern_ids)
+        archetype_context = self._archetype_context(request, tools, requirements)
         role = self._infer_specialist_role(request, tools, requirements)
         candidate = self.factory.create(
             agent_id=self._stable_id(request),
@@ -142,6 +159,7 @@ class AgentArchitect:
             context=(
                 request.task,
                 *requirements,
+                archetype_context,
                 *strategy_context,
                 *pattern_context,
             ),
