@@ -5,9 +5,9 @@ modify investigations, or silently promote generated agents.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import re
-from typing import Iterable, Mapping, Tuple
+from typing import Iterable, Tuple
 
 
 _ID_RE = re.compile(r"^[a-z][a-z0-9_-]{1,63}$")
@@ -41,66 +41,56 @@ class AgentBlueprint:
 
     def to_dict(self):
         return {
-            "id": self.id,
-            "role": self.role,
-            "model_id": self.model_id,
-            "tools": list(self.tools),
-            "context": list(self.context),
-            "state": self.state,
-            "memory": list(self.memory),
-            "evaluation": list(self.evaluation),
-            "actions": list(self.actions),
-            "source": self.source,
-            "status": self.status,
+            "id": self.id, "role": self.role, "model_id": self.model_id,
+            "tools": list(self.tools), "context": list(self.context),
+            "state": self.state, "memory": list(self.memory),
+            "evaluation": list(self.evaluation), "actions": list(self.actions),
+            "source": self.source, "status": self.status,
         }
 
 
+def _copy(agent: AgentBlueprint, **changes) -> AgentBlueprint:
+    data = agent.to_dict()
+    data.update(changes)
+    for key in ("tools", "context", "memory", "evaluation", "actions"):
+        data[key] = tuple(data[key])
+    return AgentBlueprint(**data)
+
+
 class AgentFactory:
-    """Validate and construct agents while keeping generated agents dormant."""
+    """Validate, reject, and construct agents while keeping them dormant."""
 
     def create(
-        self,
-        *,
-        agent_id: str,
-        role: str,
-        model_id: str,
-        tools: Iterable[str] = (),
-        context: Iterable[str] = (),
-        memory: Iterable[str] = (),
-        evaluation: Iterable[str] = (),
-        actions: Iterable[str] = (),
-        source: str = "agent_factory",
+        self, *, agent_id: str, role: str, model_id: str,
+        tools: Iterable[str] = (), context: Iterable[str] = (),
+        memory: Iterable[str] = (), evaluation: Iterable[str] = (),
+        actions: Iterable[str] = (), source: str = "agent_factory",
     ) -> AgentBlueprint:
         return AgentBlueprint(
-            id=str(agent_id),
-            role=str(role),
-            model_id=str(model_id),
-            tools=tuple(str(x) for x in tools),
-            context=tuple(str(x) for x in context),
-            state="sleeping",
-            memory=tuple(str(x) for x in memory),
+            id=str(agent_id), role=str(role), model_id=str(model_id),
+            tools=tuple(str(x) for x in tools), context=tuple(str(x) for x in context),
+            state="sleeping", memory=tuple(str(x) for x in memory),
             evaluation=tuple(str(x) for x in evaluation),
             actions=tuple(str(x) for x in actions),
-            source=str(source),
-            status="candidate",
+            source=str(source), status="candidate",
         )
+
+    @staticmethod
+    def validate(agent: AgentBlueprint) -> AgentBlueprint:
+        if agent.status != "candidate":
+            raise ValueError("Solo un candidato puede validarse")
+        return _copy(agent, status="validated")
+
+    @staticmethod
+    def reject(agent: AgentBlueprint) -> AgentBlueprint:
+        if agent.status != "candidate":
+            raise ValueError("Solo un candidato puede rechazarse")
+        return _copy(agent, status="rejected")
 
     @staticmethod
     def activate(agent: AgentBlueprint) -> AgentBlueprint:
         if agent.status != "validated":
             raise ValueError("Solo un agente validado puede activarse")
-        return AgentBlueprint(**{**agent.to_dict(), "state": "active",
-                                 "tools": tuple(agent.tools),
-                                 "context": tuple(agent.context),
-                                 "memory": tuple(agent.memory),
-                                 "evaluation": tuple(agent.evaluation),
-                                 "actions": tuple(agent.actions)})
-
-    @staticmethod
-    def validate(agent: AgentBlueprint) -> AgentBlueprint:
-        return AgentBlueprint(**{**agent.to_dict(), "status": "validated",
-                                 "tools": tuple(agent.tools),
-                                 "context": tuple(agent.context),
-                                 "memory": tuple(agent.memory),
-                                 "evaluation": tuple(agent.evaluation),
-                                 "actions": tuple(agent.actions)})
+        if agent.state == "retired":
+            raise ValueError("Un agente retirado no puede activarse")
+        return _copy(agent, state="active")
