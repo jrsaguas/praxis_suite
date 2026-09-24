@@ -93,6 +93,55 @@ class AdaptiveGraphBridgeTests(unittest.TestCase):
         self.assertEqual(selected[0]["source_record_ids"], ["exp-1"])
         self.assertNotIn("pat-valid", result.execution_plan.selected_agents)
 
+    def test_strategy_evidence_flows_to_architect_and_trace_metadata(self):
+        bridge = AdaptiveGraphBridge({})
+        result = bridge.plan(
+            AdaptiveRequest(task="surface", requirements=("unavailable_capability",)),
+            selected_patterns=[
+                {
+                    "pattern_id": "pat-surface",
+                    "status": "validated",
+                    "task_family": "geometry",
+                    "strategy_id": "surface-v2",
+                    "selection": {"score": .93},
+                    "source_record_ids": ["exp-1"],
+                },
+            ],
+            strategy_context={
+                "strategies": [
+                    {
+                        "strategy": {
+                            "strategy_id": "surface-v2",
+                            "status": "promoted",
+                        },
+                        "selection_score": .94,
+                        "validated_pattern_evidence": {
+                            "pattern_ids": ["pat-surface"],
+                        },
+                    },
+                    {
+                        "strategy": {
+                            "strategy_id": "candidate-v3",
+                            "status": "candidate",
+                        },
+                        "selection_score": 1.0,
+                    },
+                ],
+            },
+        )
+        self.assertEqual(
+            result.execution_plan.planning_metadata["selected_strategies"][0]["strategy_id"],
+            "surface-v2",
+        )
+        self.assertEqual(
+            result.execution_plan.planning_metadata["selected_strategies"][0]["validated_pattern_evidence"]["pattern_ids"],
+            ["pat-surface"],
+        )
+        self.assertEqual(
+            result.execution_plan.planning_metadata["adaptive_selection"]["strategy_ids"],
+            ["surface-v2"],
+        )
+
     def test_dynamic_reusable_agent_is_deterministically_planned(self):
         bridge = AdaptiveGraphBridge({}, self._catalog())
         first = bridge.plan(AdaptiveRequest(
