@@ -150,13 +150,51 @@ def select_validated_patterns(
     records: Iterable[Dict[str, Any]],
     *,
     task_family: Optional[str] = None,
+    depth_requirements: Optional[Dict[str, Any]] = None,
     limit: int = 5,
 ) -> list[Dict[str, Any]]:
-    """Return only explicitly validated patterns; candidates are never reusable."""
-    rows = [
-        p for p in records
-        if p.get("status") == "validated"
-        and (not task_family or p.get("task_family") == task_family)
-    ]
-    rows.sort(key=lambda p: p.get("created_at", ""), reverse=True)
-    return rows[:max(1, int(limit))]
+    """Select validated patterns using family, depth similarity and evidence.
+
+    Selection is deterministic and traceable. A candidate or rejected pattern
+    can never enter the result, regardless of its score.
+    """
+    target = dict(depth_requirements or {})
+    target = dict(target.get("profile") or target)
+    dimensions = (
+        "rigor", "prerequisites", "formalism", "proof", "research",
+        "visualization", "experimentation", "generalization", "applications",
+    )
+
+    def depth_similarity(pattern: Dict[str, Any]) -> float:
+        observed = dict(pattern.get("signature", {}).get("mathematical_depth") or {})
+        observed = dict(observed.get("profile") or observed)
+        pairs = [(float(target[k]), float(observed[k])) for k in dimensions if k in target and k in observed]
+        if not pairs:
+            return 0.0
+        return sum(max(0.0, 1.0 - abs(a - b) / 100.0) for a, b in pairs) / len(pairs)
+
+    rows = []
+    for pattern in records:
+        if pattern.get("status") != "validated":
+            continue
+        if task_family and pattern.get("task_family") != task_family:
+            continue
+        evidence = pattern.get("evidence") or {}
+        evaluation = max(0.0, min(1.0, float(evidence.get("evaluation_score", 0.0))))
+        rating = evidence.get("user_rating")
+        rating_score = float(rating) / 100.0 if rating is not None else 0.0
+        similarity = depth_similarity(pattern)
+        score = 0.50 * evaluation + 0.20 * rating_score + 0.30 * similarity
+        rows.append((score, pattern))
+
+    rows.sort(key=lambda item: (-item[0], str(item[1].get("pattern_id", ""))))
+    selected = []
+    for score, pattern in rows[:max(1, int(limit))]:
+        item = dict(pattern)
+        item["selection"] = {
+            "score": round(score, 6),
+            "depth_similarity": round(depth_similarity(pattern), 6),
+            "policy": "validated_family_depth_evidence_v1",
+        }
+        selected.append(item)
+    return selected
