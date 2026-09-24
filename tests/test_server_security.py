@@ -3,6 +3,9 @@ from pathlib import Path
 import tempfile
 import json
 import os
+import http.client
+import socketserver
+import threading
 from unittest import mock
 
 import server
@@ -90,6 +93,65 @@ class PathSafetyTests(unittest.TestCase):
             fake_plan,
             initial_context=mock.ANY,
         )
+
+    def test_agent_graph_execute_real_http_request(self):
+        payload = {
+            "task": "verificar una identidad algebraica",
+            "chat_id": "chat-http",
+            "evaluation_profile": {"mathematics": 90, "depth": 85},
+            "task_family": "algebra",
+            "required_artifacts": [],
+            "max_retries": 0,
+        }
+
+        fake_plan = mock.Mock(name="plan")
+        fake_trace = mock.Mock(status="completed")
+        fake_trace.to_dict.return_value = {"status": "completed", "events": []}
+
+        with mock.patch.object(
+            server.investigation_store, "get_evaluation_profile", return_value={}
+        ), mock.patch.object(
+            server.learning_bridge, "build_experience_context", return_value={"references": []}
+        ), mock.patch.object(
+            server.agent_graph.AgentGraphPlanner, "plan", return_value=fake_plan
+        ) as planner, mock.patch.object(
+            server.learning_bridge, "make_runtime_experience_sink", return_value=mock.Mock()
+        ) as sink_factory, mock.patch.object(
+            server.agent_runtime, "AgentRuntime"
+        ) as runtime_cls:
+            runtime_cls.return_value.run.return_value = fake_trace
+            with socketserver.ThreadingTCPServer(("127.0.0.1", 0), server.PraxisRequestHandler) as httpd:
+                thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+                thread.start()
+                try:
+                    host, port = httpd.server_address
+                    conn = http.client.HTTPConnection(host, port, timeout=5)
+                    body = json.dumps(payload).encode("utf-8")
+                    conn.request(
+                        "POST",
+                        "/api/agent-graph/execute",
+                        body=body,
+                        headers={
+                            "Content-Type": "application/json",
+                            "Content-Length": str(len(body)),
+                        },
+                    )
+                    response = conn.getresponse()
+                    response_body = json.loads(response.read().decode("utf-8"))
+                    conn.close()
+                finally:
+                    httpd.shutdown()
+                    thread.join(timeout=5)
+
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response_body["status"], "completed")
+        planner.assert_called_once()
+        sink_factory.assert_called_once()
+        runtime_cls.return_value.run.assert_called_once_with(
+            fake_plan,
+            initial_context=mock.ANY,
+        )
+
 
     def test_restore_snapshot_route_creates_new_version_and_current_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
