@@ -177,7 +177,7 @@ def snapshot_version_artifacts(
                 for filename in filenames:
                     source = os.path.join(dirpath, filename)
                     rel = os.path.relpath(source, response_path).replace(os.sep, "/")
-                    target = safe_child_path(snapshot_root, rel)
+                    target = safe_child_path(snapshot_root, *rel.split("/"))
                     os.makedirs(os.path.dirname(target), exist_ok=True)
                     shutil.copy2(source, target)
                     entries.append({
@@ -264,7 +264,7 @@ def restore_version_snapshot(
     restored = []
     for item in snapshot.get("artifacts", []):
         rel = str(item["path"])
-        source = safe_child_path(snapshot_root, rel)
+        source = safe_child_path(snapshot_root, *rel.split("/"))
         target = safe_child_path(response_path, rel)
         if not os.path.isfile(source):
             raise FileNotFoundError(f"Snapshot artifact missing: {rel}")
