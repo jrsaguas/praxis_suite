@@ -1,5 +1,5 @@
 # PLAN DE EJECUCIÓN — CIERRE P0/P1
-Fecha: 2026-09-22
+Fecha de actualización: 2026-09-24
 Rama: audit/hardening-2026-09
 
 ## Objetivo
@@ -16,8 +16,8 @@ perfil objetivo → referencias aceptadas → planner → AgentRuntime → audit
 - [x] Fingerprint estable de tarea.
 - [x] Experience sink conectado al runtime.
 - [x] Fallo de persistencia no invalida ejecución.
-- [ ] Prueba HTTP real del endpoint.
-- [ ] CI verde sobre el conjunto completo.
+- [x] Prueba HTTP real del endpoint.
+- [x] CI verde sobre el conjunto completo.
 
 ## Fase P1 — Aprendizaje controlado
 - [x] Resultados del evaluador se almacenan como candidate.
@@ -30,14 +30,17 @@ perfil objetivo → referencias aceptadas → planner → AgentRuntime → audit
 - [ ] Verificar flujo completo con datos de una investigación real.
 
 ## Fase P1.5 — Artefactos/versionado
-- [ ] Estado freshness: current/stale/invalid.
-- [ ] Relación fuente MD → derivados HTML/DOCX/DOC.
-- [ ] Manifest actualizado tras cada ejecución.
-- [ ] Descargas apuntan a versión actual.
-- [ ] Prueba de edición → regeneración → manifest.
+- [x] Estado freshness: current/stale/invalid.
+- [x] Relación fuente MD → derivados HTML/DOCX/DOC.
+- [x] Manifest actualizado tras cada ejecución.
+- [x] Descargas apuntan a versión actual.
+- [x] Prueba de edición → regeneración → manifest.
+- [x] Snapshots físicos por versión y restauración como nueva versión.
+- [x] Lectura verificada de MD/HTML históricos en modo solo lectura.
+- [x] Previsualización de snapshots desde la UI.
 
 ## Fase P2 — UI y expansión
-- [ ] Navegación visual de versiones.
+- [x] Navegación visual de versiones.
 - [ ] Edición contextual por bloque/canvas/imagen.
 - [ ] Adaptive Agent.
 - [ ] Agent Factory.
@@ -59,3 +62,10 @@ No se considera terminado hasta que:
 - El PR #1 es grande; evitar más cambios estructurales innecesarios.
 - Algunas pruebas existentes son de inspección de fuente; deben sustituirse gradualmente por integración HTTP.
 - La ejecución real depende de adaptadores/modelos disponibles; el test debe aislar proveedor cuando corresponda.
+
+
+## Cierre técnico de este bloque — 2026-09-24
+
+El bloque de endurecimiento runtime → ejecución → evaluación → experiencia → versionado queda cerrado en la rama de auditoría una vez que el CI de la última prueba HTTP confirma la batería completa. La evidencia actual incluye ejecución sobre HTTP real, trazabilidad observable, auditoría terminal, experiencia persistida como candidate, selección exclusiva de accepted, perfiles multidimensionales, manifest/freshness, snapshots físicos, restauración ramificada y previsualización histórica de solo lectura.
+
+Queda fuera de este cierre, deliberadamente, la expansión P2: Adaptive Agent, Agent Factory y panel avanzado de herramientas. Es una fase posterior y no debe mezclarse con la estabilización ya terminada.
