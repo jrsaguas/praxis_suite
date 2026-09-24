@@ -7,6 +7,7 @@ from learning_patterns import (
     persist_candidates,
     update_status,
     select_validated_patterns,
+    list_patterns,
 )
 
 
@@ -54,10 +55,7 @@ class LearningPatternTests(unittest.TestCase):
             self.assertEqual(select_validated_patterns(saved), [])
             update_status(tmp, "chat-1", saved[0]["pattern_id"], status="validated")
             patterns = select_validated_patterns(
-                __import__("learning_patterns")._load(
-                    __import__("learning_patterns")._path(tmp, "chat-1")
-                )["patterns"],
-                task_family="geometry",
+                list_patterns(tmp, "chat-1"), task_family="geometry"
             )
             self.assertEqual(patterns[0]["pattern_id"], saved[0]["pattern_id"])
 
@@ -69,11 +67,7 @@ class LearningPatternTests(unittest.TestCase):
             )
             update_status(tmp, "chat-1", saved[0]["pattern_id"], status="rejected")
             self.assertEqual(
-                select_validated_patterns(
-                    __import__("learning_patterns")._load(
-                        __import__("learning_patterns")._path(tmp, "chat-1")
-                    )["patterns"]
-                ),
+                select_validated_patterns(list_patterns(tmp, "chat-1")),
                 [],
             )
 
