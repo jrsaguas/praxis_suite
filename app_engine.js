@@ -4419,9 +4419,9 @@ window.renderInvestigationVersionPanel = async function(chatId, folder, currentV
     const source = v.source || 'pipeline';
     const date = v.created_at ? new Date(v.created_at).toLocaleString() : 'sin fecha';
     return `
-      <button type="button"
+      <div role="button" tabindex="0"
         data-version-id="${esc(v.version_id || '')}"
-        onclick="window.selectInvestigationVersion('${esc(chatId)}','${esc(folder)}','${esc(v.version_id || '')}')"
+        onclick="if (!event.target.closest('button')) window.selectInvestigationVersion('${esc(chatId)}','${esc(folder)}','${esc(v.version_id || '')}')"
         style="width:100%;text-align:left;border:1px solid ${active ? 'var(--brand)' : 'var(--line)'};background:${active ? 'var(--brand-tint)' : 'var(--card)'};border-radius:9px;padding:9px 11px;cursor:pointer;color:var(--ink);">
         <div style="display:flex;align-items:center;gap:7px;">
           <span style="font-weight:800;">${active ? '●' : '○'} V${idx + 1}</span>
@@ -4431,7 +4431,7 @@ window.renderInvestigationVersionPanel = async function(chatId, folder, currentV
         <div style="font-size:9.5px;color:var(--muted);margin-top:4px;">${esc(date)} · ${esc((v.version_id || '').slice(0, 12))}</div>
         ${v.prompt ? `<div style="font-size:10.5px;color:var(--ink-2);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(v.prompt)}</div>` : ''}
         ${v.snapshot_available ? `<div style="margin-top:7px;"><button type="button" class="btn sm ghost" onclick="event.stopPropagation();window.restoreInvestigationVersion('${esc(chatId)}','${esc(folder)}','${esc(v.version_id || '')}')">Restaurar esta versión como nueva</button></div>` : '<div style="font-size:9px;color:var(--muted);margin-top:6px;">Snapshot no disponible</div>'}
-      </button>`;
+      </div>`;
   }).join('');
 
   return `
