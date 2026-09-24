@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import re
-from typing import Tuple
+from typing import Mapping, Tuple
 
 from adaptive_agent import AdaptiveRequest, AdaptationDecision
 from agent_catalog import AgentCatalog
@@ -22,6 +22,7 @@ class ArchitectureDecision:
     reusable_agents: Tuple[str, ...] = ()
     candidate: AgentBlueprint | None = None
     reason: str = ""
+    pattern_ids: Tuple[str, ...] = ()
 
     @property
     def generated(self) -> bool:
@@ -32,6 +33,7 @@ class ArchitectureDecision:
             "reusable_agents": list(self.reusable_agents),
             "candidate": self.candidate.to_dict() if self.candidate else None,
             "reason": self.reason,
+            "pattern_ids": list(self.pattern_ids),
         }
 
 
@@ -65,6 +67,7 @@ class AgentArchitect:
         *,
         decision: AdaptationDecision | None = None,
         model_id: str = "adaptive-default",
+        validated_patterns: Tuple[Mapping[str, object], ...] = (),
     ) -> ArchitectureDecision:
         matches = self.catalog.search(
             requirements=request.requirements,
@@ -72,15 +75,23 @@ class AgentArchitect:
             role=request.role,
         )
 
+        pattern_ids = tuple(
+            str(p.get("pattern_id"))
+            for p in validated_patterns
+            if p.get("status") == "validated" and p.get("pattern_id")
+        )
+
         if matches:
             return ArchitectureDecision(
                 reusable_agents=tuple(m.agent_id for m in matches),
                 reason="reusable_validated_agent_available",
+                pattern_ids=pattern_ids,
             )
 
         if decision is not None and not decision.generated_agent_required:
             return ArchitectureDecision(
                 reason="generation_not_required",
+                pattern_ids=pattern_ids,
             )
 
         role = request.role.strip() or "adaptive specialist"
@@ -89,12 +100,13 @@ class AgentArchitect:
         evaluation = tuple(dict.fromkeys(request.acceptance_criteria))
         actions = tuple(dict.fromkeys((*requirements, *request.acceptance_criteria)))
 
+        pattern_context = tuple(f"validated_pattern:{pid}" for pid in pattern_ids)
         candidate = self.factory.create(
             agent_id=self._stable_id(request),
             role=role,
             model_id=model_id,
             tools=tools,
-            context=(request.task, *requirements),
+            context=(request.task, *requirements, *pattern_context),
             memory=tuple(sorted(str(k) for k in request.context)),
             evaluation=evaluation,
             actions=actions,
@@ -103,6 +115,7 @@ class AgentArchitect:
         return ArchitectureDecision(
             candidate=candidate,
             reason="no_reusable_validated_agent_available",
+            pattern_ids=pattern_ids,
         )
 
     def from_request(
