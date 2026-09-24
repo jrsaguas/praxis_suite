@@ -130,6 +130,33 @@ class InvestigationStoreTests(unittest.TestCase):
             self.assertEqual(html.read_text(encoding="utf-8"), "<h1>V1</h1>")
             self.assertNotEqual(v1["version_id"], v2["version_id"])
 
+    def test_historical_snapshot_text_artifact_is_read_only_and_verified(self):
+        with tempfile.TemporaryDirectory() as td:
+            chat_id = "chat_preview"
+            folder = "respuesta_preview"
+            response_path = Path(self._write_response(td, chat_id, folder))
+            doc_dir = response_path / "entregables" / "documentos"
+            doc_dir.mkdir(parents=True, exist_ok=True)
+            md = doc_dir / "investigacion.md"
+            md.write_text("# Histórico V1", encoding="utf-8")
+            version = investigation_store.register_version(
+                td, chat_id, folder, prompt="p1", title="V1", source="pipeline"
+            )
+            current = investigation_store.read_version_snapshot_artifact(
+                td, chat_id, folder, version["version_id"],
+                "entregables/documentos/investigacion.md",
+            )
+            self.assertEqual(current["content"], "# Histórico V1")
+            self.assertEqual(current["type"], "md")
+            self.assertEqual(len(current["sha256"]), 64)
+            md.write_text("# Estado actual", encoding="utf-8")
+            historical = investigation_store.read_version_snapshot_artifact(
+                td, chat_id, folder, version["version_id"],
+                "entregables/documentos/investigacion.md",
+            )
+            self.assertEqual(historical["content"], "# Histórico V1")
+            self.assertEqual(md.read_text(encoding="utf-8"), "# Estado actual")
+
     def test_successful_execution_can_branch_from_selected_version(self):
         with tempfile.TemporaryDirectory() as tmp:
             chats = Path(tmp) / "chats"
