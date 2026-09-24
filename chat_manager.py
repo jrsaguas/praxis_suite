@@ -290,6 +290,13 @@ def save_response_to_chat(chat_id, data):
     with open(meta_file, "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
 
+    # El primer estado de la investigación también debe ser recuperable.
+    # Se crea después de persistir metadata para que el snapshot pueda registrar
+    # correctamente la versión raíz dentro de la misma respuesta existente.
+    investigation_store.snapshot_version_artifacts(
+        CHATS_DIR, chat_id, resp_folder, version.version_id
+    )
+
     return {
         "status": "ok",
         "chat_id": chat_id,
