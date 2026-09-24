@@ -6,7 +6,6 @@ from typing import Iterable, Mapping, Tuple
 
 from adaptive_agent import AdaptiveAgent, AdaptiveRequest, AdaptationDecision
 from agent_architecture import AgentSpec
-from agent_factory import AgentBlueprint
 from agent_graph import AgentGraphPlanner, ExecutionPlan
 from agent_catalog import AgentCatalog
 from agent_architect import AgentArchitect
@@ -30,11 +29,12 @@ class AdaptiveGraphPlan:
 
 
 class AdaptiveGraphBridge:
-    """Resolve reusable agents, then hand the resulting roles to AgentGraphPlanner.
+    """Resolve reusable agents, strategies, then hand roles to the graph.
 
     This bridge is planning-only: it never activates agents, calls models, or
     mutates investigation state. Unvalidated factory candidates are reported
-    separately and cannot enter the execution plan.
+    separately and cannot enter the execution plan. Strategy definitions must
+    already be promoted; validated patterns are evidence only.
     """
 
     def __init__(
@@ -58,6 +58,7 @@ class AdaptiveGraphBridge:
         depth_requirements: Mapping[str, object] | None = None,
         model_overrides: Mapping[str, str] | None = None,
         selected_patterns: Iterable[Mapping[str, object]] = (),
+        strategy_context: Mapping[str, object] | None = None,
     ) -> AdaptiveGraphPlan:
         decision = self.adaptive.decide(request)
         reusable_specs = tuple(
@@ -75,29 +76,55 @@ class AdaptiveGraphBridge:
             model_overrides=model_overrides,
             additional_agents=reusable_specs,
         )
+
         patterns = tuple(selected_patterns)
-        architecture = self.architect.synthesize(request, decision=decision, validated_patterns=patterns)
+        strategies = tuple(
+            item for item in (strategy_context or {}).get("strategies", [])
+            if str(item.get("strategy", {}).get("status", "")) == "promoted"
+        )
+        architecture = self.architect.synthesize(
+            request,
+            decision=decision,
+            validated_patterns=patterns,
+            validated_strategies=strategies,
+        )
         generated_candidates = (architecture.candidate.id,) if architecture.candidate else ()
-        patterns = tuple(selected_patterns)
+
+        selected_pattern_metadata = [
+            {
+                "pattern_id": str(pattern.get("pattern_id")),
+                "task_family": str(pattern.get("task_family", "")),
+                "strategy_id": str(pattern.get("strategy_id", "")),
+                "selection": dict(pattern.get("selection") or {}),
+                "source_record_ids": [str(x) for x in pattern.get("source_record_ids", [])],
+            }
+            for pattern in patterns
+            if pattern.get("status") == "validated" and pattern.get("pattern_id")
+        ]
+        selected_strategy_metadata = [
+            {
+                "strategy_id": str(item.get("strategy", {}).get("strategy_id")),
+                "selection_score": float(item.get("selection_score", 0.0)),
+                "signals": dict(item.get("signals") or {}),
+                "validated_pattern_evidence": dict(
+                    item.get("validated_pattern_evidence") or {}
+                ),
+            }
+            for item in strategies
+            if item.get("strategy", {}).get("strategy_id")
+        ]
         planning_metadata = {
             "adaptive_selection": {
                 **decision.to_dict(),
                 "selected_reusable_agents": [spec.id for spec in reusable_specs],
                 "generated_candidates": list(generated_candidates),
                 "architecture_reason": architecture.reason,
+                "strategy_ids": list(architecture.strategy_ids),
             },
             "mathematical_depth": dict(depth_requirements or {}),
             "execution_agents": list(plan.selected_agents),
-            "selected_patterns": [
-                {
-                    "pattern_id": str(pattern.get("pattern_id")),
-                    "task_family": str(pattern.get("task_family", "")),
-                    "selection": dict(pattern.get("selection") or {}),
-                    "source_record_ids": [str(x) for x in pattern.get("source_record_ids", [])],
-                }
-                for pattern in patterns
-                if pattern.get("status") == "validated" and pattern.get("pattern_id")
-            ],
+            "selected_patterns": selected_pattern_metadata,
+            "selected_strategies": selected_strategy_metadata,
         }
         plan = replace(plan, planning_metadata=planning_metadata)
         return AdaptiveGraphPlan(decision, plan, generated_candidates)
