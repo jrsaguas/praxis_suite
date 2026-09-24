@@ -106,6 +106,17 @@ class TestAgentArchitect(unittest.TestCase):
         activated = factory.activate(validated)
         self.assertEqual(activated.state, "active")
 
+    def test_tool_signals_select_specialist_role(self):
+        canvas = AgentArchitect().synthesize(
+            self._request(tools=("canvas", "python")),
+        )
+        self.assertEqual(canvas.candidate.role, "canvas-html specialist")
+
+        proof = AgentArchitect().synthesize(
+            self._request(tools=("sympy",), requirements=("formal_proof",)),
+        )
+        self.assertEqual(proof.candidate.role, "mathematical-proof specialist")
+
     def test_generation_is_deterministic_for_same_request(self):
         request = self._request()
         first = AgentArchitect().synthesize(request).candidate
