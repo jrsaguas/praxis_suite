@@ -59,6 +59,63 @@ class LearningPatternTests(unittest.TestCase):
             )
             self.assertEqual(patterns[0]["pattern_id"], saved[0]["pattern_id"])
 
+    def test_selection_requires_validation_and_matches_family_and_depth(self):
+        patterns = [
+            {
+                "pattern_id": "pat-geometry",
+                "status": "validated",
+                "task_family": "geometry",
+                "signature": {"mathematical_depth": {"profile": {"proof": 90, "visualization": 90}}},
+                "evidence": {"evaluation_score": 0.90, "user_rating": 95},
+                "source_record_ids": ["exp-1"],
+            },
+            {
+                "pattern_id": "pat-other",
+                "status": "validated",
+                "task_family": "algebra",
+                "signature": {"mathematical_depth": {"profile": {"proof": 99, "visualization": 99}}},
+                "evidence": {"evaluation_score": 1.0, "user_rating": 100},
+                "source_record_ids": ["exp-2"],
+            },
+            {
+                "pattern_id": "pat-candidate",
+                "status": "candidate",
+                "task_family": "geometry",
+                "signature": {"mathematical_depth": {"profile": {"proof": 100, "visualization": 100}}},
+                "evidence": {"evaluation_score": 1.0, "user_rating": 100},
+                "source_record_ids": ["exp-3"],
+            },
+        ]
+        selected = select_validated_patterns(
+            patterns,
+            task_family="geometry",
+            depth_requirements={"profile": {"proof": 92, "visualization": 88}},
+            limit=5,
+        )
+        self.assertEqual([p["pattern_id"] for p in selected], ["pat-geometry"])
+        self.assertEqual(selected[0]["selection"]["policy"], "validated_family_depth_evidence_v1")
+
+    def test_pattern_selection_is_deterministic(self):
+        patterns = [
+            {
+                "pattern_id": "pat-b",
+                "status": "validated",
+                "task_family": "geometry",
+                "signature": {"mathematical_depth": {"profile": {"proof": 90}}},
+                "evidence": {"evaluation_score": 0.90, "user_rating": 90},
+            },
+            {
+                "pattern_id": "pat-a",
+                "status": "validated",
+                "task_family": "geometry",
+                "signature": {"mathematical_depth": {"profile": {"proof": 90}}},
+                "evidence": {"evaluation_score": 0.90, "user_rating": 90},
+            },
+        ]
+        first = select_validated_patterns(patterns, task_family="geometry", depth_requirements={"proof": 90})
+        second = select_validated_patterns(list(reversed(patterns)), task_family="geometry", depth_requirements={"proof": 90})
+        self.assertEqual([p["pattern_id"] for p in first], [p["pattern_id"] for p in second])
+
     def test_rejected_pattern_never_selected(self):
         with tempfile.TemporaryDirectory() as tmp:
             self._accepted(tmp)
