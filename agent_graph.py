@@ -113,20 +113,41 @@ class AgentGraphPlanner:
 
     @staticmethod
     def _agents_required_by_depth(requirements: Mapping[str, object]) -> set[str]:
+        """Translate either depth thresholds or raw profile dimensions into roles."""
         required = set()
         if isinstance(requirements, (list, tuple, set)):
             requirements = {str(x): 100 for x in requirements}
-        if int(requirements.get("proof_expectation", 0)) >= 60:
+        requirements = dict(requirements or {})
+        profile = requirements.get("profile")
+        if isinstance(profile, Mapping):
+            requirements = {**dict(profile), **requirements}
+        aliases = {
+            "proof_expectation": ("proof_expectation", "proof"),
+            "research_expectation": ("research_expectation", "research"),
+            "visualization_expectation": ("visualization_expectation", "visualization"),
+            "experimentation_expectation": ("experimentation_expectation", "experimentation"),
+            "formalism_expectation": ("formalism_expectation", "formalism"),
+            "generalization_expectation": ("generalization_expectation", "generalization"),
+        }
+        def level(name: str) -> int:
+            for key in aliases[name]:
+                if key in requirements:
+                    try:
+                        return int(requirements[key])
+                    except (TypeError, ValueError):
+                        return 0
+            return 0
+        if level("proof_expectation") >= 60:
             required.add("proof_specialist")
-        if int(requirements.get("research_expectation", 0)) >= 60:
+        if level("research_expectation") >= 60:
             required.add("research_specialist")
-        if int(requirements.get("visualization_expectation", 0)) >= 60:
+        if level("visualization_expectation") >= 60:
             required.add("representation_designer")
-        if int(requirements.get("experimentation_expectation", 0)) >= 70:
+        if level("experimentation_expectation") >= 70:
             required.update(("python_visualizer", "code_reviewer"))
-        if int(requirements.get("formalism_expectation", 0)) >= 80:
+        if level("formalism_expectation") >= 80:
             required.add("foundation_analyst")
-        if int(requirements.get("generalization_expectation", 0)) >= 80:
+        if level("generalization_expectation") >= 80:
             required.add("research_specialist")
         return required
 
