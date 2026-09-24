@@ -24,7 +24,7 @@ import datetime
 import urllib.request
 import urllib.error
 import webbrowser
-from urllib.parse import urlparse, unquote
+from urllib.parse import urlparse, unquote, parse_qs
 
 from config import BASE_DIR as DIRECTORY, HISTORIAL_DIR, CHATS_DIR, TEMPLATE_DIR, KNOWLEDGE_DIR, PORT, HOST, MAX_REQUEST_BYTES, ALLOWED_ORIGINS, ensure_directories
 
