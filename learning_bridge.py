@@ -123,6 +123,22 @@ def build_experience_context(
         "selection_policy": "evidence_weighted_multi_reference",
     }
 
+def normalize_planning_context(planning_metadata: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Normalize planner metadata into a stable, auditable learning contract."""
+    raw = dict(planning_metadata or {})
+    adaptive = dict(raw.get("adaptive_selection") or {})
+    depth = dict(raw.get("mathematical_depth") or {})
+    return {
+        "schema_version": 1,
+        "adaptive_active": bool(adaptive.get("active", False)),
+        "adaptive_reason": str(adaptive.get("reason", "")),
+        "selected_reusable_agents": [str(x) for x in adaptive.get("selected_reusable_agents", []) if x],
+        "generated_candidates": [str(x) for x in adaptive.get("generated_candidates", []) if x],
+        "execution_agents": [str(x) for x in raw.get("execution_agents", []) if x],
+        "mathematical_depth": depth,
+    }
+
+
 def persist_runtime_experience(
     chats_dir: str,
     chat_id: str,
@@ -135,6 +151,7 @@ def persist_runtime_experience(
     evaluation_profile: Optional[Dict[str, int]] = None,
     strategy_context: Optional[Dict[str, Any]] = None,
     metadata: Optional[Dict[str, Any]] = None,
+    planning_metadata: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Persist an evaluator outcome as a candidate; never auto-promotes it."""
     merged = dict(metadata or {})
@@ -147,6 +164,8 @@ def persist_runtime_experience(
     merged["requires_human_or_gate_review"] = bool(
         experience_record.get("requires_human_or_gate_review", True)
     )
+    if planning_metadata:
+        merged["planning_context"] = normalize_planning_context(planning_metadata)
     if strategy_context:
         merged["strategy_context_version"] = strategy_context.get("strategy_context_version")
         merged["task_family"] = strategy_context.get("task_family")
@@ -189,6 +208,7 @@ def make_runtime_experience_sink(
             version_id=version_id,
             evaluation_profile=evaluation_profile,
             strategy_context=strategy_context,
+            planning_metadata=dict(artifacts.get("planning_metadata") or {}),
             metadata={
                 **dict(metadata or {}),
                 "runtime_task_id": getattr(task, "task_id", ""),
