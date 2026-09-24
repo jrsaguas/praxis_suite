@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import re
-from typing import Iterable, Tuple
+from typing import Iterable, Mapping, Tuple
 
 
 _ID_RE = re.compile(r"^[a-z][a-z0-9_-]{1,63}$")
@@ -26,6 +26,7 @@ class AgentBlueprint:
     actions: Tuple[str, ...] = ()
     source: str = "agent_factory"
     status: str = "candidate"
+    validation: Mapping[str, object] | None = None
 
     def __post_init__(self):
         if not _ID_RE.match(self.id):
@@ -46,6 +47,7 @@ class AgentBlueprint:
             "state": self.state, "memory": list(self.memory),
             "evaluation": list(self.evaluation), "actions": list(self.actions),
             "source": self.source, "status": self.status,
+            "validation": dict(self.validation or {}),
         }
 
 
@@ -76,10 +78,24 @@ class AgentFactory:
         )
 
     @staticmethod
-    def validate(agent: AgentBlueprint) -> AgentBlueprint:
+    def validate(
+        agent: AgentBlueprint,
+        *,
+        evidence: Mapping[str, object] | None = None,
+        require_evidence: bool = False,
+    ) -> AgentBlueprint:
         if agent.status != "candidate":
             raise ValueError("Solo un candidato puede validarse")
-        return _copy(agent, status="validated")
+        evidence = dict(evidence or {})
+        if require_evidence and not evidence:
+            raise ValueError("La validación requiere evidencia explícita")
+        if evidence.get("passed") is False:
+            raise ValueError("La evidencia indica que el candidato no superó la validación")
+        return _copy(
+            agent,
+            status="validated",
+            validation={"passed": True, "evidence": evidence},
+        )
 
     @staticmethod
     def reject(agent: AgentBlueprint) -> AgentBlueprint:
