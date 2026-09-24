@@ -1208,6 +1208,7 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
                     prompt=instruction,
                     title=data.get('title', folder),
                     strategy_context=data.get('strategy_context') or {},
+                    parent_version_id=data.get('parent_version_id'),
                 )
                 result['version'] = version
                 result['artifact_manifest'] = investigation_store.refresh_artifact_manifest(
