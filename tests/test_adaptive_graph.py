@@ -4,6 +4,7 @@ from adaptive_agent import AdaptiveRequest
 from agent_catalog import AgentCatalog
 from agent_factory import AgentFactory
 from adaptive_graph import AdaptiveGraphBridge
+from agent_runtime import AgentRuntime
 
 
 class AdaptiveGraphBridgeTests(unittest.TestCase):
@@ -56,6 +57,15 @@ class AdaptiveGraphBridgeTests(unittest.TestCase):
         self.assertTrue(result.decision.generated_agent_required)
         self.assertNotIn("unavailable_capability", result.execution_plan.selected_agents)
         self.assertFalse(result.generated_candidates)
+
+    def test_adaptive_selection_is_recorded_in_runtime_trace(self):
+        bridge = AdaptiveGraphBridge({}, self._catalog())
+        result = bridge.plan(AdaptiveRequest(task="surface", requirements=("symbolic_geometry",), tools=("sympy",), role="surface geometry"))
+        runtime = AgentRuntime(lambda task, context: {})
+        trace = runtime.run(result.execution_plan)
+        self.assertEqual(trace.artifacts["planning_metadata"]["adaptive_selection"]["reusable_agents"], ["surface_specialist"])
+        self.assertEqual(trace.events[0].phase, "planning")
+        self.assertEqual(trace.events[0].agent_id, "orchestrator")
 
     def test_dynamic_reusable_agent_is_deterministically_planned(self):
         bridge = AdaptiveGraphBridge({}, self._catalog())
