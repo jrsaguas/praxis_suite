@@ -18,7 +18,7 @@ class AdaptiveGraphBridgeTests(unittest.TestCase):
             context=("surface",),
             evaluation=("math_code_alignment",),
             actions=("symbolic_geometry",),
-        ))
+        ), evidence={"passed": True, "checks": ["legacy-test"]})
         return AgentCatalog((agent,))
 
     def test_static_graph_does_not_activate_adaptive_stage(self):
