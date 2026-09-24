@@ -157,6 +157,8 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_rag_arxiv()
         elif path == '/api/rag/chat_docs':
             self.handle_rag_chat_docs()
+        elif path == '/api/investigations/snapshot/restore':
+            self.handle_restore_investigation_snapshot()
         elif path == '/api/investigations/profile':
             self.handle_set_investigation_profile()
         elif path == '/api/investigations/version':
@@ -1387,6 +1389,56 @@ class PraxisRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(400, str(e))
 
     # --- VERSIONADO LÓGICO DE INVESTIGACIONES ---
+
+    def handle_restore_investigation_snapshot(self):
+        try:
+            data = json.loads(self._read_body().decode('utf-8'))
+            chat_id = str(data.get('chat_id', '')).strip()
+            folder = str(data.get('folder', '')).strip()
+            version_id = str(data.get('version_id', '')).strip()
+            if not chat_id or not folder or not version_id:
+                raise ValueError('chat_id, folder y version_id son obligatorios')
+
+            result = investigation_store.restore_version_snapshot(
+                chat_manager.CHATS_DIR, chat_id, folder, version_id
+            )
+            event = investigation_store.record_execution(
+                chat_manager.CHATS_DIR, chat_id, folder,
+                operation='restore_version_snapshot',
+                instruction=f'restaurar versión {version_id}',
+                status='ok',
+                changed_files=result.get('restored_files') or [],
+                artifact_types=[],
+                message='Snapshot físico restaurado íntegramente.',
+            )
+            new_version = investigation_store.promote_execution_to_version(
+                chat_manager.CHATS_DIR, chat_id, folder,
+                event=event,
+                prompt=data.get('prompt') or f'Restauración de versión {version_id}',
+                title=data.get('title') or f'Restauración de {version_id}',
+                strategy_context=data.get('strategy_context') or {
+                    'restore_from_version_id': version_id,
+                },
+                parent_version_id=version_id,
+            )
+            manifest = investigation_store.refresh_artifact_manifest(
+                chat_manager.CHATS_DIR, chat_id, folder,
+                version_id=new_version.get('version_id'),
+                changed_files=result.get('restored_files') or [],
+            )
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'status': 'ok',
+                'restored_from': version_id,
+                'version': new_version,
+                'artifact_manifest': manifest,
+            }, ensure_ascii=False).encode('utf-8'))
+        except FileNotFoundError as e:
+            self.send_error(404, str(e))
+        except Exception as e:
+            self.send_error(400, str(e))
 
     def handle_register_investigation_version(self):
         try:
