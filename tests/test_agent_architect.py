@@ -41,6 +41,21 @@ class TestAgentArchitect(unittest.TestCase):
         with self.assertRaises(ValueError):
             AgentCatalog((candidate,))
 
+    def test_validation_requires_evidence_when_requested(self):
+        request = self._request()
+        factory = AgentFactory()
+        candidate = AgentArchitect(factory=factory).synthesize(request).candidate
+        with self.assertRaises(ValueError):
+            factory.validate(candidate, require_evidence=True)
+        validated = factory.validate(
+            candidate,
+            evidence={"passed": True, "checks": ["role", "tools", "acceptance"]},
+            require_evidence=True,
+        )
+        self.assertEqual(validated.status, "validated")
+        self.assertTrue(validated.validation["passed"])
+        self.assertEqual(validated.validation["evidence"]["checks"][0], "role")
+
     def test_validation_is_required_before_registration(self):
         request = self._request()
         factory = AgentFactory()
