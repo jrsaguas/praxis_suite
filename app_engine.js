@@ -1380,7 +1380,8 @@ async function handleSpecialIntent(intent) {
           chat_id: chatId,
           folder,
           instruction: intent.instruction,
-          title: S.lastRun?.plan?.titulo || folder
+          title: S.lastRun?.plan?.titulo || folder,
+          parent_version_id: window.selectedInvestigationVersion || null
         })
       });
       const execData = await execResp.json();
