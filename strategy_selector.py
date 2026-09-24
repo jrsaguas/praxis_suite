@@ -1,8 +1,8 @@
 """Contextual strategy selection.
 
 Selection is ranked evidence, not a promotion mechanism. Only promoted
-strategies are eligible by default; the caller may explicitly include
-candidates for inspection/testing.
+strategies are eligible by default; validated pattern evidence can refine the
+selection but can never bypass the promotion gate.
 """
 from __future__ import annotations
 
@@ -52,16 +52,65 @@ def _trend_fit(strategy: Mapping[str, Any], trends: Iterable[Mapping[str, Any]])
     return sum(values) / len(values) if values else 0.5
 
 
+def _pattern_evidence(
+    strategy_id: str,
+    patterns: Iterable[Mapping[str, Any]],
+    *,
+    task_family: Optional[str],
+) -> Dict[str, Any]:
+    matching = []
+    for pattern in patterns:
+        if pattern.get("status") != "validated":
+            continue
+        if str(pattern.get("strategy_id") or "") != str(strategy_id):
+            continue
+        if task_family and pattern.get("task_family") != task_family:
+            continue
+        selection = pattern.get("selection") or {}
+        if selection.get("score") is not None:
+            score = max(0.0, min(1.0, float(selection["score"])))
+        else:
+            evidence = pattern.get("evidence") or {}
+            evaluation = max(0.0, min(1.0, float(evidence.get("evaluation_score", 0.0))))
+            rating = evidence.get("user_rating")
+            rating_score = float(rating) / 100.0 if rating is not None else 0.0
+            score = 0.70 * evaluation + 0.30 * rating_score
+        matching.append((score, pattern))
+    if not matching:
+        return {
+            "fit": 0.0,
+            "pattern_ids": [],
+            "source_record_ids": [],
+            "support_count": 0,
+        }
+    fit = sum(score for score, _ in matching) / len(matching)
+    pattern_ids = sorted({str(p.get("pattern_id")) for _, p in matching if p.get("pattern_id")})
+    source_record_ids = sorted({
+        str(record_id)
+        for _, p in matching
+        for record_id in p.get("source_record_ids", [])
+        if record_id
+    })
+    return {
+        "fit": round(fit, 4),
+        "pattern_ids": pattern_ids,
+        "source_record_ids": source_record_ids,
+        "support_count": len(matching),
+    }
+
+
 def select_strategies(
     strategies: Iterable[Mapping[str, Any]],
     *,
     task_family: Optional[str] = None,
     preferences: Optional[PreferenceProfile] = None,
     trends: Iterable[Mapping[str, Any]] = (),
+    validated_patterns: Iterable[Mapping[str, Any]] = (),
     include_candidates: bool = False,
     limit: int = 5,
 ) -> list[Dict[str, Any]]:
     ranked = []
+    patterns = tuple(validated_patterns)
     for strategy in strategies:
         if not include_candidates and strategy.get("status") != "promoted":
             continue
@@ -70,7 +119,17 @@ def select_strategies(
         family = _family_match(strategy, task_family)
         preference = _preference_fit(strategy, preferences)
         trend = _trend_fit(strategy, trends)
-        score = 0.40 * family + 0.40 * preference + 0.20 * trend
+        evidence = _pattern_evidence(
+            str(strategy.get("strategy_id") or ""),
+            patterns,
+            task_family=task_family,
+        )
+        base_score = 0.40 * family + 0.40 * preference + 0.20 * trend
+        score = (
+            0.85 * base_score + 0.15 * evidence["fit"]
+            if patterns
+            else base_score
+        )
         ranked.append({
             "strategy": dict(strategy),
             "selection_score": round(score, 4),
@@ -78,7 +137,19 @@ def select_strategies(
                 "task_family_fit": round(family, 4),
                 "preference_fit": round(preference, 4),
                 "trend_fit": round(trend, 4),
+                "validated_pattern_evidence_fit": evidence["fit"],
+            },
+            "validated_pattern_evidence": {
+                "pattern_ids": evidence["pattern_ids"],
+                "source_record_ids": evidence["source_record_ids"],
+                "support_count": evidence["support_count"],
+                "policy": "validated_pattern_evidence_v1",
             },
         })
-    ranked.sort(key=lambda x: x["selection_score"], reverse=True)
+    ranked.sort(
+        key=lambda x: (
+            -x["selection_score"],
+            str(x["strategy"].get("strategy_id", "")),
+        )
+    )
     return ranked[:max(1, int(limit))]
