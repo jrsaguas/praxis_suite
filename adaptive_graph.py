@@ -76,7 +76,16 @@ class AdaptiveGraphBridge:
         )
         architecture = self.architect.synthesize(request, decision=decision)
         generated_candidates = (architecture.candidate.id,) if architecture.candidate else ()
-        planning_metadata = {"adaptive_selection": {**decision.to_dict(), "selected_reusable_agents": [spec.id for spec in reusable_specs], "generated_candidates": list(generated_candidates), "architecture_reason": architecture.reason}}
+        planning_metadata = {
+            "adaptive_selection": {
+                **decision.to_dict(),
+                "selected_reusable_agents": [spec.id for spec in reusable_specs],
+                "generated_candidates": list(generated_candidates),
+                "architecture_reason": architecture.reason,
+            },
+            "mathematical_depth": dict(depth_requirements or {}),
+            "execution_agents": list(plan.selected_agents),
+        }
         plan = replace(plan, planning_metadata=planning_metadata)
         return AdaptiveGraphPlan(decision, plan, generated_candidates)
 
