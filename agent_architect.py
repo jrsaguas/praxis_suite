@@ -23,6 +23,7 @@ class ArchitectureDecision:
     candidate: AgentBlueprint | None = None
     reason: str = ""
     pattern_ids: Tuple[str, ...] = ()
+    strategy_ids: Tuple[str, ...] = ()
 
     @property
     def generated(self) -> bool:
@@ -34,6 +35,7 @@ class ArchitectureDecision:
             "candidate": self.candidate.to_dict() if self.candidate else None,
             "reason": self.reason,
             "pattern_ids": list(self.pattern_ids),
+            "strategy_ids": list(self.strategy_ids),
         }
 
 
@@ -87,6 +89,7 @@ class AgentArchitect:
         decision: AdaptationDecision | None = None,
         model_id: str = "adaptive-default",
         validated_patterns: Tuple[Mapping[str, object], ...] = (),
+        validated_strategies: Tuple[Mapping[str, object], ...] = (),
     ) -> ArchitectureDecision:
         matches = self.catalog.search(
             requirements=request.requirements,
@@ -99,18 +102,25 @@ class AgentArchitect:
             for p in validated_patterns
             if p.get("status") == "validated" and p.get("pattern_id")
         )
+        strategy_ids = tuple(
+            str(item.get("strategy", {}).get("strategy_id"))
+            for item in validated_strategies
+            if item.get("strategy", {}).get("strategy_id")
+        )
 
         if matches:
             return ArchitectureDecision(
                 reusable_agents=tuple(m.agent_id for m in matches),
                 reason="reusable_validated_agent_available",
                 pattern_ids=pattern_ids,
+                strategy_ids=strategy_ids,
             )
 
         if decision is not None and not decision.generated_agent_required:
             return ArchitectureDecision(
                 reason="generation_not_required",
                 pattern_ids=pattern_ids,
+                strategy_ids=strategy_ids,
             )
 
         requirements = tuple(dict.fromkeys(request.requirements))
@@ -118,6 +128,9 @@ class AgentArchitect:
         evaluation = tuple(dict.fromkeys(request.acceptance_criteria))
         actions = tuple(dict.fromkeys((*requirements, *request.acceptance_criteria)))
 
+        strategy_context = tuple(
+            f"validated_strategy:{sid}" for sid in strategy_ids
+        )
         pattern_context = tuple(f"validated_pattern:{pid}" for pid in pattern_ids)
         role = self._infer_specialist_role(request, tools, requirements)
         candidate = self.factory.create(
@@ -125,7 +138,12 @@ class AgentArchitect:
             role=role,
             model_id=model_id,
             tools=tools,
-            context=(request.task, *requirements, *pattern_context),
+            context=(
+                request.task,
+                *requirements,
+                *strategy_context,
+                *pattern_context,
+            ),
             memory=tuple(sorted(str(k) for k in request.context)),
             evaluation=evaluation,
             actions=actions,
@@ -135,6 +153,7 @@ class AgentArchitect:
             candidate=candidate,
             reason="no_reusable_validated_agent_available",
             pattern_ids=pattern_ids,
+            strategy_ids=strategy_ids,
         )
 
     def from_request(
