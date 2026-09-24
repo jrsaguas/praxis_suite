@@ -78,7 +78,7 @@ class AgentGraphPlanner:
             router = ModelRouter()
         except Exception:
             router = None
-        for agent_id in self._topological(selected):
+        for agent_id in self._topological(selected, registry):
             spec = registry[agent_id]
             deps = tuple(d for d in spec.depends_on if d in selected)
             tasks.append(AgentTask(
@@ -148,8 +148,9 @@ class AgentGraphPlanner:
                         changed = True
         return selected
 
-    def _topological(self, selected: set[str]) -> List[str]:
-        pending = {x: {d for d in self._agents[x].depends_on if d in selected} for x in selected}
+    def _topological(self, selected: set[str], registry: Optional[Mapping[str, AgentSpec]] = None) -> List[str]:
+        agents = registry or self._agents
+        pending = {x: {d for d in agents[x].depends_on if d in selected} for x in selected}
         result = []
         while pending:
             ready = sorted(x for x, deps in pending.items() if not deps)
