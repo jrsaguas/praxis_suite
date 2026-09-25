@@ -14,6 +14,8 @@ from typing import Any, Mapping
 from agent_delivery import GateEvaluation
 from agent_graph import AgentTask
 from artifact_execution import verify_numeric_claims
+from symbolic_verifier import verify_symbolic_certificate
+from research_evidence import verify_research_evidence
 
 
 def verify_output(task: AgentTask, output: Mapping[str, Any], phase: str) -> GateEvaluation:
@@ -57,6 +59,8 @@ def _verify_gate(agent_id: str, gate: str, output: Mapping[str, Any]):
         return _canvas_gate(gate, output)
     if agent_id == "mathematical_resolver":
         return _math_gate(gate, output)
+    if agent_id == "research_specialist":
+        return _research_gate(gate, output)
     return None, {"reason": f"no deterministic verifier registered for {agent_id}:{gate}"}
 
 
@@ -131,9 +135,8 @@ def _math_gate(gate, output):
     if gate == "symbolic_consistency":
         certificate = output.get("verification_certificate")
         if isinstance(certificate, Mapping):
-            if _is_model_self_report(output):
-                return None, {"reason": "verification_certificate is model self-report, not authoritative"}
-            return bool(certificate.get("passed") is True), dict(certificate)
+            result = verify_symbolic_certificate(certificate)
+            return bool(result.get("passed") is True), result
         return None, {"reason": "verification_certificate unavailable"}
     if gate == "step_completeness":
         derivation = output.get("derivation")
