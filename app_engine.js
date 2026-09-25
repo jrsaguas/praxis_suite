@@ -2144,7 +2144,6 @@ async function runPipeline(resumeFromStage = null, existingRun = null) {
           depth_profile: depthProfile,
           requested_agents: manual.requested_agents || [],
           required_artifacts: manual.required_artifacts || ['python', 'canvas', 'markdown'],
-          depth_profile: depthProfile,
           strategy_context: run.strategy_context
         })
       });
@@ -3095,6 +3094,8 @@ function syncManualOrchestration() {
   $('#manualArtifactChips .chip').forEach(c=>c.classList.toggle('on',(p.required_artifacts||[]).includes(c.dataset.artifact)));
   const status=$('#manualPlanStatus');
   if(status) status.textContent=(p.requested_agents||[]).length ? ((p.requested_agents||[]).length+' agentes') : 'automática';
+  const rules=$('#manualRules');
+  if(rules && document.activeElement !== rules) rules.value=(p.custom_rules||[]).join('\n');
 }
 function applyManualOrchestration() {
   const requested_agents=$('#manualAgentChips .chip.on').map(c=>c.dataset.agent);
