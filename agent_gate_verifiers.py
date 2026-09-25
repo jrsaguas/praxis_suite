@@ -151,6 +151,13 @@ def _math_gate(gate, output):
     return None, {"reason": "unsupported mathematical gate"}
 
 
+def _research_gate(gate, output):
+    if gate == "source_traceability":
+        result = verify_research_evidence(output.get("retrieved_sources"))
+        return bool(result.get("passed") is True), result
+    return None, {"reason": "unsupported research gate"}
+
+
 def _is_model_self_report(output: Mapping[str, Any]) -> bool:
     provenance = output.get("evidence_provenance")
     return isinstance(provenance, Mapping) and provenance.get("origin") == "model_self_report"
