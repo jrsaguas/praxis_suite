@@ -126,6 +126,8 @@ def _math_gate(gate, output):
     if gate == "symbolic_consistency":
         certificate = output.get("verification_certificate")
         if isinstance(certificate, Mapping):
+            if _is_model_self_report(output):
+                return None, {"reason": "verification_certificate is model self-report, not authoritative"}
             return bool(certificate.get("passed") is True), dict(certificate)
         return None, {"reason": "verification_certificate unavailable"}
     if gate == "step_completeness":
@@ -140,6 +142,10 @@ def _math_gate(gate, output):
         return None, {"reason": "assumptions artifact unavailable"}
     return None, {"reason": "unsupported mathematical gate"}
 
+
+def _is_model_self_report(output: Mapping[str, Any]) -> bool:
+    provenance = output.get("evidence_provenance")
+    return isinstance(provenance, Mapping) and provenance.get("origin") == "model_self_report"
 
 def _explicit_bool(output, key):
     value = output.get(key)
