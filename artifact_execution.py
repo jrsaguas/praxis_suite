@@ -36,7 +36,7 @@ def verify_python_artifact(source: Any, *, timeout_seconds: float = 5.0) -> dict
     try:
         with contextlib.redirect_stdout(stdout):
             code = compile(source, "<praxis-artifact>", "exec")
-            exec(code, {"__builtins__": {"abs": abs, "min": min, "max": max, "round": round, "sum": sum, "len": len, "range": range}})
+            exec(code, {"__builtins__": {"abs": abs, "min": min, "max": max, "round": round, "sum": sum, "len": len, "range": range, "print": print}})
     except Exception as exc:
         return {"passed": False, "method": "restricted_python_execution", "error": repr(exc)}
     return {"passed": True, "method": "restricted_python_execution", "stdout": stdout.getvalue()[:4000]}
