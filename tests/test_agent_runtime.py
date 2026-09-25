@@ -61,7 +61,13 @@ class AgentRuntimeTests(unittest.TestCase):
 
     def test_missing_explicit_gate_evidence_cannot_pass(self):
         plan = AgentGraphPlanner().plan(requested_agents=["mathematical_resolver"])
-        trace = AgentRuntime(lambda task, context: {task.agent_id: True}, max_retries=0).run(plan)
+
+        def execute(task, context):
+            if task.agent_id == "mathematical_resolver":
+                return {task.agent_id: True}
+            return {task.agent_id: True, **passing_contract(task)}
+
+        trace = AgentRuntime(execute, max_retries=0).run(plan)
         self.assertEqual(trace.status, "failed")
         result = next(r for r in trace.results if r.agent_id == "mathematical_resolver")
         self.assertEqual(result.status, "failed")
