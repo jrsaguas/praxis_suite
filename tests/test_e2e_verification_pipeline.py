@@ -130,7 +130,7 @@ class EndToEndVerificationPipelineTests(unittest.TestCase):
         self.assertIn("mathematical_resolver", executed)
         self.assertNotIn("proof_specialist", executed)
         self.assertNotIn("mathematical_resolver", trace.artifacts)
-        self.assertIn("symbolic_consistency", resolver.delivery["failed_gates"])
+        self.assertIn("symbolic_consistency", resolver.quality["failed_gates"])
 
     def test_model_self_reported_verified_gate_cannot_bypass_real_verifier(self):
         task = AgentTask(
@@ -151,7 +151,7 @@ class EndToEndVerificationPipelineTests(unittest.TestCase):
             },
         }, "delivery")
         self.assertFalse(result.passed)
-        self.assertIn("symbolic_consistency", result.missing_gates)
+        self.assertIn("symbolic_consistency", result.failed_gates)
 
     def test_research_fabricated_source_without_retriever_provenance_is_blocked(self):
         spec = get_agent("research_specialist")
