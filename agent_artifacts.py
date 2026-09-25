@@ -21,9 +21,16 @@ def build_structured_instruction(agent_id: str) -> str:
     schema = structured_output_contract(agent_id)
     if not schema:
         return "Devuelve una respuesta normal. No inventes certificados ni evidencia externa que no puedas observar."
-    return ("RESPUESTA ESTRUCTURADA OBLIGATORIA. Devuelve UN ÚNICO objeto JSON válido, sin markdown ni texto antes/después. Usa estas claves: "
-            + json.dumps(schema, ensure_ascii=False, sort_keys=True)
-            + ". Si un campo no puede producirse de forma real, usa null o []. No inventes evidencia externa. La respuesta original se conservará por separado.")
+    instruction = ("RESPUESTA ESTRUCTURADA OBLIGATORIA. Devuelve UN ÚNICO objeto JSON válido, sin markdown ni texto antes/después. Usa estas claves: "
+                   + json.dumps(schema, ensure_ascii=False, sort_keys=True)
+                   + ". Si un campo no puede producirse de forma real, usa null o []. No inventes evidencia externa. La respuesta original se conservará por separado.")
+    if agent_id == "mathematical_resolver":
+        instruction += (" Para verification_certificate proporciona solo datos declarativos que CAS pueda recomputar: "
+                         "claim_type (identity o equality), variables, lhs y rhs. No marques passed como evidencia.")
+    if agent_id == "research_specialist":
+        instruction += (" retrieved_sources es evidencia del recuperador y no debe sustituirse por URLs inventadas. "
+                         "Usa esas fuentes para source_map/citations.")
+    return instruction
 
 def parse_structured_response(agent_id: str, content: str) -> tuple[dict[str, Any], dict[str, Any]]:
     schema = structured_output_contract(agent_id)
