@@ -16,6 +16,18 @@ class MathematicalDepthTests(unittest.TestCase):
             MathematicalDepthProfile.preset("doctorado")
             MathematicalDepthProfile("custom", 101, 0, 0, 0, 0, 0, 0, 0)
 
+    def test_manual_values_override_preset_dimensions(self):
+        p = MathematicalDepthProfile.from_request(
+            "doctorado",
+            values={"rigor": 100, "proof": 55, "applications": 73},
+            custom_rules=["usar contraejemplos"],
+        )
+        self.assertEqual(p.rigor, 100)
+        self.assertEqual(p.proof, 55)
+        self.assertEqual(p.applications, 73)
+        self.assertEqual(p.research, 92)
+        self.assertIn("usar contraejemplos", p.custom_rules)
+
     def test_custom_rules_survive_serialization(self):
         p = MathematicalDepthProfile.preset("licenciatura", ["explicar cada salto algebraico"])
         self.assertIn("explicar cada salto algebraico", p.to_dict()["custom_rules"])
