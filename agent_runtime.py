@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, Mapping, Optional, Tuple
 from agent_graph import ExecutionPlan, AgentTask
 from agent_adapters import adapter_for
 from agent_delivery import GateEvaluation, evaluate_gate_contract
+from agent_gate_verifiers import verify_output
 
 
 @dataclass(frozen=True)
@@ -208,7 +209,11 @@ class AgentRuntime:
                 quality = (
                     dict(self.quality_gate(task, output))
                     if self.quality_gate is not None
-                    else evaluate_gate_contract(task, output, "quality").to_dict()
+                    else (
+                        evaluate_gate_contract(task, output, "quality").to_dict()
+                        if "gate_results" in output
+                        else verify_output(task, output, "quality").to_dict()
+                    )
                 )
                 quality_eval = self._as_gate_evaluation(task, quality, "quality")
                 gate_events.append(ExecutionEvent(
@@ -224,7 +229,11 @@ class AgentRuntime:
                 delivery = (
                     dict(self.delivery_gate(task, output))
                     if self.delivery_gate is not None
-                    else evaluate_gate_contract(task, output, "delivery").to_dict()
+                    else (
+                        evaluate_gate_contract(task, output, "delivery").to_dict()
+                        if "gate_results" in output
+                        else verify_output(task, output, "delivery").to_dict()
+                    )
                 )
                 delivery_eval = self._as_gate_evaluation(task, delivery, "delivery")
                 gate_events.append(ExecutionEvent(
