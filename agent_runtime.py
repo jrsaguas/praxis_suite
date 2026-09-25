@@ -201,6 +201,8 @@ class AgentRuntime:
 
     def _run_task(self, task: AgentTask, artifacts: Mapping[str, Any], sequence_start: int) -> Tuple[TaskResult, Tuple[ExecutionEvent, ...]]:
         last_error = None
+        last_quality: Mapping[str, Any] = {}
+        last_delivery: Mapping[str, Any] = {}
         gate_events = []
         for attempt in range(1, self.max_retries + 2):
             try:
@@ -216,6 +218,7 @@ class AgentRuntime:
                     )
                 )
                 quality_eval = self._as_gate_evaluation(task, quality, "quality")
+                last_quality = quality_eval.to_dict()
                 if task.quality_gates:
                     gate_events.append(ExecutionEvent(
                         sequence_start + len(gate_events), task.task_id, task.agent_id,
@@ -237,6 +240,7 @@ class AgentRuntime:
                     )
                 )
                 delivery_eval = self._as_gate_evaluation(task, delivery, "delivery")
+                last_delivery = delivery_eval.to_dict()
                 if task.delivery_gates:
                     gate_events.append(ExecutionEvent(
                         sequence_start + len(gate_events), task.task_id, task.agent_id,
@@ -256,7 +260,7 @@ class AgentRuntime:
                 last_error = str(exc)
         return TaskResult(
             task.task_id, task.agent_id, "failed", model_id=task.model_id,
-            quality={}, delivery={}, error=last_error, attempts=self.max_retries + 1,
+            quality=last_quality, delivery=last_delivery, error=last_error, attempts=self.max_retries + 1,
         ), tuple(gate_events)
 
     @staticmethod
