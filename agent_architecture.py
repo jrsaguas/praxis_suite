@@ -19,6 +19,28 @@ class AgentSpec:
     quality_gates: Tuple[str, ...] = ()
     tool_profile: Tuple[str, ...] = ()
     archetype_id: str | None = None
+    required_tools: Tuple[str, ...] = ()
+    optional_tools: Tuple[str, ...] = ()
+    model_capabilities: Tuple[str, ...] = ()
+    depth_requirements: Tuple[Tuple[str, int], ...] = ()
+    delivery_gates: Tuple[str, ...] = ()
+
+    def __post_init__(self):
+        if self.archetype_id:
+            from agent_archetypes import get_archetype
+            archetype = get_archetype(self.archetype_id)
+            if not self.required_tools:
+                object.__setattr__(self, "required_tools", archetype.required_tools)
+            if not self.optional_tools:
+                object.__setattr__(self, "optional_tools", archetype.optional_tools)
+            if not self.model_capabilities:
+                object.__setattr__(self, "model_capabilities", archetype.model_capabilities)
+            if not self.depth_requirements:
+                object.__setattr__(self, "depth_requirements", archetype.depth_requirements)
+            if not self.delivery_gates:
+                object.__setattr__(self, "delivery_gates", archetype.delivery_gates)
+        if set(self.required_tools) & set(self.optional_tools):
+            raise ValueError(f"{self.id}: required/optional tool overlap")
 
 
 AGENTS = (
