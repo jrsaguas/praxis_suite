@@ -44,7 +44,7 @@ def verify_output(task: AgentTask, output: Mapping[str, Any], phase: str) -> Gat
 def _verify_gate(agent_id: str, gate: str, output: Mapping[str, Any]):
     # An explicit external gate callback may provide authoritative evidence.
     supplied = output.get("verified_gates")
-    if isinstance(supplied, Mapping) and gate in supplied:
+    if isinstance(supplied, Mapping) and gate in supplied and not _is_model_self_report(output):
         value = supplied[gate]
         if isinstance(value, Mapping) and value.get("passed") is True:
             return True, dict(value)
