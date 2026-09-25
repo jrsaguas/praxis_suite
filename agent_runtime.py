@@ -196,7 +196,7 @@ class AgentRuntime:
                 blocked.extend(sorted(pending))
                 break
 
-        status = "completed" if not pending and not blocked else "partial" if completed else "failed"
+        status = "failed" if any(result.status == "failed" for result in results) else ("completed" if not pending and not blocked else "partial" if completed else "failed")
         return ExecutionTrace(status, tuple(results), dict(artifacts), tuple(completed), tuple(sorted(set(blocked))), tuple(events))
 
     def _run_task(self, task: AgentTask, artifacts: Mapping[str, Any], sequence_start: int) -> Tuple[TaskResult, Tuple[ExecutionEvent, ...]]:
@@ -216,12 +216,13 @@ class AgentRuntime:
                     )
                 )
                 quality_eval = self._as_gate_evaluation(task, quality, "quality")
-                gate_events.append(ExecutionEvent(
-                    sequence_start + len(gate_events), task.task_id, task.agent_id,
-                    "quality_gate", "passed" if quality_eval.passed else "failed",
-                    task.model_id, output_keys=tuple(sorted(output.keys())),
-                    message="quality gates evaluated", gate=quality_eval.to_dict(),
-                ))
+                if task.quality_gates:
+                    gate_events.append(ExecutionEvent(
+                        sequence_start + len(gate_events), task.task_id, task.agent_id,
+                        "quality_gate", "passed" if quality_eval.passed else "failed",
+                        task.model_id, output_keys=tuple(sorted(output.keys())),
+                        message="quality gates evaluated", gate=quality_eval.to_dict(),
+                    ))
                 if not quality_eval.passed:
                     last_error = self._gate_reason(quality_eval)
                     continue
@@ -236,12 +237,13 @@ class AgentRuntime:
                     )
                 )
                 delivery_eval = self._as_gate_evaluation(task, delivery, "delivery")
-                gate_events.append(ExecutionEvent(
-                    sequence_start + len(gate_events), task.task_id, task.agent_id,
-                    "delivery_gate", "passed" if delivery_eval.passed else "failed",
-                    task.model_id, output_keys=tuple(sorted(output.keys())),
-                    message="delivery gates evaluated", gate=delivery_eval.to_dict(),
-                ))
+                if task.delivery_gates:
+                    gate_events.append(ExecutionEvent(
+                        sequence_start + len(gate_events), task.task_id, task.agent_id,
+                        "delivery_gate", "passed" if delivery_eval.passed else "failed",
+                        task.model_id, output_keys=tuple(sorted(output.keys())),
+                        message="delivery gates evaluated", gate=delivery_eval.to_dict(),
+                    ))
                 if not delivery_eval.passed:
                     last_error = self._gate_reason(delivery_eval)
                     continue
