@@ -53,7 +53,8 @@ class AgentCatalog:
             if agent.state not in {"sleeping", "active"} or agent.status != "validated":
                 continue
             capabilities = set(agent.actions) | set(agent.context) | {agent.role}
-            missing = tuple(sorted(req - capabilities))
+            available_capabilities = capabilities | set(agent.tools)
+            missing = tuple(sorted(req - available_capabilities))
             missing_tools = tuple(sorted(needed - set(agent.tools)))
             cap = 1.0 if not req else 1.0 - len(missing) / len(req)
             tool = 1.0 if not needed else 1.0 - len(missing_tools) / len(needed)
