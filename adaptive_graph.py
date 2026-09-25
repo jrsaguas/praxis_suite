@@ -138,6 +138,14 @@ class AdaptiveGraphBridge:
             role=request.role,
         )
 
+    @staticmethod
+    def _archetype_id(blueprint) -> str | None:
+        for item in blueprint.context:
+            if str(item).startswith("archetype:"):
+                value = str(item).split(":", 1)[1].strip()
+                return value or None
+        return None
+
     def _blueprint_to_spec(self, agent_id: str) -> AgentSpec:
         assert self.catalog is not None
         blueprint = self.catalog.get(agent_id)
@@ -150,4 +158,5 @@ class AdaptiveGraphBridge:
             outputs=tuple(blueprint.actions),
             quality_gates=tuple(blueprint.evaluation),
             tool_profile=tuple(blueprint.tools),
+            archetype_id=self._archetype_id(blueprint),
         )
