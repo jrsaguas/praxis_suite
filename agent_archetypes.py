@@ -84,10 +84,10 @@ def infer_archetype(*, tools=(), requirements=(), role="") -> AgentArchetype:
 
     if any(x in signals or x in role_text for x in ("canvas", "javascript", "html", "js")):
         return get_archetype("canvas_html")
-    if any(x in signals or x in role_text for x in ("matplotlib", "plotly", "visualization", "visualization")):
-        return get_archetype("python_visualization")
     if any("proof" in x or "formal" in x for x in signals) or "proof" in role_text:
         return get_archetype("mathematical_proof")
+    if any(x in signals or x in role_text for x in ("matplotlib", "plotly", "visualization", "visualization")):
+        return get_archetype("python_visualization")
     if any("research" in x or "source" in x for x in signals) or "research" in role_text:
         return get_archetype("research")
     if any("code" in x or "implementation" in x for x in signals) or "code" in role_text:
