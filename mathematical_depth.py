@@ -33,6 +33,29 @@ class MathematicalDepthProfile:
                 raise ValueError(f"{field} must be between 0 and 100")
 
     @classmethod
+    def from_request(cls, name: str, values: Mapping[str, object] | None = None, custom_rules=()):
+        """Build a profile from a named preset plus optional 0-100 manual overrides."""
+        profile = cls.preset(name, custom_rules=custom_rules)
+        values = dict(values or {})
+        if not values:
+            return profile
+        data = {dimension: int(values[dimension]) for dimension in DIMENSIONS if dimension in values}
+        data["custom_rules"] = tuple(custom_rules or ())
+        return cls(
+            name=profile.name,
+            rigor=data.get("rigor", profile.rigor),
+            prerequisites=data.get("prerequisites", profile.prerequisites),
+            formalism=data.get("formalism", profile.formalism),
+            proof=data.get("proof", profile.proof),
+            research=data.get("research", profile.research),
+            visualization=data.get("visualization", profile.visualization),
+            experimentation=data.get("experimentation", profile.experimentation),
+            generalization=data.get("generalization", profile.generalization),
+            applications=data.get("applications", profile.applications),
+            custom_rules=tuple(custom_rules or ()),
+        )
+
+    @classmethod
     def preset(cls, name: str, custom_rules=()):
         presets = {
             "introductorio": (35, 25, 20, 15, 10, 45, 35, 20, 40),
