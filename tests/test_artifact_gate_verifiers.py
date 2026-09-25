@@ -9,7 +9,7 @@ class ArtifactGateVerifierTests(unittest.TestCase):
         plan = AgentGraphPlanner().plan(requested_agents=["canvas_engineer"])
         task = next(t for t in plan.tasks if t.agent_id == "canvas_engineer")
         result = verify_output(task, {
-            "canvas_html": "<html><head><title>x</title></head><body><canvas></canvas><script>draw()</script></body></html>"
+            "canvas_html": "<html><head><title>x</title></head><body><main><canvas></canvas><script>draw()</script><script>window.MathJax={};</script></main></body></html>"
         }, "delivery")
         self.assertTrue(result.passed)
         self.assertFalse(result.missing_gates)
