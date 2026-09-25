@@ -61,6 +61,14 @@ def execute_model_agent(task, context: Mapping[str, Any]) -> Mapping[str, Any]:
     result = invoke_model(spec, prompt, context)
     output = merge_model_artifacts(result, task.agent_id)
 
+    if task.agent_id == "research_specialist":
+        # Retrieval evidence comes from the retriever, not from the model response.
+        output["retrieved_sources"] = list(context.get("retrieved_sources") or [])
+        output["retrieval_provenance"] = {
+            "retriever": "rag_engine.search_arxiv",
+            "authoritative": True,
+        }
+
     if task.agent_id == "mathematical_resolver":
         output["cas_certificate"] = verify_symbolic_certificate(
             output.get("verification_certificate")
