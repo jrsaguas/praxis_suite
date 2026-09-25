@@ -169,6 +169,13 @@ const S = {
   audience: 'doctor',
   depth: 'profunda',
   tools: { web: true, pdf: true, zip: false, code: false },
+  manualOrchestration: {
+    requested_agents: [],
+    required_artifacts: ['python', 'canvas', 'markdown'],
+    depth_profile: 'licenciatura',
+    depth_values: {},
+    custom_rules: []
+  },
   files: [],
   running: false,
   abort: null,
@@ -288,7 +295,8 @@ function saveCfg() {
       customModel: S.customModel,
       audience: S.audience,
       depth: S.depth,
-      tools: S.tools
+      tools: S.tools,
+      manualOrchestration: S.manualOrchestration
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch (e) {}
@@ -303,6 +311,9 @@ function loadCfg() {
     if (c.audience) S.audience = c.audience;
     if (c.depth) S.depth = c.depth;
     if (c.tools) S.tools = c.tools;
+    if (c.manualOrchestration) {
+      S.manualOrchestration = Object.assign(S.manualOrchestration, c.manualOrchestration);
+    }
   } catch (e) {}
 }
 
@@ -2109,14 +2120,19 @@ async function runPipeline(resumeFromStage = null, existingRun = null) {
         doctor: 'doctorado',
         maestro: 'maestria',
         licenciatura: 'licenciatura',
-        publico: 'fundamental'
+        publico: 'introductorio'
       };
+      const manual = S.manualOrchestration || {};
       const depthProfile = {
-        level: depthLevelMap[aud] || 'licenciatura',
-        // La profundidad visual/procedimental de la UI puede complementar el preset.
-        custom_rules: dep === 'profunda'
-          ? ['explicar los saltos matemáticos relevantes', 'proponer representación visual cuando aporte comprensión']
-          : []
+        name: manual.depth_profile || depthLevelMap[aud] || 'licenciatura',
+        level: manual.depth_profile || depthLevelMap[aud] || 'licenciatura',
+        values: manual.depth_values || {},
+        custom_rules: unique([
+          ...(manual.custom_rules || []),
+          ...(dep === 'profunda'
+            ? ['explicar los saltos matemáticos relevantes', 'proponer representación visual cuando aporte comprensión']
+            : [])
+        ])
       };
       const graphResp = await fetch('/api/agent-graph/plan', {
         method: 'POST',
@@ -2126,7 +2142,9 @@ async function runPipeline(resumeFromStage = null, existingRun = null) {
           chat_id: S.activeChatId,
           investigation_id: S.lastRun?.investigation_id || null,
           depth_profile: depthProfile,
-          required_artifacts: ['python', 'canvas', 'markdown'],
+          requested_agents: manual.requested_agents || [],
+          required_artifacts: manual.required_artifacts || ['python', 'canvas', 'markdown'],
+          depth_profile: depthProfile,
           strategy_context: run.strategy_context
         })
       });
@@ -2836,6 +2854,7 @@ function init() {
   $('#apiKey').value = S.key || '';
   updateModelSelect();
   syncChips();
+  initManualOrchestration();
 
   // Enlace chips audiencia
   $$('#audChips .chip').forEach(c => c.onclick = () => {
@@ -3020,7 +3039,82 @@ function syncChips() {
   $$('#depthChips .chip').forEach(c => c.classList.toggle('on', c.dataset.depth === S.depth));
   $$('#toolChips .chip').forEach(c => c.classList.toggle('on', !!S.tools[c.dataset.tool]));
   updateAudHint();
+  syncManualOrchestration();
 }
+
+const MANUAL_DEPTH_DIMENSIONS = [
+  ['rigor','Rigor'],['prerequisites','Prerequisitos'],['formalism','Formalismo'],
+  ['proof','Demostración'],['research','Investigación'],['visualization','Visualización'],
+  ['experimentation','Experimentación'],['generalization','Generalización'],['applications','Aplicaciones']
+];
+const MANUAL_DEPTH_PRESETS = {
+  introductorio:[35,25,20,15,10,45,35,20,40],
+  licenciatura:[70,65,60,65,40,70,55,55,65],
+  maestria:[82,78,78,80,68,78,70,75,75],
+  doctorado:[95,92,94,92,92,88,82,92,84],
+  postdoctorado:[98,96,98,96,97,92,92,97,88],
+  experimental:[78,70,68,60,86,96,98,88,90]
+};
+function initManualOrchestration() {
+  const host = $('#manualDepthSliders');
+  if (!host) return;
+  const profile = S.manualOrchestration || {};
+  if (!profile.depth_values || !Object.keys(profile.depth_values).length) {
+    const preset = MANUAL_DEPTH_PRESETS[profile.depth_profile] || MANUAL_DEPTH_PRESETS.licenciatura;
+    profile.depth_values = Object.fromEntries(MANUAL_DEPTH_DIMENSIONS.map(([k],i)=>[k,preset[i]]));
+  }
+  host.innerHTML = MANUAL_DEPTH_DIMENSIONS.map(([key,label]) => {
+    const value = Number(profile.depth_values[key] ?? 0);
+    return '<label style="display:grid;grid-template-columns:105px 1fr 34px;gap:6px;align-items:center;font-size:11px;margin:5px 0;">' +
+      '<span>'+label+'</span><input type="range" min="0" max="100" value="'+value+'" data-depth-dim="'+key+'"><b id="manualDepthValue_'+key+'">'+value+'</b></label>';
+  }).join('');
+  $('#manualDepthSliders input[type="range"]').forEach(input => input.oninput = () => {
+    profile.depth_values[input.dataset.depthDim] = Number(input.value);
+    const out=$('#manualDepthValue_'+input.dataset.depthDim); if(out) out.textContent=input.value;
+  });
+  const preset=$('#manualDepthPreset');
+  if (preset) {
+    preset.value=profile.depth_profile || 'licenciatura';
+    preset.onchange=()=>applyManualDepthPreset(preset.value);
+  }
+  $('#manualDepthReset')?.addEventListener('click',()=>applyManualDepthPreset($('#manualDepthPreset').value));
+  $('#manualPlanApply')?.addEventListener('click',applyManualOrchestration);
+  $('#manualAgentChips .chip').forEach(c=>c.onclick=()=>{c.classList.toggle('on');});
+  $('#manualArtifactChips .chip').forEach(c=>c.onclick=()=>{c.classList.toggle('on');});
+  syncManualOrchestration();
+}
+function applyManualDepthPreset(name) {
+  const values=MANUAL_DEPTH_PRESETS[name] || MANUAL_DEPTH_PRESETS.licenciatura;
+  S.manualOrchestration.depth_profile=name;
+  S.manualOrchestration.depth_values=Object.fromEntries(MANUAL_DEPTH_DIMENSIONS.map(([k],i)=>[k,values[i]]));
+  initManualOrchestration();
+}
+function syncManualOrchestration() {
+  const p=S.manualOrchestration || {};
+  $('#manualAgentChips .chip').forEach(c=>c.classList.toggle('on',(p.requested_agents||[]).includes(c.dataset.agent)));
+  $('#manualArtifactChips .chip').forEach(c=>c.classList.toggle('on',(p.required_artifacts||[]).includes(c.dataset.artifact)));
+  const status=$('#manualPlanStatus');
+  if(status) status.textContent=(p.requested_agents||[]).length ? ((p.requested_agents||[]).length+' agentes') : 'automática';
+}
+function applyManualOrchestration() {
+  const requested_agents=$('#manualAgentChips .chip.on').map(c=>c.dataset.agent);
+  const required_artifacts=$('#manualArtifactChips .chip.on').map(c=>c.dataset.artifact);
+  const depth_values={};
+  $('#manualDepthSliders input[type="range"]').forEach(i=>depth_values[i.dataset.depthDim]=Number(i.value));
+  const custom_rules=String($('#manualRules')?.value||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  S.manualOrchestration={
+    requested_agents,
+    required_artifacts,
+    depth_profile: $('#manualDepthPreset')?.value || 'licenciatura',
+    depth_values,
+    custom_rules
+  };
+  saveCfg();
+  syncManualOrchestration();
+  toast('✓ Orquestación manual guardada y se aplicará al próximo análisis.');
+  log('Plan manual: '+JSON.stringify(S.manualOrchestration));
+}
+
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
