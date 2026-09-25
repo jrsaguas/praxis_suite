@@ -6,7 +6,7 @@ not models. The runtime may assign Gemini, Ollama or another model to a role.
 """
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Dict, Tuple
+from typing import Tuple
 
 
 @dataclass(frozen=True)
@@ -18,20 +18,21 @@ class AgentSpec:
     depends_on: Tuple[str, ...] = ()
     quality_gates: Tuple[str, ...] = ()
     tool_profile: Tuple[str, ...] = ()
+    archetype_id: str | None = None
 
 
 AGENTS = (
     AgentSpec("intent_router", "clasificar intención y familia matemática", ("user_prompt",), ("intent","task_family")),
     AgentSpec("architect", "diseñar el plan maestro y descomponer el problema", ("user_prompt","intent","task_family","strategy_context"), ("plan",), ("intent_router",), ("plan_valid","dependency_check")),
     AgentSpec("foundation_analyst", "identificar definiciones, axiomas, prerequisitos y notación necesarios", ("plan","knowledge_context"), ("foundations",), ("architect",), ("foundation_coverage",)),
-    AgentSpec("mathematical_resolver", "resolver con desarrollo algebraico/analítico completo", ("plan","foundations","user_prompt"), ("solution",), ("foundation_analyst",), ("symbolic_consistency","step_completeness"), ("sympy",)),
-    AgentSpec("proof_specialist", "construir y revisar demostraciones formales", ("foundations","solution"), ("proofs",), ("mathematical_resolver",), ("proof_completeness","logical_consistency")),
+    AgentSpec("mathematical_resolver", "resolver con desarrollo algebraico/analítico completo", ("plan","foundations","user_prompt"), ("solution",), ("foundation_analyst",), ("symbolic_consistency","step_completeness"), ("sympy",), "math_resolver"),
+    AgentSpec("proof_specialist", "construir y revisar demostraciones formales", ("foundations","solution"), ("proofs",), ("mathematical_resolver",), ("proof_completeness","logical_consistency"), (), "mathematical_proof"),
     AgentSpec("representation_designer", "decidir qué representaciones hacen visible la idea matemática", ("plan","foundations","solution"), ("representation_plan",), ("mathematical_resolver",), ("representation_relevance",)),
-    AgentSpec("python_visualizer", "producir especificaciones/código Python para figuras matemáticas reproducibles", ("representation_plan","solution"), ("python_artifacts",), ("representation_designer",), ("code_syntax","numerical_sanity"), ("python","numpy","sympy","matplotlib")),
-    AgentSpec("canvas_engineer", "crear visores HTML/Canvas/JavaScript interactivos", ("representation_plan","solution"), ("canvas_artifacts",), ("representation_designer",), ("html_safety","interaction_integrity"), ("html","javascript","canvas")),
-    AgentSpec("code_reviewer", "revisar código, reproducibilidad y correspondencia matemática", ("python_artifacts","canvas_artifacts","solution"), ("code_review",), ("python_visualizer","canvas_engineer"), ("code_regression","math_code_alignment")),
-    AgentSpec("research_specialist", "extender el problema con generalizaciones, relaciones y aplicaciones pertinentes", ("plan","foundations","solution"), ("research",), ("proof_specialist",), ("source_traceability",)),
-    AgentSpec("integrator", "integrar teoría, solución, pruebas y representaciones sin perder trazabilidad", ("plan","foundations","solution","proofs","python_artifacts","canvas_artifacts","research"), ("integrated_report",), ("code_reviewer","research_specialist"), ("completeness","traceability")),
+    AgentSpec("python_visualizer", "producir especificaciones/código Python para figuras matemáticas reproducibles", ("representation_plan","solution"), ("python_artifacts",), ("representation_designer",), ("code_syntax","numerical_sanity"), ("python","numpy","sympy","matplotlib"), "python_visualization"),
+    AgentSpec("canvas_engineer", "crear visores HTML/Canvas/JavaScript interactivos", ("representation_plan","solution"), ("canvas_artifacts",), ("representation_designer",), ("html_safety","interaction_integrity"), ("html","javascript","canvas"), "canvas_html"),
+    AgentSpec("code_reviewer", "revisar código, reproducibilidad y correspondencia matemática", ("python_artifacts","canvas_artifacts","solution"), ("code_review",), ("python_visualizer","canvas_engineer"), ("code_regression","math_code_alignment"), (), "code"),
+    AgentSpec("research_specialist", "extender el problema con generalizaciones, relaciones y aplicaciones pertinentes", ("plan","foundations","solution"), ("research",), ("proof_specialist",), ("source_traceability",), (), "research"),
+    AgentSpec("integrator", "integrar teoría, solución, pruebas y representaciones sin perder trazabilidad", ("plan","foundations","solution","proofs","python_artifacts","canvas_artifacts","research"), ("integrated_report",), ("code_reviewer","research_specialist"), ("completeness","traceability"), (), "integrator"),
     AgentSpec("epistemic_reviewer", "auditar afirmaciones, evidencia y certificación", ("integrated_report",), ("epistemic_review",), ("integrator",), ("evidence_gate","cas_gate")),
     AgentSpec("document_engineer", "emitir Markdown canónico y derivados HTML/DOCX/DOC", ("integrated_report","epistemic_review"), ("markdown","html","documents"), ("epistemic_reviewer",), ("markdown_canonical","math_rendering")),
     AgentSpec("final_auditor", "auditar el producto final completo contra requisitos, evidencia, procedimientos y artefactos derivados", ("user_prompt","integrated_report","markdown","html","documents","artifact_manifest","runtime_trace","epistemic_review","cas_certificate","strategy_context"), ("final_audit",), ("document_engineer","epistemic_reviewer"), ("requirements_coverage","factual_consistency","procedure_completeness","artifact_consistency","verification")),
