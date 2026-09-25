@@ -93,6 +93,7 @@ class AgentGraphPlanner:
             spec = registry[agent_id]
             deps = tuple(d for d in spec.depends_on if d in selected)
             missing_tools = tuple(sorted(set(spec.required_tools) - available_tool_set)) if available_tool_set else ()
+            depth_gaps = self._depth_gaps(spec, depth_requirements)
             tasks.append(AgentTask(
                 task_id=f"task:{agent_id}",
                 agent_id=agent_id,
@@ -101,7 +102,7 @@ class AgentGraphPlanner:
                 outputs=spec.outputs,
                 depends_on=tuple(f"task:{d}" for d in deps),
                 quality_gates=spec.quality_gates,
-                status="blocked" if missing_tools else "pending",
+                status="blocked" if (missing_tools or depth_gaps) else "pending",
                 archetype_id=spec.archetype_id,
                 required_tools=spec.required_tools,
                 optional_tools=spec.optional_tools,
@@ -109,6 +110,7 @@ class AgentGraphPlanner:
                 depth_requirements=spec.depth_requirements,
                 delivery_gates=spec.delivery_gates,
                 missing_tools=missing_tools,
+                depth_gaps=depth_gaps,
             ))
         if isinstance(depth_requirements, Mapping):
             depth_payload = dict(depth_requirements)
@@ -136,6 +138,7 @@ class AgentGraphPlanner:
                 "depth_requirements": dict(task.depth_requirements),
                 "delivery_gates": list(task.delivery_gates),
                 "missing_tools": list(task.missing_tools),
+                "depth_gaps": [list(gap) for gap in task.depth_gaps],
             }
             for task in tasks
             if task.archetype_id
@@ -147,6 +150,38 @@ class AgentGraphPlanner:
             {"operational_profiles": operational},
         )
 
+
+    @staticmethod
+    def _depth_gaps(spec: AgentSpec, requirements: Optional[Mapping[str, object]]) -> Tuple[Tuple[str, int, int], ...]:
+        """Return explicit depth deficits against an archetype minimum contract."""
+        if not isinstance(requirements, Mapping) or not spec.depth_requirements:
+            return ()
+        profile = requirements.get("profile")
+        values = dict(profile) if isinstance(profile, Mapping) else {}
+        values.update({k: v for k, v in requirements.items() if k != "profile"})
+        aliases = {
+            "proof": ("proof", "proof_expectation"),
+            "research": ("research", "research_expectation"),
+            "visualization": ("visualization", "visualization_expectation"),
+            "experimentation": ("experimentation", "experimentation_expectation"),
+            "formalism": ("formalism", "formalism_expectation"),
+            "generalization": ("generalization", "generalization_expectation"),
+            "rigor": ("rigor", "rigor_expectation"),
+            "prerequisites": ("prerequisites", "prerequisites_expectation"),
+            "applications": ("applications", "application_expectation"),
+        }
+        gaps = []
+        for dimension, minimum in spec.depth_requirements:
+            supplied = next((values[key] for key in aliases.get(dimension, (dimension,)) if key in values), None)
+            if supplied is None:
+                continue
+            try:
+                actual = int(supplied)
+            except (TypeError, ValueError):
+                continue
+            if actual < int(minimum):
+                gaps.append((dimension, int(minimum), actual))
+        return tuple(gaps)
 
     @staticmethod
     def _agents_required_by_depth(requirements: Mapping[str, object]) -> set[str]:
