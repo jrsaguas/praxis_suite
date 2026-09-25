@@ -1,0 +1,158 @@
+"""Deterministic evidence verifiers for specialist delivery contracts.
+
+These checks inspect produced artifacts instead of trusting an agent's prose
+claim that a gate passed. They are intentionally conservative: unsupported
+verification is reported as missing evidence and therefore cannot authorize a
+handoff.
+"""
+from __future__ import annotations
+
+import ast
+import re
+from typing import Any, Mapping
+
+from agent_delivery import GateEvaluation
+from agent_graph import AgentTask
+
+
+def verify_output(task: AgentTask, output: Mapping[str, Any], phase: str) -> GateEvaluation:
+    required = tuple(task.quality_gates if phase == "quality" else task.delivery_gates)
+    if not required:
+        return GateEvaluation(phase, task.agent_id, True, ())
+
+    evidence = {}
+    failed = []
+    missing = []
+
+    for gate in required:
+        ok, detail = _verify_gate(task.agent_id, gate, output)
+        evidence[gate] = detail
+        if ok is None:
+            missing.append(gate)
+        elif not ok:
+            failed.append(gate)
+
+    return GateEvaluation(
+        phase, task.agent_id, not failed and not missing, required,
+        tuple(failed), tuple(missing), evidence,
+    )
+
+
+def _verify_gate(agent_id: str, gate: str, output: Mapping[str, Any]):
+    # An explicit external gate callback may provide authoritative evidence.
+    supplied = output.get("verified_gates")
+    if isinstance(supplied, Mapping) and gate in supplied:
+        value = supplied[gate]
+        if isinstance(value, Mapping) and value.get("passed") is True:
+            return True, dict(value)
+        if isinstance(value, Mapping):
+            return False, dict(value)
+
+    if agent_id == "code_reviewer":
+        return _code_gate(gate, output)
+    if agent_id == "python_visualizer":
+        return _python_visualization_gate(gate, output)
+    if agent_id == "canvas_engineer":
+        return _canvas_gate(gate, output)
+    if agent_id == "mathematical_resolver":
+        return _math_gate(gate, output)
+    return None, {"reason": f"no deterministic verifier registered for {agent_id}:{gate}"}
+
+
+def _code_gate(gate, output):
+    source = _first(output, "code", "source_code", "python_code")
+    if gate in ("syntax", "code_syntax"):
+        if not isinstance(source, str) or not source.strip():
+            return None, {"reason": "source code artifact unavailable"}
+        try:
+            ast.parse(source)
+            return True, {"method": "ast.parse", "verified": True}
+        except SyntaxError as exc:
+            return False, {"method": "ast.parse", "verified": False, "error": str(exc)}
+    if gate in ("tests", "regression"):
+        tests = output.get("test_results")
+        if isinstance(tests, Mapping):
+            return bool(tests.get("passed") is True), dict(tests)
+        return None, {"reason": "test_results artifact unavailable"}
+    if gate == "requirement_alignment":
+        return _explicit_bool(output, "requirement_alignment")
+    if gate == "reproducibility":
+        return _explicit_bool(output, "reproducibility")
+    return None, {"reason": "unsupported code gate"}
+
+
+def _python_visualization_gate(gate, output):
+    if gate == "code_syntax":
+        return _code_gate("syntax", output)
+    if gate == "numerical_sanity":
+        checks = output.get("numeric_checks")
+        if isinstance(checks, Mapping):
+            return bool(checks.get("passed") is True), dict(checks)
+        return None, {"reason": "numeric_checks artifact unavailable"}
+    if gate == "reproducibility":
+        return _explicit_bool(output, "reproducibility")
+    if gate == "math_code_alignment":
+        return _explicit_bool(output, "math_code_alignment")
+    return None, {"reason": "unsupported visualization gate"}
+
+
+def _canvas_gate(gate, output):
+    html = _first(output, "canvas_html", "html")
+    if gate == "html_safety":
+        if not isinstance(html, str) or not html.strip():
+            return None, {"reason": "HTML artifact unavailable"}
+        dangerous = re.findall(r"<\s*(?:script[^>]*src|iframe|object|embed)\b", html, re.I)
+        return (not dangerous), {"method": "static_html_scan", "external_or_embedded_tags": len(dangerous)}
+    if gate == "interaction_integrity":
+        if not isinstance(html, str) or not html.strip():
+            return None, {"reason": "HTML artifact unavailable"}
+        has_canvas = bool(re.search(r"<\s*canvas\b", html, re.I))
+        has_js = bool(re.search(r"<\s*script\b", html, re.I))
+        return has_canvas and has_js, {"method": "static_html_scan", "canvas": has_canvas, "script": has_js}
+    if gate == "math_rendering":
+        if not isinstance(html, str) or not html.strip():
+            return None, {"reason": "HTML artifact unavailable"}
+        mathjax = "MathJax" in html or "mathjax" in html
+        latex = bool(re.search(r"\\\(|\\\[|\$\$", html))
+        return mathjax or latex, {"method": "static_math_markup_scan", "math_markup": latex, "mathjax": mathjax}
+    if gate == "accessibility":
+        if not isinstance(html, str) or not html.strip():
+            return None, {"reason": "HTML artifact unavailable"}
+        return bool(re.search(r"<\s*(?:main|section|h1|label|title)\b", html, re.I)), {"method": "static_semantic_html_scan"}
+    return None, {"reason": "unsupported canvas gate"}
+
+
+def _math_gate(gate, output):
+    if gate == "symbolic_consistency":
+        certificate = output.get("verification_certificate")
+        if isinstance(certificate, Mapping):
+            return bool(certificate.get("passed") is True), dict(certificate)
+        return None, {"reason": "verification_certificate unavailable"}
+    if gate == "step_completeness":
+        derivation = output.get("derivation")
+        if isinstance(derivation, str):
+            return bool(derivation.strip()), {"method": "derivation_presence", "characters": len(derivation)}
+        return None, {"reason": "derivation artifact unavailable"}
+    if gate == "assumption_traceability":
+        assumptions = output.get("assumptions")
+        if isinstance(assumptions, (list, tuple, str)):
+            return bool(assumptions), {"method": "assumption_artifact_presence"}
+        return None, {"reason": "assumptions artifact unavailable"}
+    return None, {"reason": "unsupported mathematical gate"}
+
+
+def _explicit_bool(output, key):
+    value = output.get(key)
+    if isinstance(value, Mapping):
+        return (value.get("passed") is True), dict(value)
+    if isinstance(value, bool):
+        return value, {"passed": value, "source": key}
+    return None, {"reason": f"{key} evidence unavailable"}
+
+
+def _first(output, *keys):
+    for key in keys:
+        value = output.get(key)
+        if value is not None:
+            return value
+    return None
