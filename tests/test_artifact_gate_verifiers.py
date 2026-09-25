@@ -43,6 +43,22 @@ class ArtifactGateVerifierTests(unittest.TestCase):
         self.assertFalse(result.passed)
         self.assertIn("symbolic_consistency", result.missing_gates)
 
+
+    def test_model_self_reported_math_certificate_cannot_authorize_gate(self):
+        plan = AgentGraphPlanner().plan(requested_agents=["mathematical_resolver"])
+        task = next(t for t in plan.tasks if t.agent_id == "mathematical_resolver")
+        result = verify_output(task, {
+            "derivation": "x + 1 = 2",
+            "assumptions": ["x is real"],
+            "verification_certificate": {"passed": True},
+            "evidence_provenance": {
+                "origin": "model_self_report",
+                "authoritative": False,
+            },
+        }, "delivery")
+        self.assertFalse(result.passed)
+        self.assertIn("symbolic_consistency", result.missing_gates)
+
     def test_unsupported_specialist_gate_is_conservatively_blocked(self):
         plan = AgentGraphPlanner().plan(requested_agents=["research_specialist"])
         task = next(t for t in plan.tasks if t.agent_id == "research_specialist")
