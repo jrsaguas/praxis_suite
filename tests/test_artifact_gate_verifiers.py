@@ -28,7 +28,7 @@ class ArtifactGateVerifierTests(unittest.TestCase):
         task = next(t for t in plan.tasks if t.agent_id == "python_visualizer")
         result = verify_output(task, {
             "python_code": "import math\nprint(math.pi)",
-            "numeric_checks": {"passed": True, "method": "known_value_check"},
+            "numeric_checks": {"expected": 3.141592653589793, "actual": 3.141592653589793, "tolerance": 1e-12},
             "reproducibility": True,
         }, "delivery")
         self.assertTrue(result.passed)
