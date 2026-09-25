@@ -10,6 +10,7 @@ import canvas_synthesizer
 import convert
 from model_gateway import build_agent_prompt, invoke_model
 from agent_artifacts import merge_model_artifacts
+from symbolic_verifier import verify_symbolic_certificate
 
 
 def execute_canvas(task, context: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -48,8 +49,24 @@ def execute_model_agent(task, context: Mapping[str, Any]) -> Mapping[str, Any]:
         raise ValueError(f"No hay modelo asignado para {task.agent_id}")
     spec = registry.get(task.model_id)
     prompt = build_agent_prompt(task, context)
+    # Research and symbolic evidence are acquired independently of the model.
+    if task.agent_id == "research_specialist":
+        from rag_engine import search_arxiv
+        query = str(context.get("user_prompt") or context.get("task") or context.get("solution") or "")
+        retrieved = search_arxiv(query, max_results=4)
+        for item in retrieved:
+            item["retrieved_by"] = "rag_engine.search_arxiv"
+        context = {**context, "retrieved_sources": retrieved}
+
+    prompt = build_agent_prompt(task, context)
     result = invoke_model(spec, prompt, context)
-    return merge_model_artifacts(result, task.agent_id)
+    output = merge_model_artifacts(result, task.agent_id)
+
+    if task.agent_id == "mathematical_resolver":
+        output["cas_certificate"] = verify_symbolic_certificate(
+            output.get("verification_certificate")
+        )
+    return output
 
 def execute_experience_evaluator(task, context):
     from final_auditor import audit_product
