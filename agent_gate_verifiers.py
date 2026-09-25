@@ -13,6 +13,7 @@ from typing import Any, Mapping
 
 from agent_delivery import GateEvaluation
 from agent_graph import AgentTask
+from artifact_execution import verify_numeric_claims
 
 
 def verify_output(task: AgentTask, output: Mapping[str, Any], phase: str) -> GateEvaluation:
@@ -85,10 +86,14 @@ def _python_visualization_gate(gate, output):
     if gate == "code_syntax":
         return _code_gate("syntax", output)
     if gate == "numerical_sanity":
+        authoritative = output.get("execution_numeric_checks")
+        if isinstance(authoritative, Mapping):
+            return bool(authoritative.get("passed") is True), dict(authoritative)
         checks = output.get("numeric_checks")
-        if isinstance(checks, Mapping):
-            return bool(checks.get("passed") is True), dict(checks)
-        return None, {"reason": "numeric_checks artifact unavailable"}
+        if isinstance(checks, Mapping) and "expected" in checks and "actual" in checks:
+            recomputed = verify_numeric_claims(checks)
+            return bool(recomputed.get("passed") is True), recomputed
+        return None, {"reason": "authoritative numeric evidence unavailable"}
     if gate == "reproducibility":
         return _explicit_bool(output, "reproducibility")
     if gate == "math_code_alignment":
