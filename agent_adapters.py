@@ -9,6 +9,7 @@ from typing import Any, Mapping
 import canvas_synthesizer
 import convert
 from model_gateway import build_agent_prompt, invoke_model
+from agent_artifacts import merge_model_artifacts
 
 
 def execute_canvas(task, context: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -48,12 +49,7 @@ def execute_model_agent(task, context: Mapping[str, Any]) -> Mapping[str, Any]:
     spec = registry.get(task.model_id)
     prompt = build_agent_prompt(task, context)
     result = invoke_model(spec, prompt, context)
-    return {
-        "agent_response": result["content"],
-        "model_provider": result["provider"],
-        "model_used": result["model"],
-        "agent_id": task.agent_id,
-    }
+    return merge_model_artifacts(result, task.agent_id)
 
 def execute_experience_evaluator(task, context):
     from final_auditor import audit_product
