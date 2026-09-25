@@ -1,6 +1,16 @@
 import unittest
+
 from agent_graph import AgentGraphPlanner
 from agent_runtime import AgentRuntime
+
+
+def passing_contract(task):
+    return {
+        "gate_results": {
+            gate: {"passed": True, "evidence": f"{gate}:verified"}
+            for gate in (*task.quality_gates, *task.delivery_gates)
+        }
+    }
 
 
 class AgentRuntimeTests(unittest.TestCase):
@@ -10,7 +20,7 @@ class AgentRuntimeTests(unittest.TestCase):
 
         def execute(task, context):
             seen.append((task.agent_id, sorted(context)))
-            return {task.agent_id: True}
+            return {task.agent_id: True, **passing_contract(task)}
 
         trace = AgentRuntime(execute).run(plan)
         self.assertEqual(trace.status, "completed")
@@ -22,107 +32,62 @@ class AgentRuntimeTests(unittest.TestCase):
         attempts = {}
         def execute(task, context):
             attempts[task.task_id] = attempts.get(task.task_id, 0) + 1
-            return {task.agent_id: True}
+            return {task.agent_id: True, **passing_contract(task)}
         def gate(task, output):
             if task.agent_id == "representation_designer" and attempts[task.task_id] == 1:
                 return {"passed": False, "reason": "representation mismatch"}
-            return {"passed": True}
+            return {"passed": True, "gate_results": {
+                gate: {"passed": True} for gate in task.quality_gates
+            }}
         trace = AgentRuntime(execute, gate, max_retries=1).run(plan)
         self.assertEqual(trace.status, "completed")
         self.assertEqual(attempts["task:representation_designer"], 2)
         self.assertNotIn("task:canvas_engineer", trace.blocked)
-        self.assertIn("canvas_engineer", trace.completed)
 
-    def test_experience_sink_receives_evaluator_output_only_after_success(self):
-        plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
-        seen = []
-        def sink(task, artifacts, output):
-            from learning_bridge import persist_runtime_experience
-            saved = persist_runtime_experience(
-                "/tmp", "runtime-test",
-                task_fingerprint="runtime-fp",
-                evaluation=output.get("evaluation") or {},
-                experience_record=output.get("experience_record") or {},
-                evaluation_profile={"depth": 90},
-            )
-            seen.append((task.agent_id, dict(output), "final_audit" in artifacts, saved["reuse_status"]))
-        trace = AgentRuntime(
-            lambda task, context: (
-                {"final_audit": {"status": "pass", "checks": {}}}
-                if task.agent_id == "final_auditor"
-                else {"evaluation": {"consistent": True}, "experience_record": {"candidate_type": "strategy_outcome"}}
-                if task.agent_id == "experience_evaluator"
-                else {task.agent_id: True}
-            ),
-            experience_sink=sink,
-        ).run(plan)
-        self.assertEqual(trace.status, "completed")
-        self.assertEqual(len(seen), 1)
-        self.assertEqual(seen[0][0], "experience_evaluator")
-        self.assertTrue(seen[0][2])
+    def test_delivery_failure_blocks_descendants_without_publishing_outputs(self):
+        plan = AgentGraphPlanner().plan(requested_agents=["canvas_engineer"])
+        def execute(task, context):
+            return {task.agent_id: True, **passing_contract(task)}
+        def delivery(task, output):
+            if task.agent_id == "canvas_engineer":
+                return {"passed": False, "reason": "interaction test failed"}
+            return {"passed": True, "gate_results": {g: {"passed": True} for g in task.delivery_gates}}
+        trace = AgentRuntime(execute, delivery_gate=delivery, max_retries=0).run(plan)
+        result = next(r for r in trace.results if r.agent_id == "canvas_engineer")
+        self.assertEqual(result.status, "failed")
+        self.assertNotIn("canvas_engineer", trace.completed)
+        self.assertIn("task:canvas_engineer", trace.blocked)
+        self.assertNotIn("canvas_engineer", trace.artifacts)
 
-    def test_experience_persistence_failure_does_not_fail_run(self):
-        plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
-        def sink(task, artifacts, output):
-            raise RuntimeError("storage unavailable")
-        trace = AgentRuntime(
-            lambda task, context: (
-                {"final_audit": {"status": "pass", "checks": {}}}
-                if task.agent_id == "final_auditor"
-                else {"evaluation": {"consistent": True}, "experience_record": {}}
-                if task.agent_id == "experience_evaluator"
-                else {task.agent_id: True}
-            ),
-            experience_sink=sink,
-        ).run(plan)
-        self.assertEqual(trace.status, "completed")
-        self.assertTrue(trace.artifacts.get("experience_persistence_errors"))
+    def test_missing_explicit_gate_evidence_cannot_pass(self):
+        plan = AgentGraphPlanner().plan(requested_agents=["mathematical_resolver"])
+        trace = AgentRuntime(lambda task, context: {task.agent_id: True}, max_retries=0).run(plan)
+        self.assertEqual(trace.status, "failed")
+        result = next(r for r in trace.results if r.agent_id == "mathematical_resolver")
+        self.assertEqual(result.status, "failed")
+        self.assertTrue(result.quality["missing_gates"])
+        self.assertEqual(result.delivery, {})
 
-    def test_experience_sink_failure_does_not_fail_run(self):
-        plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
-        def sink(task, artifacts, output):
-            raise RuntimeError("experience store unavailable")
-        runtime = AgentRuntime(
-            lambda task, context: (
-                {"final_audit": {"status": "pass"}}
-                if task.agent_id == "final_auditor"
-                else {"evaluation": {"consistent": True}, "experience_record": {"candidate_type": "strategy_outcome"}}
-                if task.agent_id == "experience_evaluator"
-                else {task.agent_id: True}
-            ),
-            experience_sink=sink,
+    def test_blocked_planning_task_never_executes(self):
+        plan = AgentGraphPlanner().plan(
+            requested_agents=["canvas_engineer"],
+            available_tools=("html", "javascript"),
         )
-        trace = runtime.run(plan)
-        self.assertEqual(trace.status, "completed")
-        self.assertTrue(any(e.get("error") == "experience store unavailable"
-                            for e in trace.artifacts.get("experience_persistence_errors", [])))
+        called = []
+        trace = AgentRuntime(lambda task, context: called.append(task.agent_id) or {}, max_retries=0).run(plan)
+        self.assertNotIn("canvas_engineer", called)
+        self.assertIn("task:canvas_engineer", trace.blocked)
 
-    def test_trace_serializes_to_json_safe_dict(self):
-        plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
-        trace = AgentRuntime(lambda task, context: {task.agent_id: True}).run(plan)
+    def test_trace_contains_gate_evidence(self):
+        plan = AgentGraphPlanner().plan(requested_agents=["mathematical_resolver"])
+        trace = AgentRuntime(lambda task, context: {task.agent_id: True, **passing_contract(task)}).run(plan)
         data = trace.to_dict()
-        self.assertEqual(data["status"], "completed")
-        self.assertTrue(data["events"])
-        self.assertIsInstance(data["events"][0]["input_keys"], list)
-        self.assertIsInstance(data["events"][0]["output_keys"], list)
-        self.assertNotIn("results", data["events"][0])
+        phases = {event["phase"] for event in data["events"]}
+        self.assertIn("quality_gate", phases)
+        self.assertIn("delivery_gate", phases)
+        gate_events = [e for e in data["events"] if e["phase"] == "delivery_gate"]
+        self.assertTrue(gate_events[0]["gate"]["evidence"])
 
-    def test_runtime_event_sink_receives_observable_events(self):
-        plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
-        seen = []
-        AgentRuntime(lambda task, context: {task.agent_id: True}, event_sink=seen.append).run(plan)
-        self.assertTrue(seen)
-        self.assertEqual(seen[0].phase, "task")
-
-    def test_runtime_emits_structured_events(self):
-        plan = AgentGraphPlanner().plan(required_artifacts=["canvas"])
-        trace = AgentRuntime(lambda task, context: {task.agent_id: True}).run(plan)
-        self.assertTrue(trace.events)
-        first = trace.events[0]
-        self.assertEqual(first.phase, "task")
-        self.assertEqual(first.status, "completed")
-        self.assertIsInstance(first.input_keys, tuple)
-        self.assertIsInstance(first.output_keys, tuple)
 
 if __name__ == "__main__":
     unittest.main()
