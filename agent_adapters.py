@@ -48,7 +48,6 @@ def execute_model_agent(task, context: Mapping[str, Any]) -> Mapping[str, Any]:
     if not task.model_id:
         raise ValueError(f"No hay modelo asignado para {task.agent_id}")
     spec = registry.get(task.model_id)
-    prompt = build_agent_prompt(task, context)
     # Research and symbolic evidence are acquired independently of the model.
     if task.agent_id == "research_specialist":
         from rag_engine import search_arxiv
