@@ -43,6 +43,22 @@ class ArtifactGateVerifierTests(unittest.TestCase):
         self.assertFalse(result.passed)
         self.assertIn("symbolic_consistency", result.missing_gates)
 
+    def test_math_resolver_accepts_independently_recomputed_identity(self):
+        plan = AgentGraphPlanner().plan(requested_agents=["mathematical_resolver"])
+        task = next(t for t in plan.tasks if t.agent_id == "mathematical_resolver")
+        result = verify_output(task, {
+            "derivation": "expand the square",
+            "assumptions": ["x is real"],
+            "verification_certificate": {
+                "claim_type": "identity",
+                "variables": ["x"],
+                "lhs": "(x + 1)**2",
+                "rhs": "x**2 + 2*x + 1",
+                "passed": False,
+            },
+        }, "delivery")
+        self.assertTrue(result.passed)
+        self.assertEqual(result.evidence["symbolic_consistency"]["verified_by"], "independent_cas")
 
     def test_model_self_reported_math_certificate_cannot_authorize_gate(self):
         plan = AgentGraphPlanner().plan(requested_agents=["mathematical_resolver"])
@@ -57,7 +73,23 @@ class ArtifactGateVerifierTests(unittest.TestCase):
             },
         }, "delivery")
         self.assertFalse(result.passed)
-        self.assertIn("symbolic_consistency", result.missing_gates)
+        self.assertIn("symbolic_consistency", result.failed_gates)
+
+    def test_research_gate_requires_retrieved_source_provenance(self):
+        plan = AgentGraphPlanner().plan(requested_agents=["research_specialist"])
+        task = next(t for t in plan.tasks if t.agent_id == "research_specialist")
+        result = verify_output(task, {
+            "retrieved_sources": [{
+                "title": "A",
+                "year": "2026",
+                "abstract": "abstract",
+                "pdf_url": "https://arxiv.org/pdf/1",
+                "retrieved_by": "rag_engine.search_arxiv",
+            }],
+            "source_map": [{"claim": "A", "source_title": "A"}],
+            "citations": [{"title": "A", "url": "https://arxiv.org/pdf/1"}],
+        }, "delivery")
+        self.assertTrue(result.passed)
 
     def test_unsupported_specialist_gate_is_conservatively_blocked(self):
         plan = AgentGraphPlanner().plan(requested_agents=["research_specialist"])
