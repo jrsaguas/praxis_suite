@@ -7,6 +7,7 @@ the provider call and returns observable metadata plus the model response.
 from __future__ import annotations
 import json, os, urllib.request, urllib.error
 from typing import Any, Mapping, Optional
+from agent_artifacts import build_structured_instruction
 
 class ModelGatewayError(RuntimeError):
     pass
@@ -70,5 +71,7 @@ def build_agent_prompt(task, context: Mapping[str, Any]) -> str:
         f"Objetivo: ejecutar su responsabilidad contractual.\n"
         f"Salidas esperadas: {', '.join(task.outputs)}\n"
         f"Puertas de calidad: {', '.join(task.quality_gates)}\n"
+        f"Puertas de entrega: {', '.join(getattr(task, 'delivery_gates', ())) }\n"
+        f"Contrato de respuesta: {build_structured_instruction(task.agent_id)}\n"
         "Contexto de entrada:\n" + json.dumps(allowed, ensure_ascii=False, indent=2)
     )
