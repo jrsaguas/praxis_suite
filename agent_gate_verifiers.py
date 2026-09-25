@@ -152,9 +152,57 @@ def _math_gate(gate, output):
 
 
 def _research_gate(gate, output):
+    retrieved = output.get("retrieved_sources")
     if gate == "source_traceability":
-        result = verify_research_evidence(output.get("retrieved_sources"))
+        result = verify_research_evidence(retrieved)
         return bool(result.get("passed") is True), result
+
+    if not isinstance(retrieved, list) or not retrieved:
+        return None, {"reason": "retrieved_sources unavailable"}
+
+    source_keys = set()
+    for item in retrieved:
+        if isinstance(item, Mapping):
+            for key in ("title", "pdf_url"):
+                if item.get(key):
+                    source_keys.add(str(item[key]).strip())
+
+    if gate == "claim_support":
+        source_map = output.get("source_map")
+        citations = output.get("citations")
+        if not isinstance(source_map, (list, tuple)) or not isinstance(citations, (list, tuple)):
+            return None, {"reason": "source_map_or_citations unavailable"}
+        references = []
+        for item in list(source_map) + list(citations):
+            if isinstance(item, Mapping):
+                references.extend(str(item.get(k)).strip() for k in ("title", "source", "source_title", "url", "pdf_url") if item.get(k))
+            elif isinstance(item, str):
+                references.append(item.strip())
+        grounded = [ref for ref in references if ref in source_keys]
+        return bool(grounded), {
+            "method": "retrieved_source_reference_match",
+            "grounded_references": len(grounded),
+            "reference_count": len(references),
+        }
+
+    if gate == "date_relevance":
+        import datetime as _dt
+        years = []
+        for item in retrieved:
+            if not isinstance(item, Mapping):
+                continue
+            try:
+                years.append(int(str(item.get("year", ""))[:4]))
+            except (TypeError, ValueError):
+                return False, {"method": "retrieved_source_date_check", "reason": "invalid_year"}
+        current_year = _dt.datetime.now(_dt.timezone.utc).year
+        passed = bool(years) and all(1900 <= year <= current_year for year in years)
+        return passed, {
+            "method": "retrieved_source_date_check",
+            "years": years,
+            "current_year": current_year,
+        }
+
     return None, {"reason": "unsupported research gate"}
 
 
