@@ -114,6 +114,7 @@ class AdaptiveGraphBridge:
             if item.get("strategy", {}).get("strategy_id")
         ]
         planning_metadata = {
+            "operational_profiles": dict(plan.planning_metadata.get("operational_profiles") or {}),
             "adaptive_selection": {
                 **decision.to_dict(),
                 "selected_reusable_agents": [spec.id for spec in reusable_specs],
