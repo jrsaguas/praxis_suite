@@ -1,7 +1,6 @@
 import unittest
 
 from adaptive_agent import AdaptiveRequest
-from agent_architect import AgentArchitect
 from agent_catalog import AgentCatalog
 from adaptive_graph import AdaptiveGraphBridge
 from agent_factory import AgentFactory
@@ -30,20 +29,13 @@ class TestAdaptiveGraphArchetypes(unittest.TestCase):
             requirements=("canvas",),
             tools=("canvas", "javascript"),
         )
-        result = AdaptiveGraphBridge(catalog=catalog).plan(request)
-        dynamic = next(
-            spec for spec in result.execution_plan.tasks
-            if spec.agent_id == "canvas-reusable"
+        bridge = AdaptiveGraphBridge(catalog=catalog)
+        result = bridge.plan(request)
+        self.assertTrue(
+            any(task.agent_id == "canvas-reusable" for task in result.execution_plan.tasks)
         )
-        self.assertEqual(dynamic.agent_id, "canvas-reusable")
-        self.assertEqual(
-            next(
-                spec.archetype_id
-                for spec in [catalog.get("canvas-reusable")]
-                if spec is not None
-            ),
-            "canvas_html",
-        )
+        spec = bridge._blueprint_to_spec("canvas-reusable")
+        self.assertEqual(spec.archetype_id, "canvas_html")
 
 
 if __name__ == "__main__":
