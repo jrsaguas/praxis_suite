@@ -20,6 +20,13 @@ class AgentTask:
     quality_gates: Tuple[str, ...]
     status: str = "pending"
     model_id: Optional[str] = None
+    archetype_id: Optional[str] = None
+    required_tools: Tuple[str, ...] = ()
+    optional_tools: Tuple[str, ...] = ()
+    model_capabilities: Tuple[str, ...] = ()
+    depth_requirements: Tuple[Tuple[str, int], ...] = ()
+    delivery_gates: Tuple[str, ...] = ()
+    missing_tools: Tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -46,6 +53,7 @@ class AgentGraphPlanner:
         depth_requirements: Optional[Mapping[str, object]] = None,
         model_overrides: Optional[Mapping[str, str]] = None,
         additional_agents: Iterable[AgentSpec] = (),
+        available_tools: Iterable[str] = (),
     ) -> ExecutionPlan:
         additional = tuple(additional_agents)
         registry = dict(self._agents)
@@ -74,6 +82,7 @@ class AgentGraphPlanner:
         selected = self._closure_with_registry(selected, set(), registry)
         tasks = []
         overrides = dict(model_overrides or {})
+        available_tool_set = {str(x) for x in available_tools}
         try:
             from model_registry import ModelRouter
             router = ModelRouter()
@@ -82,6 +91,7 @@ class AgentGraphPlanner:
         for agent_id in self._topological(selected, registry):
             spec = registry[agent_id]
             deps = tuple(d for d in spec.depends_on if d in selected)
+            missing_tools = tuple(sorted(set(spec.required_tools) - available_tool_set)) if available_tool_set else ()
             tasks.append(AgentTask(
                 task_id=f"task:{agent_id}",
                 agent_id=agent_id,
@@ -90,6 +100,14 @@ class AgentGraphPlanner:
                 outputs=spec.outputs,
                 depends_on=tuple(f"task:{d}" for d in deps),
                 quality_gates=spec.quality_gates,
+                status="blocked" if missing_tools else "pending",
+                archetype_id=spec.archetype_id,
+                required_tools=spec.required_tools,
+                optional_tools=spec.optional_tools,
+                model_capabilities=spec.model_capabilities,
+                depth_requirements=spec.depth_requirements,
+                delivery_gates=spec.delivery_gates,
+                missing_tools=missing_tools,
             ))
         if isinstance(depth_requirements, Mapping):
             depth_payload = dict(depth_requirements)
@@ -108,7 +126,25 @@ class AgentGraphPlanner:
                 "strategy_bias": reference_bias,
                 "selection_policy": experience_context.get("selection_policy", "evidence_weighted_multi_reference"),
             }
-        return ExecutionPlan(tuple(tasks), tuple(a.agent_id for a in tasks), depth_payload)
+        operational = {
+            task.agent_id: {
+                "archetype_id": task.archetype_id,
+                "required_tools": list(task.required_tools),
+                "optional_tools": list(task.optional_tools),
+                "model_capabilities": list(task.model_capabilities),
+                "depth_requirements": dict(task.depth_requirements),
+                "delivery_gates": list(task.delivery_gates),
+                "missing_tools": list(task.missing_tools),
+            }
+            for task in tasks
+            if task.archetype_id
+        }
+        return ExecutionPlan(
+            tuple(tasks),
+            tuple(a.agent_id for a in tasks),
+            depth_payload,
+            {"operational_profiles": operational},
+        )
 
 
     @staticmethod
