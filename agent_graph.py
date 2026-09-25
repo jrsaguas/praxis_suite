@@ -27,6 +27,7 @@ class AgentTask:
     depth_requirements: Tuple[Tuple[str, int], ...] = ()
     delivery_gates: Tuple[str, ...] = ()
     missing_tools: Tuple[str, ...] = ()
+    depth_gaps: Tuple[Tuple[str, int, int], ...] = ()
 
 
 @dataclass(frozen=True)
