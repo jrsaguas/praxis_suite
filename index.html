@@ -575,6 +575,48 @@ ol.steps-list{padding-left:1.2em} ol.steps-list li{margin:.4em 0}
         <span class="chip" data-tool="code">⌨️ Código</span>
       </div>
       <div class="hint">Adjunta fuentes en el compositor; la IA las integra al análisis.</div>
+      <div class="sect-label" style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;">
+        <span>🎛 Orquestación manual</span><span class="hint" id="manualPlanStatus" style="margin:0">automática</span>
+      </div>
+      <details id="manualOrchestration" style="border:1px solid var(--line);border-radius:10px;background:var(--card);padding:8px 10px;margin-bottom:10px;">
+        <summary style="cursor:pointer;font-weight:700;font-size:12px;">Agentes, artefactos y profundidad multidimensional</summary>
+        <div style="margin-top:10px;">
+          <div class="hint" style="margin-bottom:6px;">Agentes especialistas solicitados explícitamente:</div>
+          <div class="chips" id="manualAgentChips" style="gap:5px;">
+            <span class="chip" data-agent="code">Código</span>
+            <span class="chip" data-agent="python_visualization">Python/Visualización</span>
+            <span class="chip" data-agent="canvas_html">HTML/Canvas</span>
+            <span class="chip" data-agent="mathematical_proof">Demostración</span>
+            <span class="chip" data-agent="research">Investigación</span>
+            <span class="chip" data-agent="math_resolver">Resolución matemática</span>
+            <span class="chip" data-agent="integrator">Integrador</span>
+          </div>
+          <div class="hint" style="margin:10px 0 6px;">Artefactos obligatorios:</div>
+          <div class="chips" id="manualArtifactChips" style="gap:5px;">
+            <span class="chip on" data-artifact="python">Python</span>
+            <span class="chip on" data-artifact="canvas">Canvas</span>
+            <span class="chip on" data-artifact="markdown">Markdown</span>
+            <span class="chip" data-artifact="proofs">Pruebas</span>
+            <span class="chip" data-artifact="research_evidence">Evidencia</span>
+            <span class="chip" data-artifact="integrated_report">Informe integrado</span>
+          </div>
+          <div class="hint" style="margin:10px 0 6px;">Perfil de profundidad:</div>
+          <select class="inp" id="manualDepthPreset">
+            <option value="introductorio">Introductorio</option>
+            <option value="licenciatura" selected>Licenciatura</option>
+            <option value="maestria">Maestría</option>
+            <option value="doctorado">Doctorado</option>
+            <option value="postdoctorado">Postdoctorado</option>
+            <option value="experimental">Experimental</option>
+          </select>
+          <div id="manualDepthSliders" style="margin-top:8px;"></div>
+          <textarea class="inp" id="manualRules" rows="3" placeholder="Reglas adicionales del orquestador (una por línea)…" style="margin-top:8px;resize:vertical;"></textarea>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button class="btn ghost sm" type="button" id="manualDepthReset">↺ Preset</button>
+            <button class="btn primary sm" type="button" id="manualPlanApply">✓ Aplicar al plan</button>
+          </div>
+        </div>
+      </details>
 
             <div class="sect-label">Base de Conocimiento</div>
       <button class="btn ghost block sm" id="openKbBtn" onclick="openKnowledgeModal()" style="margin-bottom:8px">📚 Biblioteca (<span id="kbCount">0</span>)</button>
